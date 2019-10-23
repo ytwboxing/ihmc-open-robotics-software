@@ -61,17 +61,19 @@ public class UDPServer implements Runnable
       client.start();      
       */
       
+      /*
       //UDPDataSender testing
       UDPDataSender sender = new UDPDataSender();  
       int counter = 0;
       while(true) {
          sender.sendDistance(++counter);
+         System.out.println("sent: " + counter);
          try {
             Thread.sleep(1500);            
          }
          catch (Exception e) {
             e.printStackTrace();
          }
-      }      
+      }*/
    }
 }
