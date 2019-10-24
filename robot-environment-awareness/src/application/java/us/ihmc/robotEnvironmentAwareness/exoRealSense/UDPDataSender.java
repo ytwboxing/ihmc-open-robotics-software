@@ -7,8 +7,8 @@ import java.net.InetAddress;
 public class UDPDataSender
 {
    //params
-   //final String IPAddressString = "192.168.0.11";   
-   final String IPAddressString = "127.0.0.1";   
+   final String IPAddressString = "192.168.0.11";   
+   //final String IPAddressString = "127.0.0.1";   
    final int port = 6669;    
    
    //variables

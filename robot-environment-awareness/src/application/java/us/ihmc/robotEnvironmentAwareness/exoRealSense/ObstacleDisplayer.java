@@ -23,6 +23,7 @@ import us.ihmc.robotEnvironmentAwareness.communication.KryoMessager;
 import us.ihmc.robotEnvironmentAwareness.communication.REACommunicationProperties;
 import us.ihmc.robotEnvironmentAwareness.communication.REAModuleAPI;
 import us.ihmc.robotEnvironmentAwareness.io.FilePropertyHelper;
+import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionSegmentationParameters;
 import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools;
 import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools.ExceptionHandling;
 import us.ihmc.robotEnvironmentAwareness.ui.graphicsBuilders.OcTreeMeshBuilder.DisplayType;
@@ -35,7 +36,7 @@ import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.ros2.Ros2Node;
 
 /*
- * main class that connect realsense D415 (RosNodeWithD415BridgeToRos2), runs point cloud through planar region finder (todo JOBY), evaluate obstacles (obstacleDistance) and present them to hololense
+ * main class that connect realsense D415 (RosNodeWithD415BridgeToRos2), runs point cloud through planar region finder (most of this class), evaluate obstacles (obstacleDistance) and present them to hololense
  */
 public class ObstacleDisplayer
 {   
@@ -108,6 +109,8 @@ public class ObstacleDisplayer
       reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, false);
       reaMessager.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
       
+      //reaMessager.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse("lala")); //todo JOBY here I can send new params
+            
       sender = new UDPDataSender();
    }
 
