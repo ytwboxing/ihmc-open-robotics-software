@@ -23,19 +23,19 @@ import us.ihmc.utilities.ros.subscriber.RosPointCloudSubscriber.UnpackedPointClo
 public class RealSenseBridgeRos2 extends AbstractRosTopicSubscriber<PointCloud2>
 {
    //params
-   private static final int MAX_NUMBER_OF_POINTS = 200000;
-   private static final String Up2URI = "http://192.168.137.2:11311";
-
+   private static int MAX_NUMBER_OF_POINTS;
+   
    //constructor
-   public RealSenseBridgeRos2(Ros2Node ros2Node) throws URISyntaxException
+   public RealSenseBridgeRos2(String sourceURI, String rosWrapperTopic, Ros2Node ros2Node, String ros2Topic, int maxNumberOfPoints) throws URISyntaxException
    {
       super(PointCloud2._TYPE);
-      URI masterURI = new URI(Up2URI);
+      URI masterURI = new URI(sourceURI);
       RosMainNode rosMainNode = new RosMainNode(masterURI, "StereoVisionPublisher", true);
-      rosMainNode.attachSubscriber("/camera/depth/color/points", this);
+      rosMainNode.attachSubscriber(rosWrapperTopic, this);
       rosMainNode.execute();
-      
-      stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
+
+      RealSenseBridgeRos2.MAX_NUMBER_OF_POINTS = maxNumberOfPoints;
+      stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ros2Topic);
    }
 
    //variables   

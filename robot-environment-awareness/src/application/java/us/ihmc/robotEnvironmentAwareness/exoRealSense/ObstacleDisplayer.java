@@ -42,6 +42,9 @@ public class ObstacleDisplayer
 {   
    //variables
    private static Ros2Node ros2Node;
+   private static RealSenseBridgeRos2 bridgeLeft;
+   private static RealSenseBridgeRos2 bridgeRight;
+   //todo JOBY finish rewriting for 2 cameras
 
    private static final int THREAD_PERIOD_MILLISECONDS = 200;
    private static final int BUFFER_THREAD_PERIOD_MILLISECONDS = 10;
@@ -66,8 +69,22 @@ public class ObstacleDisplayer
    {
       try {
          ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
-         new RealSenseBridgeRos2(ros2Node); //connection to realsense D415         
-
+         //connection to realsense D415   
+         new RealSenseBridgeRos2("http://192.168.137.2:11311", "/camera/depth/color/points", ros2Node, ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class), 200000); 
+         /*
+         bridgeLeft = new RealSenseBridgeRos2(
+                      "http://192.168.137.2:11311"
+                      , "/cameraLeft/depth/color/points"
+                      , ros2Node
+                      , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Left"
+                      , 200000);   
+         bridgeRight = new RealSenseBridgeRos2(
+                       "http://192.168.137.2:11311"
+                       , "/cameraRight/depth/color/points"
+                       , ros2Node
+                       , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
+                       , 200000);       
+         */
          ObstacleDisplayer module = ObstacleDisplayer.createIntraprocessModule();
          module.start();         
       }
@@ -95,8 +112,7 @@ public class ObstacleDisplayer
 
       reaMessager.registerTopicListener(REAModuleAPI.SaveBufferConfiguration, (content) -> stereoVisionBufferUpdater.saveConfiguration(filePropertyHelper));
       reaMessager.registerTopicListener(REAModuleAPI.SaveMainUpdaterConfiguration, (content) -> mainUpdater.saveConfiguration(filePropertyHelper));
-      reaMessager.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration,
-                                        (content) -> planarRegionFeatureUpdater.saveConfiguration(filePropertyHelper));
+      reaMessager.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration, (content) -> planarRegionFeatureUpdater.saveConfiguration(filePropertyHelper));
 
       planarRegionNetworkProvider = new REAPlanarRegionPublicNetworkProvider(reaMessager, planarRegionFeatureUpdater, ros2Node, publisherTopicNameGenerator,
                                                                              subscriberTopicNameGenerator);
@@ -109,7 +125,7 @@ public class ObstacleDisplayer
       reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, false);
       reaMessager.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
       
-      //reaMessager.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse("lala")); //todo JOBY here I can send new params
+      //reaMessager.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse("lala")); //todo JOBY here I can send new params and tweak planar region
             
       sender = new UDPDataSender();
    }
@@ -169,8 +185,7 @@ public class ObstacleDisplayer
    /*
     * returns -1 if there is no obstacle otherwise return distance to obstacle
     */
-   private double obstacleDistance(PlanarRegionsList planarRegionsList) {
-      
+   private double obstacleDistance(PlanarRegionsList planarRegionsList) {      
       //params
       double distance = -1.0;            
       double positiveAngle = 135;
