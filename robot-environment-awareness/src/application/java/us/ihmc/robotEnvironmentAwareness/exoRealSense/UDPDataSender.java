@@ -5,31 +5,27 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 
 public class UDPDataSender
-{
-   //params
-   final String IPAddressString = "192.168.0.11";   
-   //final String IPAddressString = "127.0.0.1";   
-   final int port = 6669;    
-   
+{   
    //variables
    DatagramSocket socket; 
    InetAddress IPAddress;  
+   int port;   
    
-   public UDPDataSender() {
+   public UDPDataSender(String IPAddressString, int port) {
       try {
          socket = new DatagramSocket(port+1);   
          IPAddress = InetAddress.getByName(IPAddressString);
+         this.port = port;
       }
       catch (Exception e) {
          e.printStackTrace();
       }
    }
    
-   public void sendDistance(double distance) {
+   public void sendDistance(String distance) {
       try
       {
-         String dataString = String.valueOf(distance); 
-         byte[] sendData = dataString.getBytes();
+         byte[] sendData = distance.getBytes();
          DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
          socket.send(sendPacket);   
       }

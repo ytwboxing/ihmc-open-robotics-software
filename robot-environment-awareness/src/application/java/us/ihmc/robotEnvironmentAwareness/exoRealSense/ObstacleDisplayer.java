@@ -36,7 +36,7 @@ import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.ros2.Ros2Node;
 
 /*
- * main class that connect realsense D415 (RosNodeWithD415BridgeToRos2), runs point cloud through planar region finder (most of this class), evaluate obstacles (obstacleDistance) and present them to hololense
+ * main class that connect realsense D435 (RealSenseBridgeRos2), runs point cloud through planar region finder (most of this class), evaluate obstacles (function obstacleDistance) and present them to hololense (UDPDataSender) 
  */
 public class ObstacleDisplayer
 {   
@@ -52,17 +52,21 @@ public class ObstacleDisplayer
 
    protected static final boolean DEBUG = true;
    
-   private final REAOcTreeBuffer stereoVisionBufferUpdater;
-   private final REAOcTreeUpdater mainUpdater; 
-   private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdater;
+   private final REAOcTreeBuffer stereoVisionBufferUpdaterLeft;
+   private final REAOcTreeUpdater mainUpdaterLeft; 
+   private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdaterLeft;
+   private final REAPlanarRegionPublicNetworkProvider planarRegionNetworkProviderLeft;   
 
-   private final REAPlanarRegionPublicNetworkProvider planarRegionNetworkProvider;
+   private final REAOcTreeBuffer stereoVisionBufferUpdaterRight;
+   private final REAOcTreeUpdater mainUpdaterRight; 
+   private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdaterRight;
+   private final REAPlanarRegionPublicNetworkProvider planarRegionNetworkProviderRight;
 
    private ScheduledExecutorService executorService = ExecutorServiceTools.newScheduledThreadPool(2, getClass(), ExceptionHandling.CATCH_AND_REPORT);
    private ScheduledFuture<?> scheduled;
    private final Messager reaMessager;  
    
-   private UDPDataSender sender;
+   private static UDPDataSender sender;
    
    //functions
    public static void main(String[] args)
@@ -70,22 +74,25 @@ public class ObstacleDisplayer
       try {
          ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
          //connection to realsense D415   
-         new RealSenseBridgeRos2("http://192.168.137.2:11311", "/camera/depth/color/points", ros2Node, ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class), 200000); 
-         /*
+         //new RealSenseBridgeRos2("http://192.168.137.2:11311", "/camera/depth/color/points", ros2Node, ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class), 200000);        
          bridgeLeft = new RealSenseBridgeRos2(
                       "http://192.168.137.2:11311"
-                      , "/cameraLeft/depth/color/points"
+                      , "/cam_1/depth/color/points"
                       , ros2Node
                       , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Left"
                       , 200000);   
+         
          bridgeRight = new RealSenseBridgeRos2(
-                       "http://192.168.137.2:11311"
-                       , "/cameraRight/depth/color/points"
-                       , ros2Node
-                       , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
-                       , 200000);       
-         */
+                      "http://192.168.137.2:11311"
+                      , "/cam_2/depth/color/points"
+                      , ros2Node
+                      , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
+                      , 20001);       
+         
          ObstacleDisplayer module = ObstacleDisplayer.createIntraprocessModule();
+         
+         sender = new UDPDataSender("192.168.0.11", 6669);
+         
          module.start();         
       }
       catch (Exception ex) {
@@ -96,26 +103,44 @@ public class ObstacleDisplayer
    private ObstacleDisplayer(Messager reaMessager, File configurationFile) throws IOException
    {
       this.reaMessager = reaMessager;
-                                                   
-      stereoVisionBufferUpdater = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessager, REAModuleAPI.StereoVisionBufferEnable, false,
+
+      stereoVisionBufferUpdaterLeft = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessager, REAModuleAPI.StereoVisionBufferEnable, false,
                                                       REAModuleAPI.StereoVisionBufferOcTreeCapacity, 1000000, REAModuleAPI.StereoVisionBufferMessageCapacity, 1,
                                                       REAModuleAPI.RequestStereoVisionBuffer, REAModuleAPI.StereoVisionBufferState);
-      REAOcTreeBuffer[] bufferUpdaters = new REAOcTreeBuffer[] { stereoVisionBufferUpdater};
-      mainUpdater = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdaters, reaMessager);
-      planarRegionFeatureUpdater = new REAPlanarRegionFeatureUpdater(reaMessager);
+      stereoVisionBufferUpdaterRight = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessager, REAModuleAPI.StereoVisionBufferEnable, false,
+                                                          REAModuleAPI.StereoVisionBufferOcTreeCapacity, 1000000, REAModuleAPI.StereoVisionBufferMessageCapacity, 1,
+                                                          REAModuleAPI.RequestStereoVisionBuffer, REAModuleAPI.StereoVisionBufferState);
+      REAOcTreeBuffer[] bufferUpdatersLeft = new REAOcTreeBuffer[] { stereoVisionBufferUpdaterLeft};
+      REAOcTreeBuffer[] bufferUpdatersRight = new REAOcTreeBuffer[] { stereoVisionBufferUpdaterRight};
+      mainUpdaterLeft = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdatersLeft, reaMessager);
+      mainUpdaterRight = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdatersRight, reaMessager);
+      planarRegionFeatureUpdaterLeft = new REAPlanarRegionFeatureUpdater(reaMessager);
+      planarRegionFeatureUpdaterRight = new REAPlanarRegionFeatureUpdater(reaMessager);
 
-      ROS2Tools.createCallbackSubscription(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator(),
-                                           this::dispatchStereoVisionPointCloudMessage);
+      ROS2Tools.createCallbackSubscription(ros2Node
+                                           , StereoVisionPointCloudMessage.class
+                                           , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Left"
+                                           , this::dispatchStereoVisionPointCloudMessageLeft);
+      ROS2Tools.createCallbackSubscription(ros2Node
+                                           , StereoVisionPointCloudMessage.class
+                                           , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
+                                           , this::dispatchStereoVisionPointCloudMessageRight);
 
       FilePropertyHelper filePropertyHelper = new FilePropertyHelper(configurationFile);
       loadConfigurationFile(filePropertyHelper);
 
-      reaMessager.registerTopicListener(REAModuleAPI.SaveBufferConfiguration, (content) -> stereoVisionBufferUpdater.saveConfiguration(filePropertyHelper));
-      reaMessager.registerTopicListener(REAModuleAPI.SaveMainUpdaterConfiguration, (content) -> mainUpdater.saveConfiguration(filePropertyHelper));
-      reaMessager.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration, (content) -> planarRegionFeatureUpdater.saveConfiguration(filePropertyHelper));
-
-      planarRegionNetworkProvider = new REAPlanarRegionPublicNetworkProvider(reaMessager, planarRegionFeatureUpdater, ros2Node, publisherTopicNameGenerator,
+      reaMessager.registerTopicListener(REAModuleAPI.SaveBufferConfiguration, (content) -> stereoVisionBufferUpdaterLeft.saveConfiguration(filePropertyHelper));
+      reaMessager.registerTopicListener(REAModuleAPI.SaveMainUpdaterConfiguration, (content) -> mainUpdaterLeft.saveConfiguration(filePropertyHelper));
+      reaMessager.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration, (content) -> planarRegionFeatureUpdaterLeft.saveConfiguration(filePropertyHelper));
+      
+      reaMessager.registerTopicListener(REAModuleAPI.SaveBufferConfiguration, (content) -> stereoVisionBufferUpdaterRight.saveConfiguration(filePropertyHelper));
+      reaMessager.registerTopicListener(REAModuleAPI.SaveMainUpdaterConfiguration, (content) -> mainUpdaterRight.saveConfiguration(filePropertyHelper));
+      reaMessager.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration, (content) -> planarRegionFeatureUpdaterRight.saveConfiguration(filePropertyHelper));
+      
+      planarRegionNetworkProviderLeft = new REAPlanarRegionPublicNetworkProvider(reaMessager, planarRegionFeatureUpdaterLeft, ros2Node, publisherTopicNameGenerator,
                                                                              subscriberTopicNameGenerator);
+      planarRegionNetworkProviderRight = new REAPlanarRegionPublicNetworkProvider(reaMessager, planarRegionFeatureUpdaterRight, ros2Node, publisherTopicNameGenerator,
+                                                                                 subscriberTopicNameGenerator);
 
       // At the very end, we force the modules to submit their state so duplicate inputs have consistent values.
       reaMessager.submitMessage(REAModuleAPI.RequestEntireModuleState, true); 
@@ -127,21 +152,31 @@ public class ObstacleDisplayer
       
       //reaMessager.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse("lala")); //todo JOBY here I can send new params and tweak planar region
             
-      sender = new UDPDataSender();
    }
 
-   private void dispatchStereoVisionPointCloudMessage(Subscriber<StereoVisionPointCloudMessage> subscriber)
+   private void dispatchStereoVisionPointCloudMessageLeft(Subscriber<StereoVisionPointCloudMessage> subscriber)
    {
       StereoVisionPointCloudMessage message = subscriber.takeNextData();
-      stereoVisionBufferUpdater.handleStereoVisionPointCloudMessage(message);      
-      mainUpdater.handleStereoVisionPointCloudMessage(message);
+      stereoVisionBufferUpdaterLeft.handleStereoVisionPointCloudMessage(message);      
+      mainUpdaterLeft.handleStereoVisionPointCloudMessage(message);
+   }
+   
+   private void dispatchStereoVisionPointCloudMessageRight(Subscriber<StereoVisionPointCloudMessage> subscriber)
+   {
+      StereoVisionPointCloudMessage message = subscriber.takeNextData();
+      stereoVisionBufferUpdaterRight.handleStereoVisionPointCloudMessage(message);      
+      mainUpdaterRight.handleStereoVisionPointCloudMessage(message);
    }
 
    private void loadConfigurationFile(FilePropertyHelper filePropertyHelper)
    {
-      stereoVisionBufferUpdater.loadConfiguration(filePropertyHelper);
-      mainUpdater.loadConfiguration(filePropertyHelper);
-      planarRegionFeatureUpdater.loadConfiguration(filePropertyHelper);
+      stereoVisionBufferUpdaterLeft.loadConfiguration(filePropertyHelper);
+      mainUpdaterLeft.loadConfiguration(filePropertyHelper);
+      planarRegionFeatureUpdaterLeft.loadConfiguration(filePropertyHelper);
+      
+      stereoVisionBufferUpdaterRight.loadConfiguration(filePropertyHelper);
+      mainUpdaterRight.loadConfiguration(filePropertyHelper);
+      planarRegionFeatureUpdaterRight.loadConfiguration(filePropertyHelper);
    }
 
    private void mainUpdate()
@@ -153,21 +188,28 @@ public class ObstacleDisplayer
 
       try
       {
-         NormalOcTree mainOctree = mainUpdater.getMainOctree();
-         
-         mainUpdater.clearOcTree();
-         mainUpdater.update();
+         NormalOcTree mainOctreeLeft = mainUpdaterLeft.getMainOctree();
+         NormalOcTree mainOctreeRight = mainUpdaterRight.getMainOctree();
+
+         mainUpdaterLeft.clearOcTree();
+         mainUpdaterRight.clearOcTree();
+         mainUpdaterLeft.update();
+         mainUpdaterRight.update();
 
          if (isThreadInterrupted())
             return;
 
-         planarRegionFeatureUpdater.update(mainOctree);
-         
-         double distance = obstacleDistance(planarRegionFeatureUpdater.getPlanarRegionsList());
-         sender.sendDistance(distance);
+         planarRegionFeatureUpdaterLeft.update(mainOctreeLeft);
+         planarRegionFeatureUpdaterRight.update(mainOctreeRight);
 
-         planarRegionNetworkProvider.update(ocTreeUpdateSuccess);
-         planarRegionNetworkProvider.publishCurrentState();
+         double distanceLeft = obstacleDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
+         double distanceRight = obstacleDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
+         sender.sendDistance(distanceLeft > distanceRight ? "R: " + String.valueOf(distanceRight) : "L: " + String.valueOf(distanceLeft));
+
+         planarRegionNetworkProviderLeft.update(ocTreeUpdateSuccess);
+         planarRegionNetworkProviderRight.update(ocTreeUpdateSuccess);
+         planarRegionNetworkProviderLeft.publishCurrentState();
+         planarRegionNetworkProviderRight.publishCurrentState();
       }
       catch (Exception e)
       {
@@ -187,7 +229,7 @@ public class ObstacleDisplayer
     */
    private double obstacleDistance(PlanarRegionsList planarRegionsList) {      
       //params
-      double distance = -1.0;            
+      double distance = 999;            
       double positiveAngle = 135;
       double positiveD2Distance = 0.1;
       LinkedList<Double> distanceList = new LinkedList<Double>();
@@ -228,7 +270,8 @@ public class ObstacleDisplayer
       if (scheduled == null)
       {
          scheduled = executorService.scheduleAtFixedRate(this::mainUpdate, 0, THREAD_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
-         executorService.scheduleAtFixedRate(stereoVisionBufferUpdater.createBufferThread(), 0, BUFFER_THREAD_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
+         executorService.scheduleAtFixedRate(stereoVisionBufferUpdaterLeft.createBufferThread(), 0, BUFFER_THREAD_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
+         executorService.scheduleAtFixedRate(stereoVisionBufferUpdaterRight.createBufferThread(), 0, BUFFER_THREAD_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
       }
    }
 

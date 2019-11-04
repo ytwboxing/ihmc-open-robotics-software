@@ -23,7 +23,7 @@ import us.ihmc.utilities.ros.subscriber.RosPointCloudSubscriber.UnpackedPointClo
 public class RealSenseBridgeRos2 extends AbstractRosTopicSubscriber<PointCloud2>
 {
    //params
-   private static int MAX_NUMBER_OF_POINTS;
+   private int MAX_NUMBER_OF_POINTS;
    
    //constructor
    public RealSenseBridgeRos2(String sourceURI, String rosWrapperTopic, Ros2Node ros2Node, String ros2Topic, int maxNumberOfPoints) throws URISyntaxException
@@ -34,7 +34,7 @@ public class RealSenseBridgeRos2 extends AbstractRosTopicSubscriber<PointCloud2>
       rosMainNode.attachSubscriber(rosWrapperTopic, this);
       rosMainNode.execute();
 
-      RealSenseBridgeRos2.MAX_NUMBER_OF_POINTS = maxNumberOfPoints;
+      this.MAX_NUMBER_OF_POINTS = maxNumberOfPoints;
       stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ros2Topic);
    }
 
