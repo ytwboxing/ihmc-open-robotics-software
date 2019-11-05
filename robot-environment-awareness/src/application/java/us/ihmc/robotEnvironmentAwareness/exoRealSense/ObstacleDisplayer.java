@@ -42,13 +42,10 @@ public class ObstacleDisplayer
 {   
    //variables
    private static Ros2Node ros2Node;
-   private static RealSenseBridgeRos2 bridgeLeft;
-   private static RealSenseBridgeRos2 bridgeRight;
-   //todo JOBY finish rewriting for 2 cameras
 
    private static final int THREAD_PERIOD_MILLISECONDS = 200;
    private static final int BUFFER_THREAD_PERIOD_MILLISECONDS = 10;
-   private static final double DEFAULT_OCTREE_RESOLUTION = 0.02;
+   private static final double DEFAULT_OCTREE_RESOLUTION = 0.2;
 
    protected static final boolean DEBUG = true;
    
@@ -75,19 +72,17 @@ public class ObstacleDisplayer
          ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
          //connection to realsense D415   
          //new RealSenseBridgeRos2("http://192.168.137.2:11311", "/camera/depth/color/points", ros2Node, ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class), 200000);        
-         bridgeLeft = new RealSenseBridgeRos2(
-                      "http://192.168.137.2:11311"
-                      , "/cam_1/depth/color/points"
-                      , ros2Node
-                      , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Left"
-                      , 200000);   
+         new RealSenseBridgeRos2("http://192.168.137.2:11311"
+                                 , "/cam_1/depth/color/points"
+                                 , ros2Node
+                                 , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Left"
+                                 , 200000);   
          
-         bridgeRight = new RealSenseBridgeRos2(
-                      "http://192.168.137.2:11311"
-                      , "/cam_2/depth/color/points"
-                      , ros2Node
-                      , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
-                      , 20001);       
+         new RealSenseBridgeRos2("http://192.168.137.2:11311"
+                                 , "/cam_2/depth/color/points"
+                                 , ros2Node
+                                 , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
+                                 , 200001);       
          
          ObstacleDisplayer module = ObstacleDisplayer.createIntraprocessModule();
          

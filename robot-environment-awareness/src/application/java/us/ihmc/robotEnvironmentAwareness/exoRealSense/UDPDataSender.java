@@ -23,6 +23,8 @@ public class UDPDataSender
    }
    
    public void sendDistance(String distance) {
+      if(socket == null)
+         return;
       try
       {
          byte[] sendData = distance.getBytes();
