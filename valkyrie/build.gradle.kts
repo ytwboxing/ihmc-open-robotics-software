@@ -68,6 +68,8 @@ tasks.getByPath("installDist").dependsOn("compositeJar")
 
 app.entrypoint("IHMCValkyrieJoystickApplication", "us.ihmc.valkyrie.joystick.ValkyrieJoystickBasedSteppingApplication")
 app.entrypoint("valkyrie-network-processor", "us.ihmc.valkyrie.ValkyrieNetworkProcessor")
+app.entrypoint("valkyrie-ros2-loadtest-link", "us.ihmc.valkyrie.ValkyrieROS2LoadTestLink")
+app.entrypoint("valkyrie-ros2-loadtest-zelda", "us.ihmc.valkyrie.ValkyrieROS2LoadTestZelda")
 
 tasks.create("deployOCUApplications") {
    dependsOn("installDist")
@@ -136,6 +138,8 @@ tasks.create("deploy") {
          put(file("build/libs/valkyrie-$version.jar").toString(), "$directory/ValkyrieController.jar")
          put(file("launchScripts").toString(), directory)
          exec("chmod +x $directory/runNetworkProcessor.sh")
+         exec("chmod +x $directory/runROS2LoadTestLink.sh")
+         exec("chmod +x $directory/runROS2LoadTestZelda.sh")
          exec("ls -halp $directory")
       }
 
@@ -172,6 +176,8 @@ fun deployNetworkProcessor()
       put(file("build/libs/valkyrie-$version.jar").toString(), "$directory/ValkyrieController.jar")
       put(file("launchScripts").toString(), directory)
       exec("chmod +x $directory/runNetworkProcessor.sh")
+      exec("chmod +x $directory/runROS2LoadTestLink.sh")
+      exec("chmod +x $directory/runROS2LoadTestZelda.sh")
       exec("ls -halp $directory")
 
       exec("rm -rf /home/val/.ihmc/Configurations")
