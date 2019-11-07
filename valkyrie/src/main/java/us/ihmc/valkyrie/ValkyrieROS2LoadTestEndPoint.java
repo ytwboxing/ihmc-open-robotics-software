@@ -1,5 +1,6 @@
 package us.ihmc.valkyrie;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -10,14 +11,18 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import controller_msgs.msg.dds.KinematicsToolboxOutputStatus;
+import controller_msgs.msg.dds.KinematicsToolboxOutputStatusPubSubType;
 import controller_msgs.msg.dds.RobotConfigurationData;
+import controller_msgs.msg.dds.RobotConfigurationDataPubSubType;
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import us.ihmc.commons.Conversions;
-import us.ihmc.communication.IHMCROS2Publisher;
-import us.ihmc.communication.ROS2Tools;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
+import us.ihmc.pubsub.TopicDataType;
+import us.ihmc.ros2.Ros2Distro;
 import us.ihmc.ros2.Ros2Node;
+import us.ihmc.ros2.Ros2Publisher;
+import us.ihmc.ros2.Ros2QosProfile;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ValkyrieROS2LoadTestEndPoint
@@ -28,17 +33,18 @@ public class ValkyrieROS2LoadTestEndPoint
    private final Ros2Node pubROS2node;
    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
-   private final List<IHMCROS2Publisher> pubs;
+   private final List<Ros2Publisher> pubs;
    private final List<AtomicReference> subOutputs;
 
    private final EndPointParameters endPointParameters;
 
-   public ValkyrieROS2LoadTestEndPoint(EndPointParameters endPointParameters, EndPointParameters otherEndPointParameters)
+   public ValkyrieROS2LoadTestEndPoint(EndPointParameters endPointParameters, EndPointParameters otherEndPointParameters) throws IOException
    {
       this.endPointParameters = endPointParameters;
       Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown()));
 
-      pubROS2node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "ros2_load_test_pub_node_" + endPointParameters.getName());
+      //      pubROS2node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "ros2_load_test_pub_node_" + endPointParameters.getName());
+      pubROS2node = new Ros2Node(PubSubImplementation.FAST_RTPS, Ros2Distro.ARDENT, "ros2_load_test_pub_node_" + endPointParameters.getName(), "/us/ihmc", 112);
       pubTopicNames = topicNames(endPointParameters);
       subTopicNames = topicNames(otherEndPointParameters);
       int numberOfPubs = endPointParameters.getNumberOfPubs();
@@ -48,7 +54,9 @@ public class ValkyrieROS2LoadTestEndPoint
 
       for (int i = 0; i < numberOfPubs; i++)
       {
-         pubs.add(ROS2Tools.createPublisher(pubROS2node, endPointParameters.getPubType(), pubTopicNames[i]));
+         //         IHMCROS2Publisher publisher = ROS2Tools.createPublisher(pubROS2node, endPointParameters.getPubType(), pubTopicNames[i]);
+         Ros2Publisher publisher = pubROS2node.createPublisher(endPointParameters.getTopicDataType(), pubTopicNames[i], Ros2QosProfile.DEFAULT());
+         pubs.add(publisher);
       }
 
       for (int i = 0; i < otherEndPointParameters.getNumberOfPubs(); i++)
@@ -60,7 +68,11 @@ public class ValkyrieROS2LoadTestEndPoint
          {
             AtomicReference subOutput = new AtomicReference<>(null);
             subOutputs.add(subOutput);
-            ROS2Tools.createCallbackSubscription(pubROS2node, subType, topicName, m -> subOutput.set(m.takeNextData()));
+            //            ROS2Tools.createCallbackSubscription(pubROS2node, subType, topicName, m -> subOutput.set(m.takeNextData()));
+            pubROS2node.createSubscription(otherEndPointParameters.getTopicDataType(),
+                                           subscriber -> subOutput.set(subscriber.takeNextData()),
+                                           topicName,
+                                           Ros2QosProfile.DEFAULT());
          }
       }
 
@@ -73,9 +85,16 @@ public class ValkyrieROS2LoadTestEndPoint
 
    private void update()
    {
-      for (int i = 0; i < pubs.size(); i++)
+      try
       {
-         pubs.get(i).publish(endPointParameters.nextMessage(random));
+         for (int i = 0; i < pubs.size(); i++)
+         {
+            pubs.get(i).publish(endPointParameters.nextMessage(random));
+         }
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
       }
    }
 
@@ -117,9 +136,10 @@ public class ValkyrieROS2LoadTestEndPoint
       private final long pubUpdatePeriodInMs;
       private final long subUpdatePeriodInMs;
       private final Function<Random, Object> randomGenerator;
+      private final TopicDataType<?> topicDataType;
 
       public EndPointParameters(String name, int numberOfPubs, int numberOfSubsPerTopic, long pubUpdatePeriodInMs, long subUpdatePeriodInMs,
-                                Function<Random, Object> randomGenerator)
+                                Function<Random, Object> randomGenerator, TopicDataType<?> topicDataType)
       {
          this.name = name;
          this.numberOfPubs = numberOfPubs;
@@ -127,7 +147,7 @@ public class ValkyrieROS2LoadTestEndPoint
          this.pubUpdatePeriodInMs = pubUpdatePeriodInMs;
          this.subUpdatePeriodInMs = subUpdatePeriodInMs;
          this.randomGenerator = randomGenerator;
-
+         this.topicDataType = topicDataType;
       }
 
       public String getName()
@@ -164,16 +184,27 @@ public class ValkyrieROS2LoadTestEndPoint
       {
          return nextMessage(new Random()).getClass();
       }
+
+      public TopicDataType<?> getTopicDataType()
+      {
+         return topicDataType;
+      }
    }
 
    public static EndPointParameters linkEndPoint()
    {
-      return new EndPointParameters("link", 1, 1, 1, 1000, ValkyrieROS2LoadTestEndPoint::nextRobotConfigurationData);
+      return new EndPointParameters("link", 50, 1, 10, 1000, ValkyrieROS2LoadTestEndPoint::nextRobotConfigurationData, new RobotConfigurationDataPubSubType());
    }
 
    public static EndPointParameters zeldaEndPoint()
    {
-      return new EndPointParameters("zelda", 1, 10, 16, 1000, ValkyrieROS2LoadTestEndPoint::nextStereoVisionPointCloudMessage);
+      return new EndPointParameters("zelda",
+                                    50,
+                                    1,
+                                    10,
+                                    1000,
+                                    ValkyrieROS2LoadTestEndPoint::nextKinematicsToolboxOutputStatus,
+                                    new KinematicsToolboxOutputStatusPubSubType());
    }
 
    public static KinematicsToolboxOutputStatus nextKinematicsToolboxOutputStatus(Random random)
@@ -185,7 +216,7 @@ public class ValkyrieROS2LoadTestEndPoint
       message.getDesiredRootAngularVelocity().set(EuclidCoreRandomTools.nextVector3D(random));
       message.getDesiredRootLinearVelocity().set(EuclidCoreRandomTools.nextVector3D(random));
 
-      for (int i = 0; i < 40; i++)
+      for (int i = 40; i < 0; i++)
       {
          message.getDesiredJointAngles().add(random.nextFloat());
          message.getDesiredJointVelocities().add(random.nextFloat());
@@ -201,7 +232,7 @@ public class ValkyrieROS2LoadTestEndPoint
       message.getRootTranslation().set(EuclidCoreRandomTools.nextVector3D(random));
       message.getRootOrientation().set(EuclidCoreRandomTools.nextQuaternion(random));
 
-      for (int i = 0; i < 40; i++)
+      for (int i = 40; i < 0; i++)
       {
          message.getJointAngles().add(random.nextFloat());
          message.getJointVelocities().add(random.nextFloat());
