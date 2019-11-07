@@ -199,7 +199,12 @@ public class ObstacleDisplayer
 
          double distanceLeft = obstacleDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
          double distanceRight = obstacleDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
-         sender.sendDistance(distanceLeft > distanceRight ? "R: " + String.valueOf(distanceRight) : "L: " + String.valueOf(distanceLeft));
+         if(distanceLeft > distanceRight) {
+            sender.sendDistance("R: " + String.valueOf(distanceRight));
+         }
+         else {
+            sender.sendDistance("L: " + String.valueOf(distanceLeft));
+         }         
 
          planarRegionNetworkProviderLeft.update(ocTreeUpdateSuccess);
          planarRegionNetworkProviderRight.update(ocTreeUpdateSuccess);
@@ -220,7 +225,7 @@ public class ObstacleDisplayer
    }
 
    /*
-    * returns -1 if there is no obstacle otherwise return distance to obstacle
+    * returns 999 if there is no obstacle otherwise return distance to obstacle
     */
    private double obstacleDistance(PlanarRegionsList planarRegionsList) {      
       //params

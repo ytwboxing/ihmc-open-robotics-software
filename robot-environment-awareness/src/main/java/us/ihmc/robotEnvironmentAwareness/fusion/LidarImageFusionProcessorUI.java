@@ -66,8 +66,8 @@ public class LidarImageFusionProcessorUI
       view3dFactory.addWorldCoordinateSystem(0.05);
 
       VBox imageViewPane = new VBox();
-      mainPane.setRight(imageViewPane);
-      mainPane.setCenter(view3dFactory.getSubSceneWrappedInsidePane());
+      mainPane.setRight(view3dFactory.getSubSceneWrappedInsidePane());
+      mainPane.setCenter(imageViewPane);
 
       meshViewer = new FusionSensorMeshViewer(ros2Node, messager, reaMessager);
       imageViewer = new FusionSensorImageViewer(messager, imageViewPane);

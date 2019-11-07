@@ -34,8 +34,10 @@ import us.ihmc.robotEnvironmentAwareness.communication.REACommunicationPropertie
 import us.ihmc.robotEnvironmentAwareness.communication.REAModuleAPI;
 import us.ihmc.robotEnvironmentAwareness.communication.packets.BoundingBoxParametersMessage;
 import us.ihmc.robotEnvironmentAwareness.io.FilePropertyHelper;
+import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionSegmentationParameters;
 import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools;
 import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools.ExceptionHandling;
+import us.ihmc.robotEnvironmentAwareness.ui.graphicsBuilders.OcTreeMeshBuilder.DisplayType;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.ros2.Ros2Node;
 
@@ -120,6 +122,21 @@ public class LIDARBasedREAModule
       preserveOcTreeHistory = reaMessager.createInput(REAModuleAPI.StereoVisionBufferPreservingEnable, false);
       enableStereoBuffer = reaMessager.createInput(REAModuleAPI.StereoVisionBufferEnable, false);
       octreeResolution = reaMessager.createInput(REAModuleAPI.OcTreeResolution, mainUpdater.getMainOctree().getResolution());
+      
+      reaMessager.submitMessage(REAModuleAPI.LidarBufferEnable, false);
+      reaMessager.submitMessage(REAModuleAPI.StereoVisionBufferEnable, true);
+      reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, false);
+      reaMessager.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);      
+      
+      reaMessager.submitMessage(REAModuleAPI.UIStereoVisionShow, true);
+      
+      /*
+      //defailt
+      reaMessager.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse(
+         "search radius: 0.05, max distance from plane: 0.05, maxAngleFromPlane: 0.17453292519943295, minNormalQuality: 0.005"
+         + ", min region size: 50, max standard deviation: 0.015, min volumic density: 100000.0"
+         ));  
+            */    
    }
 
    private void dispatchLidarScanMessage(Subscriber<LidarScanMessage> subscriber)

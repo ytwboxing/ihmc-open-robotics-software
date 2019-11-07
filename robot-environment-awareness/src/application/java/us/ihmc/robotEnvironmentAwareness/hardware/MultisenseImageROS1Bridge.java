@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,6 +37,7 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
 
    private final Scanner commandScanner;
    private static final String commandToSaveImage = "s";
+   private static final String commandToStopSavingImage = "d";
    private static final String commandToShowCameraInfo = "c";
    private int savingIndex = 0;
 
@@ -46,9 +48,11 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
    {
       super(Image._TYPE);
       commandScanner = new Scanner(System.in);
-      URI masterURI = new URI(multisense.getAddress());
+      //URI masterURI = new URI(multisense.getAddress());
+      URI masterURI = new URI("http://192.168.137.2:11311");
       RosMainNode rosMainNode = new RosMainNode(masterURI, "ImagePublisher", true);
-      rosMainNode.attachSubscriber(MultisenseInformation.getImageTopicName(), this);
+      //rosMainNode.attachSubscriber(MultisenseInformation.getImageTopicName(), this);
+      rosMainNode.attachSubscriber("/cam_2/depth/image_rect_raw", this);      
       rosMainNode.execute();
 
       imagePublisher = ROS2Tools.createPublisher(ros2Node, Image32.class, ROS2Tools.getDefaultTopicNameGenerator());
@@ -69,6 +73,11 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
                {
                   saveImage.set(true);
                   System.out.println(commandToSaveImage + " pressed");
+               }
+               else if (command.contains(commandToStopSavingImage))
+               {
+                  saveImage.set(false);
+                  System.out.println(commandToStopSavingImage + " pressed");
                }
                else if (command.contains(commandToShowCameraInfo))
                {
@@ -97,28 +106,54 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
       ChannelBuffer data = image.getData();
       byte[] array = data.array();
       int dataIndex = data.arrayOffset();
+            
+      int minX = 214;
+      int maxX = 426;
+      int minY = 160;
+      int maxY = 320;
+      
+      ByteBuffer wrapped = null;
       for (int i = 0; i < height; i++)
       {
          for (int j = 0; j < width; j++)
-         {
-            int b = array[dataIndex];
+         {    
+            byte a1 = array[dataIndex];            
             dataIndex++;
-            int g = array[dataIndex];
-            dataIndex++;
-            int r = array[dataIndex];
-            dataIndex++;
+            byte a2 = array[dataIndex]; 
+            dataIndex++; 
 
-            int rgbColor = convertBGR2RGB(b, g, r);
+            wrapped = ByteBuffer.wrap(new byte[] {a2, a1}); 
+            int value = wrapped.getShort(); 
+            bufferedImage.setRGB(j, i, value);
+            
+            int rgbColor = 0;            
+            if((j == minX || j == maxX)
+                  && i >= minY && i <= maxY) {
+               rgbColor = convertBGR2RGB(0,255,255);
+            }
+            else if((i == minY || i == maxY)
+                  && j >= minX && j <= maxX) {
+                  rgbColor = convertBGR2RGB(0,255,255);  
+            }
+            else {
+               if(value < 4096 && value > 0) { 
+                  value *= 255.0/4095.0;
+                  rgbColor = convertBGR2RGB(0, value, 255-value);             
+               }                  
+            } 
             message.getRgbdata().add(rgbColor);
-            bufferedImage.setRGB(j, i, rgbColor);
+            /*            
+            int getValue = bufferedImage.getRGB(j, i);
+            byte[] getArray = ByteBuffer.allocate(4).putInt(getValue).array();
+            */
          }
       }
 
-      imagePublisher.publish(message);
-
-      if (saveImage.getAndSet(false))
+      imagePublisher.publish(message);      
+      
+      if (saveImage.get())
       {
-         File outputfile = new File("image_" + savingIndex + ".jpg");
+         File outputfile = new File("01/image_" + savingIndex + ".jpg");
          try
          {
             ImageIO.write(bufferedImage, "jpg", outputfile);
@@ -128,6 +163,7 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
             e.printStackTrace();
          }
          savingIndex++;
+         System.out.println(savingIndex);
       }
    }
 
@@ -147,9 +183,11 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
       public MultisenseCameraInfoROS1Bridge() throws URISyntaxException, IOException
       {
          super(CameraInfo._TYPE);
-         URI masterURI = new URI(multisense.getAddress());
+         //URI masterURI = new URI(multisense.getAddress());
+         URI masterURI = new URI("http://192.168.137.2:11311");
          RosMainNode rosMainNode = new RosMainNode(masterURI, "CameraInfoPublisher", true);
-         rosMainNode.attachSubscriber(MultisenseInformation.getCameraInfoTopicName(), this);
+         //rosMainNode.attachSubscriber(MultisenseInformation.getCameraInfoTopicName(), this);
+         rosMainNode.attachSubscriber("/cam_2/depth/camera_info", this);
          rosMainNode.execute();
       }
 

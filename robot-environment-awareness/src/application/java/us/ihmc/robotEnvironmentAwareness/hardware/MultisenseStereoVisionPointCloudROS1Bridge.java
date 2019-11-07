@@ -44,6 +44,7 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
 
    private final Scanner commandScanner;
    private static final String commandToSaveStereoVisionPointCloudData = "s";
+   private static final String commandToStopSAvingStereoVisionPointCloudData = "d";
    private static final String commandToSaveProjectedData = "p";
    private int savingIndex = 0;
 
@@ -53,9 +54,11 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
    public MultisenseStereoVisionPointCloudROS1Bridge() throws URISyntaxException
    {
       super(PointCloud2._TYPE);
-      URI masterURI = new URI(multisense.getAddress());
+      //URI masterURI = new URI(multisense.getAddress());
+      URI masterURI = new URI("http://192.168.137.2:11311");
       RosMainNode rosMainNode = new RosMainNode(masterURI, "StereoVisionPublisher", true);
-      rosMainNode.attachSubscriber(MultisenseInformation.getStereoVisionPointCloudTopicName(), this);
+      //rosMainNode.attachSubscriber(MultisenseInformation.getStereoVisionPointCloudTopicName(), this);
+      rosMainNode.attachSubscriber("/cam_2/depth/color/points", this);
 
       rosMainNode.execute();
 
@@ -75,6 +78,11 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
                {
                   saveStereoVisionPointCloud.set(true);
                   System.out.println(commandToSaveStereoVisionPointCloudData + " pressed");
+               }
+               else if (command.contains(commandToStopSAvingStereoVisionPointCloudData))
+               {
+                  saveStereoVisionPointCloud.set(false);
+                  System.out.println(commandToStopSAvingStereoVisionPointCloudData + " pressed");
                }
                else if (command.contains(commandToSaveProjectedData))
                {
@@ -129,12 +137,12 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
 
       stereoVisionPublisher.publish(stereoVisionMessage);
 
-      if (saveStereoVisionPointCloud.getAndSet(false))
+      if (saveStereoVisionPointCloud.get())
       {
          FileWriter fileWriter;
          try
          {
-            fileWriter = new FileWriter("stereovision_pointcloud_" + savingIndex + ".txt");
+            fileWriter = new FileWriter("01/stereovision_pointcloud_" + savingIndex + ".txt");
             StringBuilder builder = new StringBuilder("");
             for (int i = 0; i < numberOfPoints; i++)
             {
@@ -143,7 +151,7 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
             }
             fileWriter.write(builder.toString());
             fileWriter.close();
-            System.out.println("saving is done");
+            System.out.println(savingIndex);
          }
          catch (IOException e1)
          {
