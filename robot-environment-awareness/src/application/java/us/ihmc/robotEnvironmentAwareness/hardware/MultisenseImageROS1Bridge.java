@@ -14,6 +14,7 @@ import javax.imageio.ImageIO;
 import org.jboss.netty.buffer.ChannelBuffer;
 
 import controller_msgs.msg.dds.Image32;
+import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import sensor_msgs.CameraInfo;
 import sensor_msgs.Image;
 import std_msgs.Header;
@@ -31,35 +32,38 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
 
    private final Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "imagePublisherNode");
 
-   private final IHMCROS2Publisher<Image32> imagePublisher;
+   //private final IHMCROS2Publisher<Image32> imagePublisher;
 
-   private final MultisenseCameraInfoROS1Bridge cameraInfoBridge;
+   //private final MultisenseCameraInfoROS1Bridge cameraInfoBridge;
 
-   private final Scanner commandScanner;
+   //private final Scanner commandScanner;
    private static final String commandToSaveImage = "s";
    private static final String commandToStopSavingImage = "d";
    private static final String commandToShowCameraInfo = "c";
    private int savingIndex = 0;
 
-   private AtomicReference<Boolean> saveImage = new AtomicReference<Boolean>(false);
+   public AtomicReference<Boolean> saveImage = new AtomicReference<Boolean>(false);
    private AtomicReference<Boolean> showCameraInfo = new AtomicReference<Boolean>(false);
 
-   public MultisenseImageROS1Bridge() throws URISyntaxException, IOException
+   private String savePath;
+   public MultisenseImageROS1Bridge(String topic, String savePath) throws URISyntaxException, IOException
    {
       super(Image._TYPE);
-      commandScanner = new Scanner(System.in);
+      this.savePath = savePath;
+      //commandScanner = new Scanner(System.in);
       //URI masterURI = new URI(multisense.getAddress());
       URI masterURI = new URI("http://192.168.137.2:11311");
       RosMainNode rosMainNode = new RosMainNode(masterURI, "ImagePublisher", true);
       //rosMainNode.attachSubscriber(MultisenseInformation.getImageTopicName(), this);
-      rosMainNode.attachSubscriber("/cam_2/depth/image_rect_raw", this);      
+      rosMainNode.attachSubscriber(topic, this);      
       rosMainNode.execute();
 
-      imagePublisher = ROS2Tools.createPublisher(ros2Node, Image32.class, ROS2Tools.getDefaultTopicNameGenerator());
+      //imagePublisher = ROS2Tools.createPublisher(ros2Node, Image32.class, ROS2Tools.getDefaultTopicNameGenerator());
       System.out.println(ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(Image32.class));
 
-      cameraInfoBridge = new MultisenseCameraInfoROS1Bridge();
-
+      //cameraInfoBridge = new MultisenseCameraInfoROS1Bridge();
+      
+      /*
       Runnable inputReader = new Runnable()
       {
          @Override
@@ -89,6 +93,7 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
       };
       Thread inputHolder = new Thread(inputReader);
       inputHolder.start();
+      */
    }
 
    @Override
@@ -97,21 +102,21 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
       int width = image.getWidth();
       int height = image.getHeight();
 
-      Image32 message = new Image32();
+      //Image32 message = new Image32();
       BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
-      message.setHeight(height);
-      message.setWidth(width);
+      //message.setHeight(height);
+      //message.setWidth(width);
 
       ChannelBuffer data = image.getData();
       byte[] array = data.array();
       int dataIndex = data.arrayOffset();
-            
+       /*     
       int minX = 214;
       int maxX = 426;
       int minY = 160;
       int maxY = 320;
-      
+      */
       ByteBuffer wrapped = null;
       for (int i = 0; i < height; i++)
       {
@@ -121,11 +126,11 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
             dataIndex++;
             byte a2 = array[dataIndex]; 
             dataIndex++; 
-
+            
             wrapped = ByteBuffer.wrap(new byte[] {a2, a1}); 
             int value = wrapped.getShort(); 
             bufferedImage.setRGB(j, i, value);
-            
+            /*
             int rgbColor = 0;            
             if((j == minX || j == maxX)
                   && i >= minY && i <= maxY) {
@@ -142,6 +147,7 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
                }                  
             } 
             message.getRgbdata().add(rgbColor);
+            */
             /*            
             int getValue = bufferedImage.getRGB(j, i);
             byte[] getArray = ByteBuffer.allocate(4).putInt(getValue).array();
@@ -149,11 +155,11 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
          }
       }
 
-      imagePublisher.publish(message);      
+      //imagePublisher.publish(message);      
       
       if (saveImage.get())
       {
-         File outputfile = new File("01/image_" + savingIndex + ".jpg");
+         File outputfile = new File(savePath + "/image_" + savingIndex + ".jpg");
          try
          {
             ImageIO.write(bufferedImage, "jpg", outputfile);
@@ -163,7 +169,7 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
             e.printStackTrace();
          }
          savingIndex++;
-         System.out.println(savingIndex);
+         //System.out.println(savePath + " - " + savingIndex);
       }
    }
 
@@ -175,7 +181,45 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
 
    public static void main(String[] args) throws URISyntaxException, IOException
    {
-      new MultisenseImageROS1Bridge();
+      /*
+      for(int i = 0; i < 10; i++) {
+         File f = new File("DATASETS/1/LPC/stereovision_pointcloud_" + i + ".txt");
+         StereoVisionPointCloudMessage m = StereoVisionPointCloudDataLoader.getMessageFromFile(f); 
+         i++;
+         i--;
+      }
+      */
+      
+      /*
+      String datasetNUmber = "1";
+      MultisenseImageROS1Bridge leftI = new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/LI");  
+      MultisenseImageROS1Bridge rightI = new MultisenseImageROS1Bridge("/cam_1/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/RI"); 
+      MultisenseStereoVisionPointCloudROS1Bridge leftPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "DATASETS/" + datasetNUmber + "/LPC");
+      MultisenseStereoVisionPointCloudROS1Bridge rightPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "DATASETS/" + datasetNUmber + "/RPC");
+
+      Scanner commandScanner = new Scanner(System.in);
+      while (true)
+      {
+         String command = commandScanner.next();
+
+         if (command.contains(commandToSaveImage))
+         {
+            leftI.saveImage.set(true);
+            rightI.saveImage.set(true);
+            leftPC.saveStereoVisionPointCloud.set(true);
+            rightPC.saveStereoVisionPointCloud.set(true);
+            System.out.println(commandToSaveImage + " pressed");
+         }
+         else if (command.contains(commandToStopSavingImage))
+         {
+            leftI.saveImage.set(false);
+            rightI.saveImage.set(false);
+            leftPC.saveStereoVisionPointCloud.set(false);
+            rightPC.saveStereoVisionPointCloud.set(false);
+            System.out.println(commandToStopSavingImage + " pressed");
+         }
+      }
+      */
    }
 
    private class MultisenseCameraInfoROS1Bridge extends AbstractRosTopicSubscriber<CameraInfo>
