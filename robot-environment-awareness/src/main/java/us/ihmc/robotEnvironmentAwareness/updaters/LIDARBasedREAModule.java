@@ -126,9 +126,19 @@ public class LIDARBasedREAModule
       reaMessager.submitMessage(REAModuleAPI.LidarBufferEnable, false);
       reaMessager.submitMessage(REAModuleAPI.StereoVisionBufferEnable, true);
       reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, false);
-      reaMessager.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);      
-      
+      reaMessager.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
       reaMessager.submitMessage(REAModuleAPI.UIStereoVisionShow, true);
+
+      reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
+      reaMessager.submitMessage(REAModuleAPI.UIOcTreeBoundingBoxShow, true);
+      BoundingBoxParametersMessage boundingBox = new BoundingBoxParametersMessage();
+      boundingBox.maxX = 1.0f;
+      boundingBox.minX = -1.0f;
+      boundingBox.maxY = 1.0f;
+      boundingBox.minY = -0.1f;
+      boundingBox.maxZ = 2.0f;
+      boundingBox.minZ = 0.0f;
+      reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox);      
       
       /*
       //defailt

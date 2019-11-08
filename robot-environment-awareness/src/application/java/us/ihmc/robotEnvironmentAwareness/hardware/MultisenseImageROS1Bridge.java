@@ -46,17 +46,17 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
    private AtomicReference<Boolean> showCameraInfo = new AtomicReference<Boolean>(false);
 
    private String savePath;
-   public MultisenseImageROS1Bridge(String topic, String savePath) throws URISyntaxException, IOException
+   public MultisenseImageROS1Bridge(String topic, String savePath, RosMainNode rosMainNode) throws URISyntaxException, IOException
    {
       super(Image._TYPE);
       this.savePath = savePath;
       //commandScanner = new Scanner(System.in);
       //URI masterURI = new URI(multisense.getAddress());
-      URI masterURI = new URI("http://192.168.137.2:11311");
-      RosMainNode rosMainNode = new RosMainNode(masterURI, "ImagePublisher", true);
+      //URI masterURI = new URI("http://192.168.137.2:11311");
+      //RosMainNode rosMainNode = new RosMainNode(masterURI, "ImagePublisher", true);
       //rosMainNode.attachSubscriber(MultisenseInformation.getImageTopicName(), this);
       rosMainNode.attachSubscriber(topic, this);      
-      rosMainNode.execute();
+      //rosMainNode.execute();
 
       //imagePublisher = ROS2Tools.createPublisher(ros2Node, Image32.class, ROS2Tools.getDefaultTopicNameGenerator());
       System.out.println(ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(Image32.class));
@@ -182,21 +182,59 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
    public static void main(String[] args) throws URISyntaxException, IOException
    {
       /*
-      for(int i = 0; i < 10; i++) {
-         File f = new File("DATASETS/1/LPC/stereovision_pointcloud_" + i + ".txt");
+      long sleepTime;
+      long lastModified = new File("DATASETS/1/LPC/stereovision_pointcloud_0.txt").lastModified();
+      long myDelay = System.currentTimeMillis();
+      Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNode");
+      IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
+      int i = 0;
+      while(true) {
+         File f = new File("DATASETS/1/LPC/stereovision_pointcloud_" + i + ".txt");   
+         if(f.exists() == false) {
+            i = 0;
+            System.out.println("again");
+            continue;
+            //break;            
+         }
+            
          StereoVisionPointCloudMessage m = StereoVisionPointCloudDataLoader.getMessageFromFile(f); 
+         
+         sleepTime = f.lastModified() - lastModified - (System.currentTimeMillis() - myDelay);
+         if(sleepTime < 0)
+            sleepTime = 0;
+         try
+         {
+            Thread.sleep(sleepTime);
+         }
+         catch (InterruptedException e)
+         {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+         }
+         System.out.println("published " + i);
+         stereoVisionPublisher.publish(m);
+         myDelay = System.currentTimeMillis();
+         lastModified = f.lastModified();
          i++;
-         i--;
       }
+      */
+      
+      
+      /*
+      URI masterURI = new URI("http://192.168.137.2:11311");
+      new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "", new RosMainNode(masterURI, "whatever", true));  
       */
       
       /*
       String datasetNUmber = "1";
-      MultisenseImageROS1Bridge leftI = new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/LI");  
-      MultisenseImageROS1Bridge rightI = new MultisenseImageROS1Bridge("/cam_1/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/RI"); 
-      MultisenseStereoVisionPointCloudROS1Bridge leftPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "DATASETS/" + datasetNUmber + "/LPC");
-      MultisenseStereoVisionPointCloudROS1Bridge rightPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "DATASETS/" + datasetNUmber + "/RPC");
+      URI masterURI = new URI("http://192.168.137.2:11311");
+      RosMainNode node = new RosMainNode(masterURI, "whatever", true);
+      MultisenseImageROS1Bridge leftI = new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/LI", node);  
+      MultisenseImageROS1Bridge rightI = new MultisenseImageROS1Bridge("/cam_1/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/RI", node); 
+      MultisenseStereoVisionPointCloudROS1Bridge leftPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "DATASETS/" + datasetNUmber + "/LPC", node);
+      MultisenseStereoVisionPointCloudROS1Bridge rightPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "DATASETS/" + datasetNUmber + "/RPC", node);
 
+      node.execute();
       Scanner commandScanner = new Scanner(System.in);
       while (true)
       {

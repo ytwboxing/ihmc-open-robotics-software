@@ -22,6 +22,7 @@ import us.ihmc.pubsub.subscriber.Subscriber;
 import us.ihmc.robotEnvironmentAwareness.communication.KryoMessager;
 import us.ihmc.robotEnvironmentAwareness.communication.REACommunicationProperties;
 import us.ihmc.robotEnvironmentAwareness.communication.REAModuleAPI;
+import us.ihmc.robotEnvironmentAwareness.communication.packets.BoundingBoxParametersMessage;
 import us.ihmc.robotEnvironmentAwareness.io.FilePropertyHelper;
 import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionSegmentationParameters;
 import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools;
@@ -61,7 +62,8 @@ public class ObstacleDisplayer
 
    private ScheduledExecutorService executorService = ExecutorServiceTools.newScheduledThreadPool(2, getClass(), ExceptionHandling.CATCH_AND_REPORT);
    private ScheduledFuture<?> scheduled;
-   private final Messager reaMessager;  
+   private final Messager reaMessager1;  
+   private final Messager reaMessager2;  
    
    private static UDPDataSender sender;
    
@@ -95,22 +97,23 @@ public class ObstacleDisplayer
       }
    }
       
-   private ObstacleDisplayer(Messager reaMessager, File configurationFile) throws IOException
+   private ObstacleDisplayer(Messager reaMessager1, Messager reaMessager2, File configurationFile) throws IOException
    {
-      this.reaMessager = reaMessager;
+      this.reaMessager1 = reaMessager1;
+      this.reaMessager2 = reaMessager2;
 
-      stereoVisionBufferUpdaterLeft = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessager, REAModuleAPI.StereoVisionBufferEnable, false,
+      stereoVisionBufferUpdaterLeft = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessager1, REAModuleAPI.StereoVisionBufferEnable, false,
                                                       REAModuleAPI.StereoVisionBufferOcTreeCapacity, 1000000, REAModuleAPI.StereoVisionBufferMessageCapacity, 1,
                                                       REAModuleAPI.RequestStereoVisionBuffer, REAModuleAPI.StereoVisionBufferState);
-      stereoVisionBufferUpdaterRight = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessager, REAModuleAPI.StereoVisionBufferEnable, false,
+      stereoVisionBufferUpdaterRight = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessager2, REAModuleAPI.StereoVisionBufferEnable, false,
                                                           REAModuleAPI.StereoVisionBufferOcTreeCapacity, 1000000, REAModuleAPI.StereoVisionBufferMessageCapacity, 1,
                                                           REAModuleAPI.RequestStereoVisionBuffer, REAModuleAPI.StereoVisionBufferState);
       REAOcTreeBuffer[] bufferUpdatersLeft = new REAOcTreeBuffer[] { stereoVisionBufferUpdaterLeft};
       REAOcTreeBuffer[] bufferUpdatersRight = new REAOcTreeBuffer[] { stereoVisionBufferUpdaterRight};
-      mainUpdaterLeft = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdatersLeft, reaMessager);
-      mainUpdaterRight = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdatersRight, reaMessager);
-      planarRegionFeatureUpdaterLeft = new REAPlanarRegionFeatureUpdater(reaMessager);
-      planarRegionFeatureUpdaterRight = new REAPlanarRegionFeatureUpdater(reaMessager);
+      mainUpdaterLeft = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdatersLeft, reaMessager1);
+      mainUpdaterRight = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdatersRight, reaMessager2);
+      planarRegionFeatureUpdaterLeft = new REAPlanarRegionFeatureUpdater(reaMessager1);
+      planarRegionFeatureUpdaterRight = new REAPlanarRegionFeatureUpdater(reaMessager2);
 
       ROS2Tools.createCallbackSubscription(ros2Node
                                            , StereoVisionPointCloudMessage.class
@@ -124,26 +127,52 @@ public class ObstacleDisplayer
       FilePropertyHelper filePropertyHelper = new FilePropertyHelper(configurationFile);
       loadConfigurationFile(filePropertyHelper);
 
-      reaMessager.registerTopicListener(REAModuleAPI.SaveBufferConfiguration, (content) -> stereoVisionBufferUpdaterLeft.saveConfiguration(filePropertyHelper));
-      reaMessager.registerTopicListener(REAModuleAPI.SaveMainUpdaterConfiguration, (content) -> mainUpdaterLeft.saveConfiguration(filePropertyHelper));
-      reaMessager.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration, (content) -> planarRegionFeatureUpdaterLeft.saveConfiguration(filePropertyHelper));
+      reaMessager1.registerTopicListener(REAModuleAPI.SaveBufferConfiguration, (content) -> stereoVisionBufferUpdaterLeft.saveConfiguration(filePropertyHelper));
+      reaMessager1.registerTopicListener(REAModuleAPI.SaveMainUpdaterConfiguration, (content) -> mainUpdaterLeft.saveConfiguration(filePropertyHelper));
+      reaMessager1.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration, (content) -> planarRegionFeatureUpdaterLeft.saveConfiguration(filePropertyHelper));
       
-      reaMessager.registerTopicListener(REAModuleAPI.SaveBufferConfiguration, (content) -> stereoVisionBufferUpdaterRight.saveConfiguration(filePropertyHelper));
-      reaMessager.registerTopicListener(REAModuleAPI.SaveMainUpdaterConfiguration, (content) -> mainUpdaterRight.saveConfiguration(filePropertyHelper));
-      reaMessager.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration, (content) -> planarRegionFeatureUpdaterRight.saveConfiguration(filePropertyHelper));
+      reaMessager2.registerTopicListener(REAModuleAPI.SaveBufferConfiguration, (content) -> stereoVisionBufferUpdaterRight.saveConfiguration(filePropertyHelper));
+      reaMessager2.registerTopicListener(REAModuleAPI.SaveMainUpdaterConfiguration, (content) -> mainUpdaterRight.saveConfiguration(filePropertyHelper));
+      reaMessager2.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration, (content) -> planarRegionFeatureUpdaterRight.saveConfiguration(filePropertyHelper));
       
-      planarRegionNetworkProviderLeft = new REAPlanarRegionPublicNetworkProvider(reaMessager, planarRegionFeatureUpdaterLeft, ros2Node, publisherTopicNameGenerator,
+      planarRegionNetworkProviderLeft = new REAPlanarRegionPublicNetworkProvider(reaMessager1, planarRegionFeatureUpdaterLeft, ros2Node, publisherTopicNameGenerator,
                                                                              subscriberTopicNameGenerator);
-      planarRegionNetworkProviderRight = new REAPlanarRegionPublicNetworkProvider(reaMessager, planarRegionFeatureUpdaterRight, ros2Node, publisherTopicNameGenerator,
+      planarRegionNetworkProviderRight = new REAPlanarRegionPublicNetworkProvider(reaMessager2, planarRegionFeatureUpdaterRight, ros2Node, publisherTopicNameGenerator,
                                                                                  subscriberTopicNameGenerator);
 
       // At the very end, we force the modules to submit their state so duplicate inputs have consistent values.
-      reaMessager.submitMessage(REAModuleAPI.RequestEntireModuleState, true); 
+      reaMessager1.submitMessage(REAModuleAPI.RequestEntireModuleState, true); 
+      reaMessager2.submitMessage(REAModuleAPI.RequestEntireModuleState, true); 
+
+      reaMessager1.submitMessage(REAModuleAPI.LidarBufferEnable, false);
+      reaMessager1.submitMessage(REAModuleAPI.StereoVisionBufferEnable, true);
+      reaMessager1.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, false);
+      reaMessager1.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
       
-      reaMessager.submitMessage(REAModuleAPI.LidarBufferEnable, false);
-      reaMessager.submitMessage(REAModuleAPI.StereoVisionBufferEnable, true);
-      reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, false);
-      reaMessager.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
+      reaMessager2.submitMessage(REAModuleAPI.LidarBufferEnable, false);
+      reaMessager2.submitMessage(REAModuleAPI.StereoVisionBufferEnable, true);
+      reaMessager2.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, false);
+      reaMessager2.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
+      
+      reaMessager1.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
+      BoundingBoxParametersMessage boundingBox = new BoundingBoxParametersMessage();
+      boundingBox.maxX = 1.0f;
+      boundingBox.minX = -1.0f;
+      boundingBox.maxY = 1.0f;
+      boundingBox.minY = -0.1f;
+      boundingBox.maxZ = 2.0f;
+      boundingBox.minZ = 0.0f;
+      reaMessager1.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox);  
+      
+      reaMessager2.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
+      boundingBox = new BoundingBoxParametersMessage();
+      boundingBox.maxX = 1.0f;
+      boundingBox.minX = -1.0f;
+      boundingBox.maxY = 0.1f;
+      boundingBox.minY = -1.0f;
+      boundingBox.maxZ = 2.0f;
+      boundingBox.minZ = 0.0f;
+      reaMessager2.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox); 
       
       //reaMessager.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse("lala")); //todo JOBY here I can send new params and tweak planar region
             
@@ -277,7 +306,8 @@ public class ObstacleDisplayer
 
    public void stop() throws Exception
    {
-      reaMessager.closeMessager();
+      reaMessager1.closeMessager();
+      reaMessager2.closeMessager();
       ros2Node.destroy();
 
       if (scheduled != null)
@@ -296,10 +326,14 @@ public class ObstacleDisplayer
    public static ObstacleDisplayer createIntraprocessModule() throws Exception
    {
       String configurationFilePath = "./Configurations/defaultREAModuleConfiguration.txt";
-      KryoMessager messager = KryoMessager.createIntraprocess(REAModuleAPI.API, NetworkPorts.REA_MODULE_UI_PORT,
+      KryoMessager messager1 = KryoMessager.createIntraprocess(REAModuleAPI.API, NetworkPorts.REA_MODULE_UI_PORT,
                                                               REACommunicationProperties.getPrivateNetClassList());
-      messager.setAllowSelfSubmit(true);
-      messager.startMessager();
+      KryoMessager messager2 = KryoMessager.createIntraprocess(REAModuleAPI.API, NetworkPorts.REA_MODULE_UI_PORT,
+                                                              REACommunicationProperties.getPrivateNetClassList());
+      messager1.setAllowSelfSubmit(true);
+      messager1.startMessager();
+      messager2.setAllowSelfSubmit(true);
+      messager2.startMessager();
 
       File configurationFile = new File(configurationFilePath);
       try
@@ -313,6 +347,6 @@ public class ObstacleDisplayer
          e.printStackTrace();
       }
 
-      return new ObstacleDisplayer(messager, configurationFile);
+      return new ObstacleDisplayer(messager1, messager2, configurationFile);
    }
 }
