@@ -544,6 +544,7 @@ public class VisibilityGraphsFrameworkTest
       Point3D walkerPosition = new Point3D(start);
 
       long totalStartTime = System.currentTimeMillis();
+      boolean waitForFirstClick = true;
 
       while (!walkerPosition.geometricallyEquals(goal, 1.0e-2))
       {
@@ -597,13 +598,15 @@ public class VisibilityGraphsFrameworkTest
             if (!messager.isMessagerOpen())
                return addPrefixToErrorMessages(datasetName, errorMessages); // The ui has been closed
 
-            if (DYNAMIC_WAIT_FOR_CLICK)
+            if (DYNAMIC_WAIT_FOR_CLICK || waitForFirstClick)
             {
                // next step listener
                while (!nextStepDynamicNotification.poll())
                {// wait for button click in UI
                   Thread.yield();
                }
+
+               waitForFirstClick = false;
             }
          }
       }
