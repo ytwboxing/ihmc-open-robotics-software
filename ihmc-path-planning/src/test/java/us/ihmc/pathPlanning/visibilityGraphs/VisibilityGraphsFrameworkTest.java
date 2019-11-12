@@ -63,7 +63,7 @@ public class VisibilityGraphsFrameworkTest
    // Whether to start the UI or not.
    private static boolean VISUALIZE = true;
    private static boolean ENABLE_TIMERS = true;
-   private static boolean DYNAMIC_WAIT_FOR_CLICK = false;
+   private static boolean DYNAMIC_WAIT_FOR_CLICK = true;
 
    // Whether to fully expand the visibility graph or have it do efficient lazy evaluation.
    private static boolean fullyExpandVisibilityGraph = false;
@@ -598,16 +598,16 @@ public class VisibilityGraphsFrameworkTest
             if (!messager.isMessagerOpen())
                return addPrefixToErrorMessages(datasetName, errorMessages); // The ui has been closed
 
-            if (DYNAMIC_WAIT_FOR_CLICK || waitForFirstClick)
-            {
+//            if (DYNAMIC_WAIT_FOR_CLICK || waitForFirstClick)
+//            {
                // next step listener
                while (!nextStepDynamicNotification.poll())
                {// wait for button click in UI
                   Thread.yield();
                }
-
-               waitForFirstClick = false;
-            }
+//
+//               waitForFirstClick = false;
+//            }
          }
       }
 
