@@ -6,15 +6,14 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
-import us.ihmc.javaFXToolkit.messager.MessageBidirectionalBinding.PropertyToMessageTypeConverter;
-import us.ihmc.pathPlanning.visibilityGraphs.interfaces.VisibilityGraphsParameters;
-import us.ihmc.pathPlanning.visibilityGraphs.ui.properties.SettableVisibilityGraphsParameters;
-import us.ihmc.pathPlanning.visibilityGraphs.ui.properties.VisibilityGraphsParametersProperty;
+import us.ihmc.pathPlanning.visibilityGraphs.parameters.VisibilityGraphParametersKeys;
+import us.ihmc.pathPlanning.visibilityGraphs.parameters.VisibilityGraphsParametersBasics;
+import us.ihmc.robotEnvironmentAwareness.ui.properties.JavaFXStoredPropertyMap;
 
 public class VisibilityGraphsParametersUIController
 {
    private JavaFXMessager messager;
-   private final VisibilityGraphsParametersProperty parametersProperty = new VisibilityGraphsParametersProperty(this, "visibilityGraphsParametersProperty");
+   private VisibilityGraphsParametersBasics planningParameters;
 
    @FXML
    private Slider clusterResolution;
@@ -49,9 +48,9 @@ public class VisibilityGraphsParametersUIController
       this.messager = messager;
    }
 
-   public void setVisbilityGraphsParameters(VisibilityGraphsParameters parameters)
+   public void setVisbilityGraphsParameters(VisibilityGraphsParametersBasics parameters)
    {
-      parametersProperty.setPlannerParameters(parameters);
+      this.planningParameters = parameters;
    }
 
    private void setupControls()
@@ -64,20 +63,37 @@ public class VisibilityGraphsParametersUIController
    {
       setupControls();
 
-      parametersProperty.bidirectionalBindMaxInterRegionConnectionLength(maxInterRegionConnectionLength.valueProperty());
-      parametersProperty.bidirectionalBindNormalZThresholdForAccessibleRegions(normalZThresholdForAccessibleRegions.valueProperty());
-      parametersProperty.bidirectionalBindExtrusionDistance(extrusionDistance.valueProperty());
-      parametersProperty.bidirectionalBindExtrusionDistanceIfNotTooHighToStep(extrusionDistanceIfNotTooHighToStep.valueProperty());
-      parametersProperty.bidirectionalBindTooHighToStepDistance(tooHighToStepDistance.valueProperty());
-      parametersProperty.bidirectionalBindClusterResolution(clusterResolution.valueProperty());
-      parametersProperty.bidirectionalBindExplorationDistanceFromStartGoal(explorationDistanceFromStartGoal.getValueFactory().valueProperty());
-      parametersProperty.bidirectionalBindPlanarRegionMinArea(planarRegionMinArea.valueProperty());
-      parametersProperty.bidirectionalBindPlanarRegionMinSize(planarRegionMinSize.getValueFactory().valueProperty());
-      parametersProperty.bidirectionalBindRegionOrthogonalAngle(regionOrthogonalAngle.valueProperty());
-      parametersProperty.bidirectionalBindSearchHostRegionEpsilon(searchHostRegionEpsilon.valueProperty());
+      JavaFXStoredPropertyMap javaFXStoredPropertyMap = new JavaFXStoredPropertyMap(planningParameters);
+      javaFXStoredPropertyMap.put(maxInterRegionConnectionLength, VisibilityGraphParametersKeys.maxInterRegionConnectionLength);
+      javaFXStoredPropertyMap.put(normalZThresholdForAccessibleRegions, VisibilityGraphParametersKeys.normalZThresholdForAccessibleRegions);
+      javaFXStoredPropertyMap.put(extrusionDistance, VisibilityGraphParametersKeys.obstacleExtrusionDistance);
+      javaFXStoredPropertyMap.put(extrusionDistanceIfNotTooHighToStep, VisibilityGraphParametersKeys.obstacleExtrusionDistanceIfNotTooHighToStep);
+      javaFXStoredPropertyMap.put(tooHighToStepDistance, VisibilityGraphParametersKeys.tooHighToStepDistance);
+      javaFXStoredPropertyMap.put(clusterResolution, VisibilityGraphParametersKeys.clusterResolution);
+      javaFXStoredPropertyMap.put(explorationDistanceFromStartGoal, VisibilityGraphParametersKeys.explorationDistanceFromStartGoal);
+      javaFXStoredPropertyMap.put(planarRegionMinArea, VisibilityGraphParametersKeys.planarRegionMinArea);
+      javaFXStoredPropertyMap.put(planarRegionMinSize, VisibilityGraphParametersKeys.planarRegionMinSize);
+      javaFXStoredPropertyMap.put(regionOrthogonalAngle, VisibilityGraphParametersKeys.regionOrthogonalAngle);
+      javaFXStoredPropertyMap.put(searchHostRegionEpsilon, VisibilityGraphParametersKeys.searchHostRegionEpsilon);
 
-      messager.bindBidirectional(FootstepPlannerMessagerAPI.VisibilityGraphsParametersTopic, parametersProperty, createConverter(), true);
+      // set messager updates to update all stored properties and select JavaFX properties
+      messager.registerTopicListener(FootstepPlannerMessagerAPI.VisibilityGraphsParameters, parameters ->
+      {
+         planningParameters.set(parameters);
+
+         javaFXStoredPropertyMap.copyStoredToJavaFX();
+      });
+
+      // set JavaFX user input to update stored properties and publish messager message
+      javaFXStoredPropertyMap.bindStoredToJavaFXUserInput();
+      javaFXStoredPropertyMap.bindToJavaFXUserInput(() -> publishParameters());
    }
+
+   private void publishParameters()
+   {
+      messager.submitMessage(FootstepPlannerMessagerAPI.VisibilityGraphsParameters, planningParameters);
+   }
+
 
    private SpinnerValueFactory.IntegerSpinnerValueFactory createPlanarRegionMinSizeValueFactory()
    {
@@ -93,23 +109,5 @@ public class VisibilityGraphsParametersUIController
       double max = Double.POSITIVE_INFINITY;
       double amountToStepBy = 1.0;
       return new SpinnerValueFactory.DoubleSpinnerValueFactory(min, max, 0, amountToStepBy);
-   }
-
-   private PropertyToMessageTypeConverter<VisibilityGraphsParameters, SettableVisibilityGraphsParameters> createConverter()
-   {
-      return new PropertyToMessageTypeConverter<VisibilityGraphsParameters, SettableVisibilityGraphsParameters>()
-      {
-         @Override
-         public VisibilityGraphsParameters convert(SettableVisibilityGraphsParameters propertyValue)
-         {
-            return propertyValue;
-         }
-
-         @Override
-         public SettableVisibilityGraphsParameters interpret(VisibilityGraphsParameters messageContent)
-         {
-            return new SettableVisibilityGraphsParameters(messageContent);
-         }
-      };
    }
 }

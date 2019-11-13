@@ -1,23 +1,21 @@
 package us.ihmc.footstepPlanning.graphSearch.planners;
 
 import us.ihmc.commons.PrintTools;
-import us.ihmc.euclid.geometry.Pose2D;
+import us.ihmc.euclid.geometry.Pose3D;
+import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.footstepPlanning.*;
-import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParameters;
+import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParametersReadOnly;
 import us.ihmc.footstepPlanning.graphSearch.pathPlanners.WaypointsForFootstepsPlanner;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.pathPlanning.bodyPathPlanner.BodyPathPlanner;
-import us.ihmc.pathPlanning.bodyPathPlanner.WaypointDefinedBodyPathPlanner;
+import us.ihmc.pathPlanning.bodyPathPlanner.BodyPathPlanHolder;
+import us.ihmc.pathPlanning.bodyPathPlanner.WaypointDefinedBodyPathPlanHolder;
 import us.ihmc.pathPlanning.statistics.ListOfStatistics;
 import us.ihmc.pathPlanning.visibilityGraphs.tools.BodyPathPlan;
-import us.ihmc.pathPlanning.visibilityGraphs.tools.PlanarRegionTools;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -39,15 +37,16 @@ public class BodyPathAndFootstepPlannerWrapper implements BodyPathAndFootstepPla
    protected final YoVariableRegistry registry;
 
    private final YoDouble timeout;
+   private final YoDouble bestEffortTimeout;
 
    private final YoBoolean hasPath;
    private final YoDouble timeSpentBeforeFootstepPlanner;
    private final YoDouble timeSpentInFootstepPlanner;
    private final YoEnum<FootstepPlanningResult> yoResult;
 
-   private final FootstepPlannerParameters parameters;
+   private final FootstepPlannerParametersReadOnly parameters;
 
-   protected final BodyPathPlanner bodyPathPlanner = new WaypointDefinedBodyPathPlanner();
+   protected final BodyPathPlanHolder bodyPathPlanner = new WaypointDefinedBodyPathPlanHolder();
    protected WaypointsForFootstepsPlanner waypointPathPlanner;
    protected FootstepPlanner footstepPlanner;
 
@@ -59,13 +58,14 @@ public class BodyPathAndFootstepPlannerWrapper implements BodyPathAndFootstepPla
 
    private final ListOfStatistics listOfStatistics = new ListOfStatistics();
 
-   public BodyPathAndFootstepPlannerWrapper(String prefix, FootstepPlannerParameters parameters, YoVariableRegistry parentRegistry,
-                                            YoGraphicsListRegistry graphicsListRegistry)
+   public BodyPathAndFootstepPlannerWrapper(String prefix, FootstepPlannerParametersReadOnly parameters,
+                                            YoVariableRegistry parentRegistry, YoGraphicsListRegistry graphicsListRegistry)
    {
       registry = new YoVariableRegistry(prefix + getClass().getSimpleName());
       this.parameters = parameters;
 
       timeout = new YoDouble("timeout", registry);
+      bestEffortTimeout = new YoDouble("bestEffortTimeout", registry);
 
       hasPath = new YoBoolean("hasPath", registry);
       timeSpentBeforeFootstepPlanner = new YoDouble("timeSpentBeforeFootstepPlanner", registry);
@@ -121,6 +121,7 @@ public class BodyPathAndFootstepPlannerWrapper implements BodyPathAndFootstepPla
    public void setGoal(FootstepPlannerGoal goal)
    {
       waypointPathPlanner.setGoal(goal);
+      footstepPlanner.setGoal(goal);
 
       hasPath.set(false);
    }
@@ -169,7 +170,7 @@ public class BodyPathAndFootstepPlannerWrapper implements BodyPathAndFootstepPla
          return yoResult.getEnumValue();
       }
 
-      List<Point3D> waypoints = waypointPathPlanner.getWaypoints();
+      List<Pose3DReadOnly> waypoints = waypointPathPlanner.getWaypoints();
 
       if (waypoints.size() < 2)
       {
@@ -187,8 +188,7 @@ public class BodyPathAndFootstepPlannerWrapper implements BodyPathAndFootstepPla
          }
       }
 
-      bodyPathPlanner.setWaypoints(waypoints);
-      bodyPathPlanner.compute();
+      bodyPathPlanner.setPoseWaypoints(waypoints);
 
       if (visualizing)
       {
@@ -215,6 +215,7 @@ public class BodyPathAndFootstepPlannerWrapper implements BodyPathAndFootstepPla
       }
 
       footstepPlanner.setTimeout(timeout.getDoubleValue() - timeSpentBeforeFootstepPlanner.getDoubleValue());
+      footstepPlanner.setBestEffortTimeout(bestEffortTimeout.getDoubleValue());
 
       long startTime = System.currentTimeMillis();
       yoResult.set(footstepPlanner.plan());
@@ -231,22 +232,12 @@ public class BodyPathAndFootstepPlannerWrapper implements BodyPathAndFootstepPla
 
    private void updateBodyPathVisualization()
    {
-      Pose2D tempPose = new Pose2D();
+      Pose3D tempPose = new Pose3D();
       for (int i = 0; i < bodyPathPointsForVisualization; i++)
       {
          double percent = (double) i / (double) (bodyPathPointsForVisualization - 1);
          bodyPathPlanner.getPointAlongPath(percent, tempPose);
-         Point3D position = new Point3D();
-         position.set(tempPose.getPosition());
-         Point3DReadOnly projectedPoint = PlanarRegionTools.projectPointToPlanesVertically(position, planarRegionsList);
-         if (projectedPoint != null)
-         {
-            bodyPathPoints.get(i).set(projectedPoint);
-         }
-         else
-         {
-            bodyPathPoints.get(i).setToNaN();
-         }
+         bodyPathPoints.get(i).set(tempPose.getPosition());
       }
    }
 

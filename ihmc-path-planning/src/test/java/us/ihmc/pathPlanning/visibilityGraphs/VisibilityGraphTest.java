@@ -3,14 +3,13 @@ package us.ihmc.pathPlanning.visibilityGraphs;
 import static us.ihmc.robotics.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Disabled;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.geometry.interfaces.Vertex2DSupplier;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -29,8 +28,10 @@ import us.ihmc.pathPlanning.visibilityGraphs.dataStructure.VisibilityMapSolution
 import us.ihmc.pathPlanning.visibilityGraphs.dataStructure.VisibilityMapWithNavigableRegion;
 import us.ihmc.pathPlanning.visibilityGraphs.interfaces.InterRegionConnectionFilter;
 import us.ihmc.pathPlanning.visibilityGraphs.interfaces.NavigableExtrusionDistanceCalculator;
-import us.ihmc.pathPlanning.visibilityGraphs.interfaces.PlanarRegionFilter;
-import us.ihmc.pathPlanning.visibilityGraphs.interfaces.VisibilityGraphsParameters;
+import us.ihmc.pathPlanning.visibilityGraphs.parameters.VisibilityGraphsParametersBasics;
+import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionFilter;
+import us.ihmc.pathPlanning.visibilityGraphs.parameters.DefaultVisibilityGraphParameters;
+import us.ihmc.pathPlanning.visibilityGraphs.parameters.VisibilityGraphsParametersReadOnly;
 import us.ihmc.robotics.geometry.PlanarRegion;
 
 public class VisibilityGraphTest
@@ -40,7 +41,7 @@ public class VisibilityGraphTest
    @Test
    public void testVisibilityGraphJustOneSquare()
    {
-      VisibilityGraphsParameters parameters = createVisibilityGraphParametersForTest();
+      VisibilityGraphsParametersReadOnly parameters = createVisibilityGraphParametersForTest();
       List<PlanarRegion> planarRegions = new ArrayList<>();
 
       RigidBodyTransform transform = new RigidBodyTransform();
@@ -59,28 +60,30 @@ public class VisibilityGraphTest
       NavigableRegions navigableRegions = new NavigableRegions(parameters, planarRegions);
       navigableRegions.createNavigableRegions();
 
-      List<NavigableRegion> naviableRegionsList = navigableRegions.getNaviableRegionsList();
-      assertEquals(1, naviableRegionsList.size());
+      List<NavigableRegion> navigableRegionsList = navigableRegions.getNaviableRegionsList();
+      assertEquals(1, navigableRegionsList.size());
 
-      NavigableRegion navigableRegion = naviableRegionsList.get(0);
+      NavigableRegion navigableRegion = navigableRegionsList.get(0);
       assertEquals(97, navigableRegion.getMapId());
 
-      InterRegionConnectionFilter filter = new InterRegionConnectionFilter()
+      double maxDistance = 0.1;
+      InterRegionConnectionFilter interRegionFilter = new InterRegionConnectionFilter()
       {
          @Override
          public boolean isConnectionValid(ConnectionPoint3D source, ConnectionPoint3D target)
          {
             double distance = source.distance(target);
-            return distance < 0.1;
+            return distance < getMaximumInterRegionConnectionDistance();
          }
 
          @Override
-         public double getMaximumInterRegionConnetionDistance()
+         public double getMaximumInterRegionConnectionDistance()
          {
-            return 0.1;
+            return maxDistance;
          }
       };
-      VisibilityGraph visibilityGraph = new VisibilityGraph(navigableRegions, filter);
+      // TODO should this use a separate preferred filter?
+      VisibilityGraph visibilityGraph = new VisibilityGraph(navigableRegions, interRegionFilter, interRegionFilter, interRegionFilter, parameters);
       visibilityGraph.fullyExpandVisibilityGraph();
 
       ArrayList<VisibilityGraphNavigableRegion> visibilityGraphNavigableRegions = visibilityGraph.getVisibilityGraphNavigableRegions();
@@ -93,7 +96,7 @@ public class VisibilityGraphTest
       List<VisibilityGraphNode> homeRegionNodes = visibilityGraphNavigableRegion.getHomeRegionNodes();
       assertEquals(8, homeRegionNodes.size());
 
-      ArrayList<VisibilityGraphEdge> crossRegionEdges = visibilityGraph.getCrossRegionEdges();
+      Collection<VisibilityGraphEdge> crossRegionEdges = visibilityGraph.getCrossRegionEdges();
       assertEquals(0, crossRegionEdges.size());
 
       ConnectionPoint3D connectionA = new ConnectionPoint3D(0.0, 1.0, 0.0, 0);
@@ -166,7 +169,8 @@ public class VisibilityGraphTest
       assertTrue(interRegionVisibilityMap.getVisibilityMapInWorld().isEmpty());
 
       double searchHostEpsilon = 0.01;
-      visibilityGraph.setStart(new Point3D(0.4, 0.35, 0.005), searchHostEpsilon);
+      double ceilingHeight = 2.0;
+      visibilityGraph.setStart(new Point3D(0.4, 0.35, 0.005), searchHostEpsilon, ceilingHeight);
 
       VisibilityGraphNode startNode = visibilityGraph.getStartNode();
       assertEquals(97, startNode.getRegionId());
@@ -180,7 +184,7 @@ public class VisibilityGraphTest
 
       assertEquals(8, startEdges.size());
 
-      visibilityGraph.setGoal(new Point3D(0.6, 0.55, 0.003), searchHostEpsilon);
+      visibilityGraph.setGoal(new Point3D(0.6, 0.55, 0.003), searchHostEpsilon, ceilingHeight);
 
       VisibilityGraphNode goalNode = visibilityGraph.getGoalNode();
       assertEquals(97, goalNode.getRegionId());
@@ -199,7 +203,7 @@ public class VisibilityGraphTest
    @Test
    public void testVisibilityGraphTwoSquares()
    {
-      VisibilityGraphsParameters parameters = createVisibilityGraphParametersForTest();
+      VisibilityGraphsParametersReadOnly parameters = createVisibilityGraphParametersForTest();
       List<PlanarRegion> planarRegions = new ArrayList<>();
 
       Point2D pointA = new Point2D(-0.01, -0.01);
@@ -238,22 +242,24 @@ public class VisibilityGraphTest
       assertEquals(77, navigableRegion0.getMapId());
       assertEquals(63, navigableRegion1.getMapId());
 
+      double maxDistance = 0.58;
       InterRegionConnectionFilter filter = new InterRegionConnectionFilter()
       {
          @Override
          public boolean isConnectionValid(ConnectionPoint3D source, ConnectionPoint3D target)
          {
             double distance = source.distance(target);
-            return distance < 0.58;
+            return distance < getMaximumInterRegionConnectionDistance();
          }
 
          @Override
-         public double getMaximumInterRegionConnetionDistance()
+         public double getMaximumInterRegionConnectionDistance()
          {
-            return 0.58;
+            return maxDistance;
          }
       };
-      VisibilityGraph visibilityGraph = new VisibilityGraph(navigableRegions, filter);
+      // TODO should this use a separate preferred filter?
+      VisibilityGraph visibilityGraph = new VisibilityGraph(navigableRegions, filter, filter, filter, parameters);
       visibilityGraph.fullyExpandVisibilityGraph();
 
       ArrayList<VisibilityGraphNavigableRegion> visibilityGraphNavigableRegions = visibilityGraph.getVisibilityGraphNavigableRegions();
@@ -308,16 +314,31 @@ public class VisibilityGraphTest
       assertTrue(nodesContainPoint(nodes1, connectionH));
       assertTrue(nodesContainPoint(nodes1, connectionHE));
 
-      ArrayList<VisibilityGraphEdge> crossRegionEdges = visibilityGraph.getCrossRegionEdges();
-      assertEquals(3, crossRegionEdges.size());
+      Collection<VisibilityGraphEdge> crossRegionEdges = visibilityGraph.getCrossRegionEdges();
+      if (VisibilityGraph.ONLY_USE_SHORTEST_INTER_CONNECTING_EDGE)
+      {
+         assertEquals(3, crossRegionEdges.size());
 
-      assertTrue(edgeListContains(crossRegionEdges, connectionC, connectionF));
-      assertFalse(edgeListContains(crossRegionEdges, connectionC, connectionEF));
-      assertFalse(edgeListContains(crossRegionEdges, connectionCD, connectionF));
-      assertTrue(edgeListContains(crossRegionEdges, connectionCD, connectionEF));
-      assertFalse(edgeListContains(crossRegionEdges, connectionCD, connectionE));
-      assertFalse(edgeListContains(crossRegionEdges, connectionD, connectionEF));
-      assertTrue(edgeListContains(crossRegionEdges, connectionD, connectionE));
+         assertTrue(edgeListContains(crossRegionEdges, connectionC, connectionF));
+         assertFalse(edgeListContains(crossRegionEdges, connectionC, connectionEF));
+         assertFalse(edgeListContains(crossRegionEdges, connectionCD, connectionF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionCD, connectionEF));
+         assertFalse(edgeListContains(crossRegionEdges, connectionCD, connectionE));
+         assertFalse(edgeListContains(crossRegionEdges, connectionD, connectionEF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionD, connectionE));
+      }
+      else
+      {
+         assertEquals(7, crossRegionEdges.size());
+
+         assertTrue(edgeListContains(crossRegionEdges, connectionC, connectionF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionC, connectionEF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionCD, connectionF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionCD, connectionEF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionCD, connectionE));
+         assertTrue(edgeListContains(crossRegionEdges, connectionD, connectionEF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionD, connectionE));
+      }
 
       VisibilityMapSolution visibilityMapSolution = visibilityGraph.createVisibilityMapSolution();
 
@@ -342,19 +363,36 @@ public class VisibilityGraphTest
       Set<Connection> connections = interRegionVisibilityMapInWorld.getConnections();
       Set<ConnectionPoint3D> vertices = interRegionVisibilityMapInWorld.getVertices();
 
-      assertEquals(3, connections.size());
       assertEquals(0, vertices.size());
 
-      assertTrue(connectionsContain(connections, connectionC, connectionF));
-      assertFalse(connectionsContain(connections, connectionC, connectionEF));
-      assertFalse(connectionsContain(connections, connectionCD, connectionF));
-      assertTrue(connectionsContain(connections, connectionCD, connectionEF));
-      assertFalse(connectionsContain(connections, connectionCD, connectionE));
-      assertFalse(connectionsContain(connections, connectionD, connectionEF));
-      assertTrue(connectionsContain(connections, connectionD, connectionE));
+      if (VisibilityGraph.ONLY_USE_SHORTEST_INTER_CONNECTING_EDGE)
+      {
+         assertEquals(3, crossRegionEdges.size());
+
+         assertTrue(connectionsContain(connections, connectionC, connectionF));
+         assertFalse(connectionsContain(connections, connectionC, connectionEF));
+         assertFalse(connectionsContain(connections, connectionCD, connectionF));
+         assertTrue(connectionsContain(connections, connectionCD, connectionEF));
+         assertFalse(connectionsContain(connections, connectionCD, connectionE));
+         assertFalse(connectionsContain(connections, connectionD, connectionEF));
+         assertTrue(connectionsContain(connections, connectionD, connectionE));
+      }
+      else
+      {
+         assertEquals(7, crossRegionEdges.size());
+
+         assertTrue(connectionsContain(connections, connectionC, connectionF));
+         assertTrue(connectionsContain(connections, connectionC, connectionEF));
+         assertTrue(connectionsContain(connections, connectionCD, connectionF));
+         assertTrue(connectionsContain(connections, connectionCD, connectionEF));
+         assertTrue(connectionsContain(connections, connectionCD, connectionE));
+         assertTrue(connectionsContain(connections, connectionD, connectionEF));
+         assertTrue(connectionsContain(connections, connectionD, connectionE));
+      }
 
       double searchHostEpsilon = 0.01;
-      visibilityGraph.setStart(new Point3D(0.4, 0.35, 0.005), searchHostEpsilon);
+      double ceilingHeight = 2.0;
+      visibilityGraph.setStart(new Point3D(0.4, 0.35, 0.005), ceilingHeight, searchHostEpsilon);
 
       VisibilityGraphNode startNode = visibilityGraph.getStartNode();
       assertEquals(77, startNode.getRegionId());
@@ -368,7 +406,7 @@ public class VisibilityGraphTest
 
       assertEquals(8, startEdges.size());
 
-      visibilityGraph.setGoal(new Point3D(1.5, 0.55, 0.003), searchHostEpsilon);
+      visibilityGraph.setGoal(new Point3D(1.5, 0.55, 0.003), ceilingHeight, searchHostEpsilon);
 
       VisibilityGraphNode goalNode = visibilityGraph.getGoalNode();
       assertEquals(63, goalNode.getRegionId());
@@ -389,7 +427,7 @@ public class VisibilityGraphTest
    @Test
    public void testVisibilityGraphTwoSquaresWithImpassableBarrier()
    {
-      VisibilityGraphsParameters parameters = createVisibilityGraphParametersForTest();
+      VisibilityGraphsParametersReadOnly parameters = createVisibilityGraphParametersForTest();
       List<PlanarRegion> planarRegions = new ArrayList<>();
 
       Point2D pointA = new Point2D(-0.01, -0.01);
@@ -435,22 +473,24 @@ public class VisibilityGraphTest
       NavigableRegions navigableRegions = new NavigableRegions(parameters, planarRegions);
       navigableRegions.createNavigableRegions();
 
+      double maxDistance = 0.58;
       InterRegionConnectionFilter filter = new InterRegionConnectionFilter()
       {
          @Override
          public boolean isConnectionValid(ConnectionPoint3D source, ConnectionPoint3D target)
          {
             double distance = source.distance(target);
-            return distance < 0.58;
+            return distance < getMaximumInterRegionConnectionDistance();
          }
 
          @Override
-         public double getMaximumInterRegionConnetionDistance()
+         public double getMaximumInterRegionConnectionDistance()
          {
-            return 0.58;
+            return maxDistance;
          }
       };
-      VisibilityGraph visibilityGraph = new VisibilityGraph(navigableRegions, filter);
+      // TODO should this use a different preferred filter?
+      VisibilityGraph visibilityGraph = new VisibilityGraph(navigableRegions, filter, filter, filter, parameters);
       visibilityGraph.fullyExpandVisibilityGraph();
 
       ArrayList<VisibilityGraphNavigableRegion> visibilityGraphNavigableRegions = visibilityGraph.getVisibilityGraphNavigableRegions();
@@ -506,14 +546,14 @@ public class VisibilityGraphTest
       assertTrue(nodesContainPoint(nodes1, connectionHE));
 
       // Should be no cross region edges since the barrier should be blocking them...
-      ArrayList<VisibilityGraphEdge> crossRegionEdges = visibilityGraph.getCrossRegionEdges();
+      Collection<VisibilityGraphEdge> crossRegionEdges = visibilityGraph.getCrossRegionEdges();
       assertEquals(0, crossRegionEdges.size());
    }
 
    @Test
    public void testVisibilityGraphSquareInSquare()
    {
-      VisibilityGraphsParameters parameters = createVisibilityGraphParametersForTest();
+      VisibilityGraphsParametersReadOnly parameters = createVisibilityGraphParametersForTest();
       List<PlanarRegion> planarRegions = new ArrayList<>();
 
       Point2D pointA = new Point2D(-0.01, -0.01);
@@ -546,30 +586,32 @@ public class VisibilityGraphTest
       NavigableRegions navigableRegions = new NavigableRegions(parameters, planarRegions);
       navigableRegions.createNavigableRegions();
 
-      List<NavigableRegion> naviableRegionsList = navigableRegions.getNaviableRegionsList();
-      assertEquals(2, naviableRegionsList.size());
+      List<NavigableRegion> navigableRegionsList = navigableRegions.getNaviableRegionsList();
+      assertEquals(2, navigableRegionsList.size());
 
-      NavigableRegion navigableRegion0 = naviableRegionsList.get(0);
-      NavigableRegion navigableRegion1 = naviableRegionsList.get(1);
+      NavigableRegion navigableRegion0 = navigableRegionsList.get(0);
+      NavigableRegion navigableRegion1 = navigableRegionsList.get(1);
       assertEquals(77, navigableRegion0.getMapId());
       assertEquals(63, navigableRegion1.getMapId());
 
+      double maxDistance = 0.58;
       InterRegionConnectionFilter filter = new InterRegionConnectionFilter()
       {
          @Override
          public boolean isConnectionValid(ConnectionPoint3D source, ConnectionPoint3D target)
          {
             double distance = source.distance(target);
-            return distance < 0.58;
+            return distance < getMaximumInterRegionConnectionDistance();
          }
 
          @Override
-         public double getMaximumInterRegionConnetionDistance()
+         public double getMaximumInterRegionConnectionDistance()
          {
-            return 0.58;
+            return maxDistance;
          }
       };
-      VisibilityGraph visibilityGraph = new VisibilityGraph(navigableRegions, filter);
+      // TODO should this use a separate preferred filter?
+      VisibilityGraph visibilityGraph = new VisibilityGraph(navigableRegions, filter, filter, filter, parameters);
       visibilityGraph.fullyExpandVisibilityGraph();
 
       ArrayList<VisibilityGraphNavigableRegion> visibilityGraphNavigableRegions = visibilityGraph.getVisibilityGraphNavigableRegions();
@@ -712,15 +754,30 @@ public class VisibilityGraphTest
       assertEquals(11 + 6 + 9 + 6 + 9 + 6 + 8 + 5 + 20, internalEdges0.size());
       assertEquals(28, internalEdges1.size());
 
-      ArrayList<VisibilityGraphEdge> crossRegionEdges = visibilityGraph.getCrossRegionEdges();
-      assertEquals(24, crossRegionEdges.size());
+      Collection<VisibilityGraphEdge> crossRegionEdges = visibilityGraph.getCrossRegionEdges();
 
-      assertTrue(edgeListContains(crossRegionEdges, connectionA, connectionE));
-      assertFalse(edgeListContains(crossRegionEdges, connectionA, connectionEF));
-      assertFalse(edgeListContains(crossRegionEdges, connectionA, connectionHE));
-      assertFalse(edgeListContains(crossRegionEdges, connectionBC, connectionF));
-      assertTrue(edgeListContains(crossRegionEdges, connectionBC, connectionFG));
-      assertFalse(edgeListContains(crossRegionEdges, connectionBC, connectionG));
+      if (VisibilityGraph.ONLY_USE_SHORTEST_INTER_CONNECTING_EDGE)
+      {
+         assertEquals(24, crossRegionEdges.size());
+
+         assertTrue(edgeListContains(crossRegionEdges, connectionA, connectionE));
+         assertFalse(edgeListContains(crossRegionEdges, connectionA, connectionEF));
+         assertFalse(edgeListContains(crossRegionEdges, connectionA, connectionHE));
+         assertFalse(edgeListContains(crossRegionEdges, connectionBC, connectionF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionBC, connectionFG));
+         assertFalse(edgeListContains(crossRegionEdges, connectionBC, connectionG));
+      }
+      else
+      {
+         assertEquals(32, crossRegionEdges.size());
+
+         assertTrue(edgeListContains(crossRegionEdges, connectionA, connectionE));
+         assertFalse(edgeListContains(crossRegionEdges, connectionA, connectionEF));
+         assertFalse(edgeListContains(crossRegionEdges, connectionA, connectionHE));
+         assertFalse(edgeListContains(crossRegionEdges, connectionBC, connectionF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionBC, connectionFG));
+         assertFalse(edgeListContains(crossRegionEdges, connectionBC, connectionG));
+      }
 
       VisibilityMapSolution visibilityMapSolution = visibilityGraph.createVisibilityMapSolution();
 
@@ -750,20 +807,36 @@ public class VisibilityGraphTest
       Set<Connection> interRegionConnections = interRegionVisibilityMapInWorld.getConnections();
       Set<ConnectionPoint3D> interRegionVertices = interRegionVisibilityMapInWorld.getVertices();
 
-      assertEquals(24, interRegionConnections.size());
-
       //TODO: Does it even make sense to hold vertices in these. Check and either remove that, or make it so they actually hold the vertices.
       assertEquals(0, interRegionVertices.size());
 
-      assertTrue(connectionsContain(interRegionConnections, connectionA, connectionE));
-      assertFalse(connectionsContain(interRegionConnections, connectionA, connectionEF));
-      assertFalse(connectionsContain(interRegionConnections, connectionA, connectionHE));
-      assertFalse(connectionsContain(interRegionConnections, connectionBC, connectionF));
-      assertTrue(connectionsContain(interRegionConnections, connectionBC, connectionFG));
-      assertFalse(connectionsContain(interRegionConnections, connectionBC, connectionG));
 
+      if (VisibilityGraph.ONLY_USE_SHORTEST_INTER_CONNECTING_EDGE)
+      {
+         assertEquals(24, crossRegionEdges.size());
+
+         assertTrue(edgeListContains(crossRegionEdges, connectionA, connectionE));
+         assertFalse(edgeListContains(crossRegionEdges, connectionA, connectionEF));
+         assertFalse(edgeListContains(crossRegionEdges, connectionA, connectionHE));
+         assertFalse(edgeListContains(crossRegionEdges, connectionBC, connectionF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionBC, connectionFG));
+         assertFalse(edgeListContains(crossRegionEdges, connectionBC, connectionG));
+      }
+      else
+      {
+         assertEquals(32, crossRegionEdges.size());
+
+         assertTrue(edgeListContains(crossRegionEdges, connectionA, connectionE));
+         assertFalse(edgeListContains(crossRegionEdges, connectionA, connectionEF));
+         assertFalse(edgeListContains(crossRegionEdges, connectionA, connectionHE));
+         assertFalse(edgeListContains(crossRegionEdges, connectionBC, connectionF));
+         assertTrue(edgeListContains(crossRegionEdges, connectionBC, connectionFG));
+         assertFalse(edgeListContains(crossRegionEdges, connectionBC, connectionG));
+      }
+
+      double ceilingHeight = 2.0;
       double searchHostEpsilon = 0.01;
-      visibilityGraph.setStart(new Point3D(0.1, 0.5, 0.005), searchHostEpsilon);
+      visibilityGraph.setStart(new Point3D(0.1, 0.5, 0.005), ceilingHeight, searchHostEpsilon);
 
       VisibilityGraphNode startNode = visibilityGraph.getStartNode();
       assertEquals(77, startNode.getRegionId());
@@ -785,7 +858,7 @@ public class VisibilityGraphTest
       assertTrue(edgeListContains(startEdges, startInWorld, connectionEF0));
       assertTrue(edgeListContains(startEdges, startInWorld, connectionF0));
 
-      visibilityGraph.setGoal(new Point3D(0.5, 0.5, 0.053), searchHostEpsilon);
+      visibilityGraph.setGoal(new Point3D(0.5, 0.5, 0.053), ceilingHeight, searchHostEpsilon);
 
       VisibilityGraphNode goalNode = visibilityGraph.getGoalNode();
       assertEquals(63, goalNode.getRegionId());
@@ -860,7 +933,7 @@ public class VisibilityGraphTest
 
    }
 
-   private boolean edgeListContains(List<VisibilityGraphEdge> edges, ConnectionPoint3D pointOne, ConnectionPoint3D pointTwo)
+   private boolean edgeListContains(Collection<VisibilityGraphEdge> edges, ConnectionPoint3D pointOne, ConnectionPoint3D pointTwo)
    {
       for (VisibilityGraphEdge edge : edges)
       {
@@ -896,9 +969,9 @@ public class VisibilityGraphTest
 
    }
 
-   private VisibilityGraphsParameters createVisibilityGraphParametersForTest()
+   private VisibilityGraphsParametersReadOnly createVisibilityGraphParametersForTest()
    {
-      return new DefaultVisibilityGraphParameters()
+      VisibilityGraphsParametersBasics parameters = new DefaultVisibilityGraphParameters()
       {
          @Override
          public PlanarRegionFilter getPlanarRegionFilter()
@@ -913,11 +986,7 @@ public class VisibilityGraphTest
             };
          }
 
-         @Override
-         public double getClusterResolution()
-         {
-            return 0.501;
-         }
+
 
          @Override
          public NavigableExtrusionDistanceCalculator getNavigableExtrusionDistanceCalculator()
@@ -932,6 +1001,9 @@ public class VisibilityGraphTest
             };
          }
       };
+      parameters.setClusterResolution(0.501);
+      parameters.setIncludePreferredExtrusions(false);
+      return parameters;
    }
 
 }

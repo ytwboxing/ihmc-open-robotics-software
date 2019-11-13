@@ -18,6 +18,7 @@ import us.ihmc.simulationConstructionSetTools.util.environments.CommonAvatarEnvi
 import us.ihmc.simulationConstructionSetTools.util.environments.FlatGroundEnvironment;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.simulationconstructionset.util.simulationTesting.SimulationTestingParameters;
+import us.ihmc.tools.gui.AWTTools;
 import us.ihmc.wholeBodyController.RobotContactPointParameters;
 
 import static us.ihmc.humanoidRobotics.communication.packets.dataobjects.HighLevelControllerName.DO_NOTHING_BEHAVIOR;
@@ -91,13 +92,15 @@ public class AtlasBehaviorSimulation
       avatarSimulationFactory.setCreateYoVariableServer(false);
 
       AvatarSimulation avatarSimulation = avatarSimulationFactory.createAvatarSimulation();
+      SimulationConstructionSet scs = avatarSimulation.getSimulationConstructionSet();
+      if (scs.getGUI() != null )
+         scs.getGUI().getFrame().setSize(AWTTools.getDimensionForSmallestScreen());
 
       avatarSimulation.start();
       realtimeRos2Node.spin();  // TODO Should probably happen in start()
 
       // TODO set up some useful graphs
 
-      SimulationConstructionSet scs = avatarSimulation.getSimulationConstructionSet();
       scs.setupGraph("root.atlas.t");
       scs.setupGraph("root.atlas.DRCSimulation.DRCControllerThread.DRCMomentumBasedController.HumanoidHighLevelControllerManager.highLevelControllerNameCurrentState");
 
@@ -108,7 +111,8 @@ public class AtlasBehaviorSimulation
    {
       int recordTicksPerControllerTick = 1;
       SimulationConstructionSet scs = createForManualTest(new AtlasRobotModel(AtlasBehaviorModule.ATLAS_VERSION, RobotTarget.SCS, false),
-                                                          new FlatGroundEnvironment(), recordTicksPerControllerTick);
+                                                          new FlatGroundEnvironment(),
+                                                          recordTicksPerControllerTick);
       scs.simulate();
    }
 }

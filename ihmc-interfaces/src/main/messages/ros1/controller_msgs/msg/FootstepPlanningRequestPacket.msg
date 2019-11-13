@@ -38,8 +38,19 @@ geometry_msgs/Quaternion goal_orientation_in_world
 # Field default value 255
 int8 requested_footstep_planner_type
 
+# Acceptable xy distance from the given goal for the planner to terminate
+# Field default value -1.0
+float64 goal_distance_proximity
+
+# Acceptable yaw offset from the given goal for the planner to terminate
+# Field default value -1.0
+float64 goal_yaw_proximity
+
 # Timeout in seconds
 float64 timeout
+
+# Best effort timeout in seconds
+float64 best_effort_timeout
 
 # Max body path length if using body path
 float64 horizon_length

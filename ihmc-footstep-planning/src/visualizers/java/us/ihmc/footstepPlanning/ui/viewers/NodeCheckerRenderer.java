@@ -17,9 +17,8 @@ import us.ihmc.footstepPlanning.graphSearch.footstepSnapping.SimplePlanarRegionF
 import us.ihmc.footstepPlanning.graphSearch.graph.FootstepNode;
 import us.ihmc.footstepPlanning.graphSearch.graph.FootstepNodeTools;
 import us.ihmc.footstepPlanning.graphSearch.nodeChecking.*;
-import us.ihmc.footstepPlanning.graphSearch.parameters.DefaultFootstepPlanningParameters;
+import us.ihmc.footstepPlanning.graphSearch.parameters.DefaultFootstepPlannerParameters;
 import us.ihmc.footstepPlanning.tools.PlannerTools;
-import us.ihmc.footstepPlanning.graphSearch.parameters.SettableFootstepPlannerParameters;
 import us.ihmc.javaFXToolkit.shapes.JavaFXMultiColorMeshBuilder;
 import us.ihmc.javaFXToolkit.shapes.TextureColorPalette2D;
 import us.ihmc.messager.Messager;
@@ -44,7 +43,7 @@ public class NodeCheckerRenderer extends AnimationTimer
    private final AtomicReference<RobotSide> initialSupportSideReference;
 
    private final SideDependentList<ConvexPolygon2D> footPolygons;
-   private final SettableFootstepPlannerParameters parameters = new SettableFootstepPlannerParameters(new DefaultFootstepPlanningParameters());
+   private final DefaultFootstepPlannerParameters parameters = new DefaultFootstepPlannerParameters();
    private final SimplePlanarRegionFootstepNodeSnapper snapper;
 
    private final FootstepNodeChecker nodeChecker;
@@ -57,10 +56,10 @@ public class NodeCheckerRenderer extends AnimationTimer
    public NodeCheckerRenderer(Messager messager, RobotContactPointParameters<RobotSide> robotContactPointParameters)
    {
       nodeCheckerEnabled = messager.createInput(EnableNodeChecking, false);
-      planarRegionsReference = messager.createInput(PlanarRegionDataTopic);
+      planarRegionsReference = messager.createInput(PlanarRegionData);
       footPositionReference = messager.createInput(NodeCheckingPosition);
       footOrientationReference = messager.createInput(NodeCheckingOrientation, new Quaternion());
-      initialSupportSideReference = messager.createInput(InitialSupportSideTopic, RobotSide.LEFT);
+      initialSupportSideReference = messager.createInput(InitialSupportSide, RobotSide.LEFT);
 
       TextureColorPalette2D colorPalette = new TextureColorPalette2D();
       colorPalette.setHueBrightnessBased(0.9);
@@ -93,7 +92,7 @@ public class NodeCheckerRenderer extends AnimationTimer
       PlanarRegionBaseOfCliffAvoider cliffAvoider = new PlanarRegionBaseOfCliffAvoider(parameters, snapper, footPolygons);
       nodeChecker = new FootstepNodeCheckerOfCheckers(Arrays.asList(snapBasedNodeChecker, bodyCollisionNodeChecker, cliffAvoider));
 
-      messager.registerTopicListener(FootstepPlannerMessagerAPI.PlannerParametersTopic, parameters::set);
+      messager.registerTopicListener(FootstepPlannerMessagerAPI.PlannerParameters, parameters::set);
    }
 
    @Override
@@ -134,7 +133,7 @@ public class NodeCheckerRenderer extends AnimationTimer
 
       try
       {
-         FootstepNodeTools.getSnappedNodeTransform(node, snapData.getSnapTransform(), snappedTransformToWorld);
+         snappedTransformToWorld.set(snapData.getOrComputeSnappedNodeTransform(node));
       }
       catch(NotARotationMatrixException e)
       {

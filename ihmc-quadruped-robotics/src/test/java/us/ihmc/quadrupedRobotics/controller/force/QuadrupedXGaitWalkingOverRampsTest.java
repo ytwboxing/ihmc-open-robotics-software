@@ -4,17 +4,16 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.quadrupedCommunication.teleop.RemoteQuadrupedTeleopManager;
 import us.ihmc.quadrupedPlanning.QuadrupedGait;
 import us.ihmc.quadrupedPlanning.QuadrupedSpeed;
-import us.ihmc.quadrupedRobotics.QuadrupedTestYoVariables;
 import us.ihmc.quadrupedRobotics.QuadrupedMultiRobotTestInterface;
 import us.ihmc.quadrupedRobotics.QuadrupedTestBehaviors;
 import us.ihmc.quadrupedRobotics.QuadrupedTestFactory;
 import us.ihmc.quadrupedRobotics.QuadrupedTestGoals;
+import us.ihmc.quadrupedRobotics.QuadrupedTestYoVariables;
 import us.ihmc.quadrupedRobotics.model.QuadrupedInitialPositionParameters;
 import us.ihmc.robotics.testing.YoVariableTestGoal;
 import us.ihmc.simulationConstructionSetTools.util.simulationrunner.GoalOrientedTestConductor;
@@ -22,7 +21,6 @@ import us.ihmc.simulationconstructionset.util.InclinedGroundProfile;
 import us.ihmc.simulationconstructionset.util.ground.RampsGroundProfile;
 import us.ihmc.tools.MemoryTools;
 
-@Tag("quadruped-xgait-3")
 public abstract class QuadrupedXGaitWalkingOverRampsTest implements QuadrupedMultiRobotTestInterface
 {
    protected GoalOrientedTestConductor conductor;
@@ -85,7 +83,7 @@ public abstract class QuadrupedXGaitWalkingOverRampsTest implements QuadrupedMul
 
       stepTeleopManager.setDesiredVelocity(0.0, 0.0, 0.0);
       stepTeleopManager.requestXGait();
-      conductor.addTerminalGoal(YoVariableTestGoal.doubleGreaterThan(variables.getYoTime(), variables.getYoTime().getDoubleValue() + 1.0));
+      conductor.addTerminalGoal(QuadrupedTestGoals.timeInFuture(variables, 1.0));
       conductor.simulate();
 
       stepTeleopManager.setDesiredVelocity(0.4, 0.0, 0.0);
@@ -94,7 +92,7 @@ public abstract class QuadrupedXGaitWalkingOverRampsTest implements QuadrupedMul
       conductor.simulate();
 
       stepTeleopManager.setDesiredVelocity(0.0, 0.0, 0.0);
-      conductor.addTerminalGoal(YoVariableTestGoal.doubleGreaterThan(variables.getYoTime(), variables.getYoTime().getDoubleValue() + 1.0));
+      conductor.addTerminalGoal(QuadrupedTestGoals.timeInFuture(variables, 1.0));
       conductor.simulate();
 
       stepTeleopManager.setDesiredVelocity(-0.4, 0.0, 0.0);
@@ -102,7 +100,10 @@ public abstract class QuadrupedXGaitWalkingOverRampsTest implements QuadrupedMul
       conductor.addTerminalGoal(YoVariableTestGoal.doubleLessThan(variables.getRobotBodyX(), 0.0));
       conductor.simulate();
 
-      conductor.concludeTesting();
+      stepTeleopManager.requestStanding();
+
+      conductor.addTimeLimit(variables.getYoTime(), 1.0);
+      conductor.simulate();
    }
 
    @Test
@@ -149,8 +150,6 @@ public abstract class QuadrupedXGaitWalkingOverRampsTest implements QuadrupedMul
       conductor.addTimeLimit(variables.getYoTime(), 9.0);
       conductor.addTerminalGoal(YoVariableTestGoal.doubleLessThan(variables.getRobotBodyX(), 0.0));
       conductor.simulate();
-
-      conductor.concludeTesting();
    }
 
    public abstract double getDesiredWalkingVelocity();

@@ -6,6 +6,8 @@ import static us.ihmc.pathPlanning.visibilityGraphs.ui.messager.UIVisibilityGrap
 import static us.ihmc.pathPlanning.visibilityGraphs.ui.messager.UIVisibilityGraphsTopics.InterRegionVisibilityMap;
 import static us.ihmc.pathPlanning.visibilityGraphs.ui.messager.UIVisibilityGraphsTopics.NavigableRegionData;
 import static us.ihmc.pathPlanning.visibilityGraphs.ui.messager.UIVisibilityGraphsTopics.NavigableRegionVisibilityMap;
+import static us.ihmc.pathPlanning.visibilityGraphs.ui.messager.UIVisibilityGraphsTopics.ShowClusterPreferredNavigableExtrusions;
+import static us.ihmc.pathPlanning.visibilityGraphs.ui.messager.UIVisibilityGraphsTopics.ShowClusterPreferredNonNavigableExtrusions;
 import static us.ihmc.pathPlanning.visibilityGraphs.ui.messager.UIVisibilityGraphsTopics.ShowClusterNavigableExtrusions;
 import static us.ihmc.pathPlanning.visibilityGraphs.ui.messager.UIVisibilityGraphsTopics.ShowClusterNonNavigableExtrusions;
 import static us.ihmc.pathPlanning.visibilityGraphs.ui.messager.UIVisibilityGraphsTopics.ShowClusterRawPoints;
@@ -28,9 +30,9 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.Messager;
-import us.ihmc.pathPlanning.visibilityGraphs.DefaultVisibilityGraphParameters;
+import us.ihmc.pathPlanning.visibilityGraphs.parameters.DefaultVisibilityGraphParameters;
 import us.ihmc.pathPlanning.visibilityGraphs.NavigableRegionsManager;
-import us.ihmc.pathPlanning.visibilityGraphs.interfaces.VisibilityGraphsParameters;
+import us.ihmc.pathPlanning.visibilityGraphs.parameters.VisibilityGraphsParametersReadOnly;
 import us.ihmc.pathPlanning.visibilityGraphs.ui.messager.UIVisibilityGraphsTopics;
 import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
@@ -47,7 +49,7 @@ public class VisibilityGraphsRenderer
    private final AtomicReference<Point3D> startPositionReference;
    private final AtomicReference<Point3D> goalPositionReference;
 
-   private final AtomicReference<VisibilityGraphsParameters> parameters;
+   private final AtomicReference<VisibilityGraphsParametersReadOnly> parameters;
 
    private final BodyPathMeshViewer bodyPathMeshViewer;
    private final ClusterMeshViewer clusterMeshViewer;
@@ -72,7 +74,8 @@ public class VisibilityGraphsRenderer
       bodyPathMeshViewer = new BodyPathMeshViewer(messager, executorService);
 
       clusterMeshViewer = new ClusterMeshViewer(messager, executorService);
-      clusterMeshViewer.setTopics(GlobalReset, ShowClusterRawPoints, ShowClusterNavigableExtrusions, ShowClusterNonNavigableExtrusions, NavigableRegionData);
+      clusterMeshViewer.setTopics(GlobalReset, ShowClusterRawPoints, ShowClusterPreferredNavigableExtrusions, ShowClusterPreferredNonNavigableExtrusions,
+                                  ShowClusterNavigableExtrusions, ShowClusterNonNavigableExtrusions, NavigableRegionData);
 
       startMapViewer = new VisibilityMapHolderViewer(messager, executorService);
       startMapViewer.setCustomColor(Color.YELLOW);
@@ -156,7 +159,7 @@ public class VisibilityGraphsRenderer
          List<Point3DReadOnly> bodyPath;
          if (computePathWithOcclusions)
          {
-            bodyPath = navigableRegionsManager.calculateBodyPathWithOcclusions(start, goal);
+            bodyPath = navigableRegionsManager.calculateBodyPath(start, goal);
          }
          else
          {

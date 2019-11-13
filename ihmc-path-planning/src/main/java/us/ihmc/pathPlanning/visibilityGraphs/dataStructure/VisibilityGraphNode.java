@@ -8,6 +8,10 @@ import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 
+/**
+ * Visibility graph node data structure associated with a navigable region,
+ * holding cost information, and connected graph edges
+ */
 public class VisibilityGraphNode implements EpsilonComparable<VisibilityGraphNode>
 {
    private final VisibilityGraphNavigableRegion visibilityGraphNavigableRegion;
@@ -22,18 +26,28 @@ public class VisibilityGraphNode implements EpsilonComparable<VisibilityGraphNod
    private boolean hasBeenExpanded = false;
    private VisibilityGraphNode bestParentNode = null;
 
+   private final boolean isPreferredNode;
+
    private final ArrayList<VisibilityGraphEdge> edges = new ArrayList<>();
+
+   public VisibilityGraphNode(Point3DReadOnly pointInWorld, Point2DReadOnly pointInLocal, VisibilityGraphNavigableRegion visibilityGraphNavigableRegion,
+                              boolean isPreferredNode)
+   {
+      this(pointInWorld, pointInLocal, visibilityGraphNavigableRegion, visibilityGraphNavigableRegion.getMapId(), isPreferredNode);
+   }
+
+   public VisibilityGraphNode(Point3DReadOnly pointInWorld, Point2DReadOnly pointInLocal, VisibilityGraphNavigableRegion visibilityGraphNavigableRegion,
+                              int mapId, boolean isPreferredNode)
+   {
+      this.visibilityGraphNavigableRegion = visibilityGraphNavigableRegion;
+      this.pointInWorld = new ConnectionPoint3D(pointInWorld, mapId);
+      this.point2DInLocal = new Point2D(pointInLocal);
+      this.isPreferredNode = isPreferredNode;
+   }
 
    public int getRegionId()
    {
       return pointInWorld.getRegionId();
-   }
-
-   public VisibilityGraphNode(Point3DReadOnly pointInWorld, Point2DReadOnly pointInLocal, VisibilityGraphNavigableRegion visibilityGraphNavigableRegion)
-   {
-      this.visibilityGraphNavigableRegion = visibilityGraphNavigableRegion;
-      this.pointInWorld = new ConnectionPoint3D(pointInWorld, visibilityGraphNavigableRegion.getMapId());
-      this.point2DInLocal = new Point2D(pointInLocal);
    }
 
    public VisibilityGraphNavigableRegion getVisibilityGraphNavigableRegion()
@@ -95,6 +109,11 @@ public class VisibilityGraphNode implements EpsilonComparable<VisibilityGraphNod
    public void setEstimatedCostToGoal(double estimatedCostToGoal)
    {
       this.estimatedCostToGoal = estimatedCostToGoal;
+   }
+
+   public boolean isPreferredNode()
+   {
+      return isPreferredNode;
    }
 
    public boolean getHasBeenExpanded()

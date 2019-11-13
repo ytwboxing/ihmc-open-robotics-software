@@ -5,6 +5,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import controller_msgs.msg.dds.LidarScanMessage;
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
+import us.ihmc.euclid.geometry.Pose3D;
+import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.idl.IDLSequence.Float;
 import us.ihmc.jOctoMap.ocTree.NormalOcTree;
@@ -25,6 +27,7 @@ public class REAOcTreeBuffer
    private final AtomicReference<LidarScanMessage> latestLidarScanMessage = new AtomicReference<>(null);
    private final AtomicReference<StereoVisionPointCloudMessage> latestStereoVisionPointCloudMessage = new AtomicReference<>(null);
    private final AtomicReference<ScanCollection> newFullScanReference = new AtomicReference<>(null);
+   private final AtomicReference<Pose3DReadOnly> newSensorPoseReference = new AtomicReference<>(null);
 
    private final AtomicReference<Boolean> enable;
    private final AtomicReference<Boolean> enableBuffer;
@@ -35,10 +38,11 @@ public class REAOcTreeBuffer
    private final AtomicBoolean isBufferFull = new AtomicBoolean(false);
    private final AtomicBoolean isBufferRequested = new AtomicBoolean(false);
    private final AtomicReference<NormalOcTree> newBuffer = new AtomicReference<>(null);
+   private final AtomicReference<Pose3DReadOnly> newSensorPoseBuffer = new AtomicReference<>(null);
 
    private final AtomicReference<Boolean> isBufferStateRequested;
 
-   private final double octreeResolution;
+   private final AtomicReference<Double> octreeResolution;
    private int messageCounter = 0;
 
    private final Messager reaMessager;
@@ -48,11 +52,13 @@ public class REAOcTreeBuffer
    private final Topic<Integer> messageCapacityTopic;
    private final Topic<NormalOcTreeMessage> stateTopic;
 
+   private final AtomicReference<Integer> stereoVisionBufferSize;
+
    public REAOcTreeBuffer(double octreeResolution, Messager reaMessager, Topic<Boolean> enableBufferTopic, boolean enableBufferInitialValue,
                           Topic<Integer> ocTreeCapacityTopic, int ocTreeCapacityValue, Topic<Integer> messageCapacityTopic, int messageCapacityInitialValue,
                           Topic<Boolean> requestStateTopic, Topic<NormalOcTreeMessage> stateTopic)
    {
-      this.octreeResolution = octreeResolution;
+      this.octreeResolution = new AtomicReference<Double>(octreeResolution);
       this.reaMessager = reaMessager;
       this.enableBufferTopic = enableBufferTopic;
       this.ocTreeCapacityTopic = ocTreeCapacityTopic;
@@ -67,6 +73,7 @@ public class REAOcTreeBuffer
       isBufferStateRequested = reaMessager.createInput(requestStateTopic, false);
 
       reaMessager.registerTopicListener(REAModuleAPI.RequestEntireModuleState, (messageContent) -> sendCurrentState());
+      stereoVisionBufferSize = reaMessager.createInput(REAModuleAPI.StereoVisionBufferSize, NUMBER_OF_SAMPLES);
    }
 
    private void sendCurrentState()
@@ -103,13 +110,14 @@ public class REAOcTreeBuffer
    {
       return new Runnable()
       {
-         private NormalOcTree bufferOctree = new NormalOcTree(octreeResolution);
+         private NormalOcTree bufferOctree = new NormalOcTree(octreeResolution.get());
 
          @Override
          public void run()
          {
             updateScanCollection();
             ScanCollection newScan = newFullScanReference.getAndSet(null);
+            Pose3DReadOnly newSensorPose = newSensorPoseReference.getAndSet(null);
 
             if (!enable.get() || !enableBuffer.get() || clearBuffer.getAndSet(false))
             {
@@ -120,7 +128,7 @@ public class REAOcTreeBuffer
                return;
             }
 
-            if (newScan == null)
+            if (newScan == null || newSensorPose == null) //TODO: check.
                return;
 
             bufferOctree.insertScanCollection(newScan, false);
@@ -136,13 +144,17 @@ public class REAOcTreeBuffer
                if (numberOfLeafNodesInBuffer >= ocTreeCapacity.get().intValue())
                   isBufferFull.set(true);
                else
+               {
                   isBufferFull.set(false);
+                  return;
+               }
             }
 
             if (isBufferRequested.get())
             {
                newBuffer.set(bufferOctree);
-               bufferOctree = new NormalOcTree(octreeResolution);
+               newSensorPoseBuffer.set(newSensorPose);
+               bufferOctree = new NormalOcTree(octreeResolution.get());
                isBufferRequested.set(false);
                messageCounter = 0;
             }
@@ -173,6 +185,16 @@ public class REAOcTreeBuffer
       return newBuffer.getAndSet(null);
    }
 
+   public Pose3DReadOnly pollNewSensorPoseBuffer()
+   {
+      return newSensorPoseBuffer.getAndSet(null);
+   }
+
+   public void setOctreeResolution(double resolution)
+   {
+      octreeResolution.set(resolution);
+   }
+
    public void handleStereoVisionPointCloudMessage(StereoVisionPointCloudMessage message)
    {
       latestStereoVisionPointCloudMessage.set(message);
@@ -198,15 +220,26 @@ public class REAOcTreeBuffer
          scanCollection.setSubSampleSize(NUMBER_OF_SAMPLES);
          // FIXME Not downsizing the scan anymore, this needs to be reviewed to improve speed.
          scanCollection.addScan(toScan(lidarMessage.getScan(), lidarMessage.getLidarPosition()));
+
+         Pose3D sensorPose = new Pose3D();
+         sensorPose.setPosition(lidarMessage.getLidarPosition());
+         sensorPose.setOrientation(lidarMessage.getLidarOrientation());
+         newSensorPoseReference.set(sensorPose);
       }
 
       if (stereoMessage != null)
       {
          ScanCollection scanCollection = new ScanCollection();
          newFullScanReference.set(scanCollection);
-         scanCollection.setSubSampleSize(NUMBER_OF_SAMPLES);
+         scanCollection.setSubSampleSize(stereoVisionBufferSize.get());
          // FIXME Not downsizing the scan anymore, this needs to be reviewed to improve speed.
          scanCollection.addScan(toScan(stereoMessage.getPointCloud(), stereoMessage.getSensorPosition()));
+         // TODO: make NormalOctree constructor with octreeDepth.get().
+
+         Pose3D sensorPose = new Pose3D();
+         sensorPose.setPosition(stereoMessage.getSensorPosition());
+         sensorPose.setOrientation(stereoMessage.getSensorOrientation());
+         newSensorPoseReference.set(sensorPose);
       }
    }
 

@@ -1,27 +1,27 @@
 package us.ihmc.footstepPlanning.ui.components;
 
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.BodyPathDataTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.ComputePathTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.GoalOrientationTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.GoalPositionTopic;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.BodyPathData;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.ComputePath;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.GoalOrientation;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.GoalPosition;
 import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.GoalVisibilityMap;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.InitialSupportSideTopic;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.InitialSupportSide;
 import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.InterRegionVisibilityMap;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.LowLevelGoalOrientationTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.LowLevelGoalPositionTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlanarRegionDataTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerHorizonLengthTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerParametersTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerStatusTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerTimeTakenTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerTimeoutTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerTypeTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlanningResultTopic;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.LowLevelGoalOrientation;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.LowLevelGoalPosition;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlanarRegionData;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerHorizonLength;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerParameters;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerStatus;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerTimeTaken;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerTimeout;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlannerType;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.PlanningResult;
 import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.RequestPlannerStatistics;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.StartOrientationTopic;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.StartPositionTopic;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.StartOrientation;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.StartPosition;
 import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.StartVisibilityMap;
-import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.VisibilityGraphsParametersTopic;
+import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.VisibilityGraphsParameters;
 import static us.ihmc.footstepPlanning.communication.FootstepPlannerMessagerAPI.VisibilityMapWithNavigableRegionData;
 
 import java.util.ArrayList;
@@ -34,10 +34,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.packets.ExecutionMode;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.footstepPlanning.FootstepPlan;
 import us.ihmc.footstepPlanning.FootstepPlannerStatus;
@@ -53,8 +53,8 @@ import us.ihmc.footstepPlanning.graphSearch.listeners.BipedalFootstepPlannerList
 import us.ihmc.footstepPlanning.graphSearch.nodeChecking.*;
 import us.ihmc.footstepPlanning.graphSearch.nodeExpansion.FootstepNodeExpansion;
 import us.ihmc.footstepPlanning.graphSearch.nodeExpansion.ParameterBasedNodeExpansion;
-import us.ihmc.footstepPlanning.graphSearch.parameters.DefaultFootstepPlanningParameters;
-import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParameters;
+import us.ihmc.footstepPlanning.graphSearch.parameters.DefaultFootstepPlannerParameters;
+import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParametersReadOnly;
 import us.ihmc.footstepPlanning.graphSearch.planners.AStarFootstepPlanner;
 import us.ihmc.footstepPlanning.graphSearch.planners.DepthFirstFootstepPlanner;
 import us.ihmc.footstepPlanning.graphSearch.planners.SplinePathWithAStarPlanner;
@@ -71,11 +71,11 @@ import us.ihmc.messager.SharedMemoryMessager;
 import us.ihmc.pathPlanning.statistics.ListOfStatistics;
 import us.ihmc.pathPlanning.statistics.PlannerStatistics;
 import us.ihmc.pathPlanning.statistics.VisibilityGraphStatistics;
-import us.ihmc.pathPlanning.visibilityGraphs.DefaultVisibilityGraphParameters;
+import us.ihmc.pathPlanning.visibilityGraphs.parameters.DefaultVisibilityGraphParameters;
 import us.ihmc.pathPlanning.visibilityGraphs.dataStructure.InterRegionVisibilityMap;
 import us.ihmc.pathPlanning.visibilityGraphs.dataStructure.VisibilityMap;
 import us.ihmc.pathPlanning.visibilityGraphs.dataStructure.VisibilityMapWithNavigableRegion;
-import us.ihmc.pathPlanning.visibilityGraphs.interfaces.VisibilityGraphsParameters;
+import us.ihmc.pathPlanning.visibilityGraphs.parameters.VisibilityGraphsParametersReadOnly;
 import us.ihmc.pathPlanning.visibilityGraphs.interfaces.VisibilityMapHolder;
 import us.ihmc.pathPlanning.visibilityGraphs.tools.BodyPathPlan;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
@@ -100,10 +100,11 @@ public class FootstepPathCalculatorModule
    private final AtomicReference<FootstepPlannerType> footstepPlannerTypeReference;
 
    private final AtomicReference<Double> plannerTimeoutReference;
+   private final AtomicReference<Double> plannerBestEffortTimeoutReference;
    private final AtomicReference<Double> plannerHorizonLengthReference;
 
-   private final AtomicReference<FootstepPlannerParameters> parameters;
-   private final AtomicReference<VisibilityGraphsParameters> visibilityGraphsParameters;
+   private final AtomicReference<FootstepPlannerParametersReadOnly> parameters;
+   private final AtomicReference<VisibilityGraphsParametersReadOnly> visibilityGraphsParameters;
 
    private final Messager messager;
 
@@ -113,20 +114,21 @@ public class FootstepPathCalculatorModule
    {
       this.messager = messager;
 
-      planarRegionsReference = messager.createInput(PlanarRegionDataTopic);
-      startPositionReference = messager.createInput(StartPositionTopic);
-      startOrientationReference = messager.createInput(StartOrientationTopic, new Quaternion());
-      initialStanceSideReference = messager.createInput(InitialSupportSideTopic, RobotSide.LEFT);
-      goalPositionReference = messager.createInput(GoalPositionTopic);
-      goalOrientationReference = messager.createInput(GoalOrientationTopic, new Quaternion());
+      planarRegionsReference = messager.createInput(PlanarRegionData);
+      startPositionReference = messager.createInput(StartPosition);
+      startOrientationReference = messager.createInput(StartOrientation, new Quaternion());
+      initialStanceSideReference = messager.createInput(InitialSupportSide, RobotSide.LEFT);
+      goalPositionReference = messager.createInput(GoalPosition);
+      goalOrientationReference = messager.createInput(GoalOrientation, new Quaternion());
 
-      parameters = messager.createInput(PlannerParametersTopic, new DefaultFootstepPlanningParameters());
-      visibilityGraphsParameters = messager.createInput(VisibilityGraphsParametersTopic, new DefaultVisibilityGraphParameters());
-      footstepPlannerTypeReference = messager.createInput(PlannerTypeTopic, FootstepPlannerType.A_STAR);
-      plannerTimeoutReference = messager.createInput(PlannerTimeoutTopic, 5.0);
-      plannerHorizonLengthReference = messager.createInput(PlannerHorizonLengthTopic, 1.0);
+      parameters = messager.createInput(PlannerParameters, new DefaultFootstepPlannerParameters());
+      visibilityGraphsParameters = messager.createInput(VisibilityGraphsParameters, new DefaultVisibilityGraphParameters());
+      footstepPlannerTypeReference = messager.createInput(PlannerType, FootstepPlannerType.A_STAR);
+      plannerTimeoutReference = messager.createInput(PlannerTimeout, 5.0);
+      plannerBestEffortTimeoutReference = messager.createInput(PlannerBestEffortTimeout, 0.0);
+      plannerHorizonLengthReference = messager.createInput(PlannerHorizonLength, 1.0);
 
-      messager.registerTopicListener(ComputePathTopic, request -> computePathOnThread());
+      messager.registerTopicListener(ComputePath, request -> computePathOnThread());
       messager.registerTopicListener(RequestPlannerStatistics, request -> sendPlannerStatistics());
    }
 
@@ -139,6 +141,7 @@ public class FootstepPathCalculatorModule
       goalPositionReference.set(null);
       goalOrientationReference.set(null);
       plannerTimeoutReference.set(null);
+      plannerBestEffortTimeoutReference.set(null);
       plannerHorizonLengthReference.set(null);
    }
 
@@ -187,6 +190,7 @@ public class FootstepPathCalculatorModule
 
          planner.setPlanarRegions(planarRegionsList);
          planner.setTimeout(plannerTimeoutReference.get());
+         planner.setBestEffortTimeout(plannerBestEffortTimeoutReference.get());
          planner.setPlanningHorizonLength(plannerHorizonLengthReference.get());
 
          planner
@@ -197,22 +201,22 @@ public class FootstepPathCalculatorModule
          plannerGoal.setGoalPoseBetweenFeet(new FramePose3D(ReferenceFrame.getWorldFrame(), goal, goalOrientationReference.get()));
          planner.setGoal(plannerGoal);
 
-         messager.submitMessage(PlannerStatusTopic, FootstepPlannerStatus.PLANNING_PATH);
+         messager.submitMessage(PlannerStatus, FootstepPlannerStatus.PLANNING_PATH);
 
          FootstepPlanningResult planningResult = planner.planPath();
          if (planningResult.validForExecution())
          {
             BodyPathPlan bodyPathPlan = planner.getPathPlan();
-            messager.submitMessage(PlannerStatusTopic, FootstepPlannerStatus.PLANNING_STEPS);
+            messager.submitMessage(PlannerStatus, FootstepPlannerStatus.PLANNING_STEPS);
 
             if (bodyPathPlan != null)
             {
-               List<Point3DReadOnly> bodyPath = new ArrayList<>();
+               List<Pose3DReadOnly> bodyPath = new ArrayList<>();
                for (int i = 0; i < bodyPathPlan.getNumberOfWaypoints(); i++)
                   bodyPath.add(bodyPathPlan.getWaypoint(i));
-               messager.submitMessage(BodyPathDataTopic, bodyPath);
+               messager.submitMessage(BodyPathData, bodyPath);
             }
-            messager.submitMessage(PlanningResultTopic, planningResult);
+            messager.submitMessage(PlanningResult, planningResult);
 
             planningResult = planner.plan();
          }
@@ -226,17 +230,17 @@ public class FootstepPathCalculatorModule
                LogTools.info("Planner result: " + planner.getPlan().getNumberOfSteps() + " steps, taking " + planner.getPlanningDuration() + " s.");
          }
 
-         messager.submitMessage(PlanningResultTopic, planningResult);
-         messager.submitMessage(PlannerTimeTakenTopic, planner.getPlanningDuration());
-         messager.submitMessage(PlannerStatusTopic, FootstepPlannerStatus.IDLE);
+         messager.submitMessage(PlanningResult, planningResult);
+         messager.submitMessage(PlannerTimeTaken, planner.getPlanningDuration());
+         messager.submitMessage(PlannerStatus, FootstepPlannerStatus.IDLE);
 
          if (planningResult.validForExecution())
          {
-            messager.submitMessage(FootstepPlanResponseTopic, FootstepDataMessageConverter.createFootstepDataListFromPlan(footstepPlan, -1.0, -1.0, ExecutionMode.OVERRIDE));
+            messager.submitMessage(FootstepPlanResponse, FootstepDataMessageConverter.createFootstepDataListFromPlan(footstepPlan, -1.0, -1.0, ExecutionMode.OVERRIDE));
             if (footstepPlan.getLowLevelPlanGoal() != null)
             {
-               messager.submitMessage(LowLevelGoalPositionTopic, new Point3D(footstepPlan.getLowLevelPlanGoal().getPosition()));
-               messager.submitMessage(LowLevelGoalOrientationTopic, new Quaternion(footstepPlan.getLowLevelPlanGoal().getOrientation()));
+               messager.submitMessage(LowLevelGoalPosition, new Point3D(footstepPlan.getLowLevelPlanGoal().getPosition()));
+               messager.submitMessage(LowLevelGoalOrientation, new Quaternion(footstepPlan.getLowLevelPlanGoal().getOrientation()));
             }
          }
       }
@@ -357,7 +361,7 @@ public class FootstepPathCalculatorModule
 
    private BodyPathAndFootstepPlanner createAStarPlanner(SideDependentList<ConvexPolygon2D> footPolygons, YoVariableRegistry registry)
    {
-      FootstepPlannerParameters parameters = this.parameters.get();
+      FootstepPlannerParametersReadOnly parameters = this.parameters.get();
       FootstepNodeExpansion expansion = new ParameterBasedNodeExpansion(parameters);
       SimplePlanarRegionFootstepNodeSnapper snapper = new SimplePlanarRegionFootstepNodeSnapper(footPolygons);
       FootstepNodeSnapAndWiggler postProcessingSnapper = new FootstepNodeSnapAndWiggler(footPolygons, parameters);
@@ -367,15 +371,17 @@ public class FootstepPathCalculatorModule
       BodyCollisionNodeChecker bodyCollisionNodeChecker = new BodyCollisionNodeChecker(collisionDetector, parameters, snapper);
       PlanarRegionBaseOfCliffAvoider cliffAvoider = new PlanarRegionBaseOfCliffAvoider(parameters, snapper, footPolygons);
 
-      DistanceAndYawBasedHeuristics heuristics = new DistanceAndYawBasedHeuristics(parameters.getCostParameters().getAStarHeuristicsWeight(), parameters);
+      DistanceAndYawBasedHeuristics heuristics = new DistanceAndYawBasedHeuristics(snapper, parameters.getAStarHeuristicsWeight(), parameters);
 
       FootstepNodeChecker nodeChecker = new FootstepNodeCheckerOfCheckers(Arrays.asList(snapBasedNodeChecker, bodyCollisionNodeChecker, cliffAvoider));
 
       FootstepCostBuilder costBuilder = new FootstepCostBuilder();
       costBuilder.setFootstepPlannerParameters(parameters);
       costBuilder.setSnapper(snapper);
+      costBuilder.setFootPolygons(footPolygons);
       costBuilder.setIncludeHeightCost(true);
       costBuilder.setIncludePitchAndRollCost(true);
+      costBuilder.setIncludeAreaCost(true);
 
       FootstepCost footstepCost = costBuilder.buildCost();
 

@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.euclid.interfaces.Transformable;
-import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.pathPlanning.visibilityGraphs.clusterManagement.Cluster;
 import us.ihmc.robotics.geometry.PlanarRegion;
 
+/**
+ * A planar region with clusters of points for itself and nearby obstacles.
+ * This extra data is gathered with respect to other planar regions in the world.
+ */
 public class NavigableRegion
 {
    private final PlanarRegion homePlanarRegion;
@@ -44,11 +48,14 @@ public class NavigableRegion
       return homePlanarRegion;
    }
 
-   public RigidBodyTransform getTransformToWorld()
+   public RigidBodyTransformReadOnly getTransformToWorld()
    {
-      RigidBodyTransform transform = new RigidBodyTransform();
-      homePlanarRegion.getTransformToWorld(transform);
-      return transform;
+      return homePlanarRegion.getTransformToWorld();
+   }
+
+   public RigidBodyTransformReadOnly getTransformFromWorldToLocal()
+   {
+      return homePlanarRegion.getTransformToLocal();
    }
 
    public Cluster getHomeRegionCluster()

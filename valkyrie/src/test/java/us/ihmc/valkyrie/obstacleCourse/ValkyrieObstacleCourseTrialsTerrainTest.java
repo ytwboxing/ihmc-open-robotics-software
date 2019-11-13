@@ -1,6 +1,7 @@
 package us.ihmc.valkyrie.obstacleCourse;
 
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
@@ -13,11 +14,12 @@ import us.ihmc.valkyrie.ValkyrieRobotModel;
 import us.ihmc.wholeBodyController.AdditionalSimulationContactPoints;
 import us.ihmc.wholeBodyController.FootContactPoints;
 
+@Tag("humanoid-obstacle-slow")
 public class ValkyrieObstacleCourseTrialsTerrainTest extends DRCObstacleCourseTrialsTerrainTest
 {
    private final AdditionalSimulationContactPoints<RobotSide> footContactPoints = new AdditionalSimulationContactPoints<RobotSide>(RobotSide.values, 3, 4, true,
                                                                                                                                    false);
-   private final ValkyrieRobotModel robotModel = new ValkyrieRobotModel(RobotTarget.SCS, false, footContactPoints);
+   private final ValkyrieRobotModel robotModel = new ValkyrieRobotModel(RobotTarget.SCS, footContactPoints);
 
    @Override
    public DRCRobotModel getRobotModel()
@@ -29,7 +31,7 @@ public class ValkyrieObstacleCourseTrialsTerrainTest extends DRCObstacleCourseTr
    protected DRCRobotModel getRobotModelWithAdditionalFootContactPoints()
    {
       FootContactPoints<RobotSide> simulationContactPoints = new AdditionalSimulationContactPoints<RobotSide>(RobotSide.values, 5, 4, true, false);
-      ValkyrieRobotModel robotModel = new ValkyrieRobotModel(RobotTarget.SCS, false, simulationContactPoints);
+      ValkyrieRobotModel robotModel = new ValkyrieRobotModel(RobotTarget.SCS, simulationContactPoints);
       return robotModel;
    }
 

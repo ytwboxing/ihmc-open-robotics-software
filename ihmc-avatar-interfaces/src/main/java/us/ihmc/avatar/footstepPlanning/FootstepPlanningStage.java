@@ -27,7 +27,7 @@ import us.ihmc.footstepPlanning.graphSearch.listeners.HeuristicSearchAndActionPo
 import us.ihmc.footstepPlanning.graphSearch.nodeChecking.*;
 import us.ihmc.footstepPlanning.graphSearch.nodeExpansion.FootstepNodeExpansion;
 import us.ihmc.footstepPlanning.graphSearch.nodeExpansion.ParameterBasedNodeExpansion;
-import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParameters;
+import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParametersReadOnly;
 import us.ihmc.footstepPlanning.graphSearch.planners.AStarFootstepPlanner;
 import us.ihmc.footstepPlanning.graphSearch.planners.BodyPathBasedAStarPlanner;
 import us.ihmc.footstepPlanning.graphSearch.stepCost.FootstepCost;
@@ -36,7 +36,7 @@ import us.ihmc.footstepPlanning.simplePlanners.PlanThenSnapPlanner;
 import us.ihmc.footstepPlanning.simplePlanners.TurnWalkTurnPlanner;
 import us.ihmc.footstepPlanning.tools.PlannerTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.pathPlanning.bodyPathPlanner.BodyPathPlanner;
+import us.ihmc.pathPlanning.bodyPathPlanner.BodyPathPlanHolder;
 import us.ihmc.pathPlanning.statistics.PlannerStatistics;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.robotics.robotSide.RobotSide;
@@ -64,6 +64,7 @@ public class FootstepPlanningStage implements FootstepPlanner
    private final IntegerProvider planId;
 
    private final AtomicDouble timeout = new AtomicDouble();
+   private final AtomicDouble bestEffortTimeout = new AtomicDouble();
    private final AtomicDouble horizonLength = new AtomicDouble();
    private final AtomicReference<PlanarRegionsList> planarRegionsList = new AtomicReference<>();
    private final AtomicReference<FootstepPlannerGoal> goal = new AtomicReference<>();
@@ -82,13 +83,13 @@ public class FootstepPlanningStage implements FootstepPlanner
 
    private final List<PlannerCompletionCallback> completionCallbackList = new ArrayList<>();
 
-   private final FootstepPlannerParameters footstepPlanningParameters;
+   private final FootstepPlannerParametersReadOnly footstepPlanningParameters;
    private IHMCRealtimeROS2Publisher<TextToSpeechPacket> textToSpeechPublisher;
 
    private final PlannerGoalRecommendationHolder plannerGoalRecommendationHolder;
 
-   public FootstepPlanningStage(int stageId, RobotContactPointParameters<RobotSide> contactPointParameters, FootstepPlannerParameters footstepPlannerParameters,
-                                BodyPathPlanner bodyPathPlanner, EnumProvider<FootstepPlannerType> activePlanner, MultiStagePlannerListener multiStageListener,
+   public FootstepPlanningStage(int stageId, RobotContactPointParameters<RobotSide> contactPointParameters, FootstepPlannerParametersReadOnly footstepPlannerParameters,
+                                BodyPathPlanHolder bodyPathPlanner, EnumProvider<FootstepPlannerType> activePlanner, MultiStagePlannerListener multiStageListener,
                                 IntegerProvider planId, long tickDurationMs)
 
    {
@@ -121,7 +122,7 @@ public class FootstepPlanningStage implements FootstepPlanner
                                                    bodyPathPlanner,
                                                    footstepPlannerParameters,
                                                    contactPointsInSoleFrame,
-                                                   footstepPlannerParameters.getCostParameters().getBodyPathBasedHeuristicsWeight(),
+                                                   footstepPlannerParameters.getBodyPathBasedHeuristicsWeight(),
                                                    registry));
       plannerMap.put(FootstepPlannerType.VIS_GRAPH_WITH_A_STAR,
                      createBodyPathBasedAStarPlanner(footstepPlannerParameters, bodyPathPlanner, multiStageListener, contactPointsInSoleFrame));
@@ -129,7 +130,7 @@ public class FootstepPlanningStage implements FootstepPlanner
       initialize.set(true);
    }
 
-   private BodyPathBasedAStarPlanner createBodyPathBasedAStarPlanner(FootstepPlannerParameters footstepPlannerParameters, BodyPathPlanner bodyPathPlanner,
+   private BodyPathBasedAStarPlanner createBodyPathBasedAStarPlanner(FootstepPlannerParametersReadOnly footstepPlannerParameters, BodyPathPlanHolder bodyPathPlanner,
                                                                      MultiStagePlannerListener multiStageListener,
                                                                      SideDependentList<ConvexPolygon2D> contactPointsInSoleFrame)
    {
@@ -139,7 +140,7 @@ public class FootstepPlanningStage implements FootstepPlanner
                                            bodyPathPlanner,
                                            footstepPlannerParameters,
                                            contactPointsInSoleFrame,
-                                           footstepPlannerParameters.getCostParameters().getAStarHeuristicsWeight(),
+                                           footstepPlannerParameters.getAStarHeuristicsWeight(),
                                            registry,
                                            plannerListener);
    }
@@ -166,7 +167,7 @@ public class FootstepPlanningStage implements FootstepPlanner
       BodyCollisionNodeChecker bodyCollisionNodeChecker = new BodyCollisionNodeChecker(collisionDetector, footstepPlanningParameters, snapper);
       PlanarRegionBaseOfCliffAvoider cliffAvoider = new PlanarRegionBaseOfCliffAvoider(footstepPlanningParameters, snapper, footPolygons);
 
-      DistanceAndYawBasedHeuristics heuristics = new DistanceAndYawBasedHeuristics(footstepPlanningParameters.getCostParameters().getAStarHeuristicsWeight(),
+      DistanceAndYawBasedHeuristics heuristics = new DistanceAndYawBasedHeuristics(snapper, footstepPlanningParameters.getAStarHeuristicsWeight(),
                                                                                    footstepPlanningParameters);
 
       StagePlannerListener plannerListener = new StagePlannerListener(snapper, multiStageListener.getBroadcastDt());
@@ -235,6 +236,12 @@ public class FootstepPlanningStage implements FootstepPlanner
    public void setTimeout(double timeout)
    {
       this.timeout.set(timeout);
+   }
+
+   @Override
+   public void setBestEffortTimeout(double bestEffortTimeout)
+   {
+      this.bestEffortTimeout.set(bestEffortTimeout);
    }
 
    @Override
@@ -334,10 +341,11 @@ public class FootstepPlanningStage implements FootstepPlanner
 
       stepPlanResult = null;
 
+      getPlanner().setPlanarRegions(planarRegionsList.get());
       getPlanner().setInitialStanceFoot(stanceFootPose.get(), stanceFootSide.get());
       getPlanner().setGoal(goal.get());
       getPlanner().setTimeout(timeout.get());
-      getPlanner().setPlanarRegions(planarRegionsList.get());
+      getPlanner().setBestEffortTimeout(bestEffortTimeout.get());
       getPlanner().setPlanningHorizonLength(horizonLength.get());
 
       return true;

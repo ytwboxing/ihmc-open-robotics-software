@@ -5,12 +5,15 @@ import java.util.concurrent.atomic.AtomicReference;
 import controller_msgs.msg.dds.LidarScanMessage;
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import us.ihmc.communication.packets.PlanarRegionMessageConverter;
+import us.ihmc.euclid.geometry.Pose3D;
+import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.jOctoMap.ocTree.NormalOcTree;
 import us.ihmc.messager.Messager;
 import us.ihmc.robotEnvironmentAwareness.communication.REAModuleAPI;
 import us.ihmc.robotEnvironmentAwareness.communication.converters.BoundingBoxMessageConverter;
 import us.ihmc.robotEnvironmentAwareness.communication.converters.OcTreeMessageConverter;
 import us.ihmc.robotEnvironmentAwareness.communication.converters.REAPlanarRegionsConverter;
+import us.ihmc.robotics.geometry.PlanarRegionsList;
 
 public class REAModuleStateReporter
 {
@@ -39,11 +42,16 @@ public class REAModuleStateReporter
          reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxState, BoundingBoxMessageConverter.convertToMessage(ocTree.getBoundingBox()));
    }
 
+   public void reportSensorPose(Pose3DReadOnly sensorPose)
+   {
+      reaMessager.submitMessage(REAModuleAPI.SensorPose, new Pose3D(sensorPose));
+   }
+
    public void reportPlanarRegionsState(RegionFeaturesProvider regionFeaturesProvider)
    {
-      if (regionFeaturesProvider.getPlanarRegionsList() != null && arePlanarRegionsRequested.getAndSet(false))
-         reaMessager.submitMessage(REAModuleAPI.PlanarRegionsState,
-                                   PlanarRegionMessageConverter.convertToPlanarRegionsListMessage(regionFeaturesProvider.getPlanarRegionsList()));
+      PlanarRegionsList planarRegionsList = regionFeaturesProvider.getPlanarRegionsList();
+      if (planarRegionsList != null && planarRegionsList.getNumberOfPlanarRegions() > 0 && arePlanarRegionsRequested.getAndSet(false))
+         reaMessager.submitMessage(REAModuleAPI.PlanarRegionsState, PlanarRegionMessageConverter.convertToPlanarRegionsListMessage(planarRegionsList));
       if (isPlanarRegionSegmentationRequested.getAndSet(false))
          reaMessager.submitMessage(REAModuleAPI.PlanarRegionsSegmentationState,
                                    REAPlanarRegionsConverter.createPlanarRegionSegmentationMessages(regionFeaturesProvider));
@@ -61,5 +69,11 @@ public class REAModuleStateReporter
    {
       if (reaMessager.isMessagerOpen())
          reaMessager.submitMessage(REAModuleAPI.StereoVisionPointCloudState, new StereoVisionPointCloudMessage(message));
+   }
+   
+   public void registerDepthCloudMessage(StereoVisionPointCloudMessage message)
+   {
+      if (reaMessager.isMessagerOpen())
+         reaMessager.submitMessage(REAModuleAPI.DepthPointCloudState, new StereoVisionPointCloudMessage(message));
    }
 }
