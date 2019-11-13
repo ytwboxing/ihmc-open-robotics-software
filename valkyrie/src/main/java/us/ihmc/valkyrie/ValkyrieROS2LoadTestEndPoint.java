@@ -169,17 +169,12 @@ public class ValkyrieROS2LoadTestEndPoint
 
    public static EndPointParameters linkEndPoint()
    {
-      return new EndPointParameters("link", 0, 1, 10, 1000, ValkyrieROS2LoadTestEndPoint::nextRobotConfigurationData);
+      return new EndPointParameters("link", 1, 1, 1, 5000, ValkyrieROS2LoadTestEndPoint::nextRobotConfigurationData);
    }
 
    public static EndPointParameters zeldaEndPoint()
    {
-      return new EndPointParameters("zelda",
-                                    1,
-                                    1,
-                                    16,
-                                    1000,
-                                    ValkyrieROS2LoadTestEndPoint::nextStereoVisionPointCloudMessage);
+      return new EndPointParameters("zelda", 1, 1, 1, 5000, ValkyrieROS2LoadTestEndPoint::nextKinematicsToolboxOutputStatus);
    }
 
    public static KinematicsToolboxOutputStatus nextKinematicsToolboxOutputStatus(Random random)
