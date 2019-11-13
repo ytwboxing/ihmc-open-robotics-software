@@ -12,7 +12,8 @@ public enum NetworkParameterKeys
    rightHand("Hostname/IP of the right hand.", "", true),
    
    loggedCameras("Cameras to be recorded by the logger. Should be a comma seperated list", "", false), 
-   RTPSDomainID("RTPS Domain ID used for rtps publishers and subscribers", "-1", false);
+   RTPSDomainID("RTPS Domain ID used for rtps publishers and subscribers", "-1", false),
+   RTPSSubnet("RTPS subnet restriction. When provided RTPS only communicate through the given subnet assuming mask 255.255.255.0.", null, true);
    
    
    private final String description;
