@@ -63,10 +63,10 @@ public class UDPServer implements Runnable
       
       /*
       //UDPDataSender testing
-      UDPDataSender sender = new UDPDataSender();  
+      UDPDataSender sender = new UDPDataSender("192.168.0.13", 6669);  
       int counter = 0;
       while(true) {
-         sender.sendDistance(++counter);
+         sender.sendDistance(String.valueOf(++counter));
          System.out.println("sent: " + counter);
          try {
             Thread.sleep(1500);            

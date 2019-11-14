@@ -37,12 +37,12 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
 
    private final Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNode");
 
-   private final IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher;
+   private IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher;
 
    private static final int projectionWidth = 1024;
    private static final int projectionHeight = 544;
 
-   private final Scanner commandScanner;
+   private Scanner commandScanner;
    private static final String commandToSaveStereoVisionPointCloudData = "s";
    private static final String commandToStopSAvingStereoVisionPointCloudData = "d";
    private static final String commandToSaveProjectedData = "p";
@@ -51,52 +51,55 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
    public AtomicReference<Boolean> saveStereoVisionPointCloud = new AtomicReference<Boolean>(false);
    private AtomicReference<Boolean> saveProjectedData = new AtomicReference<Boolean>(false);
    
-   String savePath;      
-   public MultisenseStereoVisionPointCloudROS1Bridge(String topic, String savePath, RosMainNode rosMainNode) throws URISyntaxException
+   String savePath; 
+   boolean selfStart;     
+   public MultisenseStereoVisionPointCloudROS1Bridge(String topic, String savePath, RosMainNode rosMainNode, boolean selfStart) throws URISyntaxException
    {
       super(PointCloud2._TYPE);
       this.savePath = savePath;
+      this.selfStart = selfStart;
       //URI masterURI = new URI(multisense.getAddress());
       //URI masterURI = new URI("http://192.168.137.2:11311");
       //RosMainNode rosMainNode = new RosMainNode(masterURI, "StereoVisionPublisher", true);
-      rosMainNode.attachSubscriber(MultisenseInformation.getStereoVisionPointCloudTopicName(), this);
+      //rosMainNode.attachSubscriber(MultisenseInformation.getStereoVisionPointCloudTopicName(), this);
       rosMainNode.attachSubscriber(topic, this);
 
-      //rosMainNode.execute();
+      if(selfStart) {
+         rosMainNode.execute();
 
-      stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
-      
-      commandScanner = new Scanner(System.in);
-      Runnable inputReader = new Runnable()
-      {
-         @Override
-         public void run()
+         stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
+         
+         commandScanner = new Scanner(System.in);
+         Runnable inputReader = new Runnable()
          {
-            while (true)
+            @Override
+            public void run()
             {
-               String command = commandScanner.next();
+               while (true)
+               {
+                  String command = commandScanner.next();
 
-               if (command.contains(commandToSaveStereoVisionPointCloudData))
-               {
-                  saveStereoVisionPointCloud.set(true);
-                  System.out.println(commandToSaveStereoVisionPointCloudData + " pressed");
-               }
-               else if (command.contains(commandToStopSAvingStereoVisionPointCloudData))
-               {
-                  saveStereoVisionPointCloud.set(false);
-                  System.out.println(commandToStopSAvingStereoVisionPointCloudData + " pressed");
-               }
-               else if (command.contains(commandToSaveProjectedData))
-               {
-                  saveProjectedData.set(true);
-                  System.out.println(commandToSaveProjectedData + " pressed");
+                  if (command.contains(commandToSaveStereoVisionPointCloudData))
+                  {
+                     saveStereoVisionPointCloud.set(true);
+                     System.out.println(commandToSaveStereoVisionPointCloudData + " pressed");
+                  }
+                  else if (command.contains(commandToStopSAvingStereoVisionPointCloudData))
+                  {
+                     saveStereoVisionPointCloud.set(false);
+                     System.out.println(commandToStopSAvingStereoVisionPointCloudData + " pressed");
+                  }
+                  else if (command.contains(commandToSaveProjectedData))
+                  {
+                     saveProjectedData.set(true);
+                     System.out.println(commandToSaveProjectedData + " pressed");
+                  }
                }
             }
-         }
-      };
-      Thread inputHolder = new Thread(inputReader);
-      inputHolder.start();
-      
+         };
+         Thread inputHolder = new Thread(inputReader);
+         inputHolder.start();
+      }
    }
 
    @Override
@@ -121,24 +124,26 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
          numberOfPoints--;
       }
 
-      long timestamp = cloudHolder.getHeader().getStamp().totalNsecs();
-      float[] pointCloudBuffer = new float[3 * numberOfPoints];
-      int[] colorsInteger = new int[numberOfPoints];
+      if(selfStart) {
+         long timestamp = cloudHolder.getHeader().getStamp().totalNsecs();
+         float[] pointCloudBuffer = new float[3 * numberOfPoints];
+         int[] colorsInteger = new int[numberOfPoints];
 
-      for (int i = 0; i < numberOfPoints; i++)
-      {
-         Point3D scanPoint = pointCloud[i];
+         for (int i = 0; i < numberOfPoints; i++)
+         {
+            Point3D scanPoint = pointCloud[i];
 
-         pointCloudBuffer[3 * i + 0] = (float) scanPoint.getX();
-         pointCloudBuffer[3 * i + 1] = (float) scanPoint.getY();
-         pointCloudBuffer[3 * i + 2] = (float) scanPoint.getZ();
+            pointCloudBuffer[3 * i + 0] = (float) scanPoint.getX();
+            pointCloudBuffer[3 * i + 1] = (float) scanPoint.getY();
+            pointCloudBuffer[3 * i + 2] = (float) scanPoint.getZ();
 
-         colorsInteger[i] = colors[i].getRGB();
-      }
+            colorsInteger[i] = colors[i].getRGB();
+         }
 
-      StereoVisionPointCloudMessage stereoVisionMessage = MessageTools.createStereoVisionPointCloudMessage(timestamp, pointCloudBuffer, colorsInteger);
+         StereoVisionPointCloudMessage stereoVisionMessage = MessageTools.createStereoVisionPointCloudMessage(timestamp, pointCloudBuffer, colorsInteger);
 
-      stereoVisionPublisher.publish(stereoVisionMessage);
+         stereoVisionPublisher.publish(stereoVisionMessage);      
+      }      
 
       if (saveStereoVisionPointCloud.get())
       {
@@ -188,7 +193,6 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
          try
          {
             ImageIO.write(bufferedImage, "png", outputfile);
-            System.out.println("saving is done");
          }
          catch (IOException e)
          {
@@ -201,7 +205,7 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
    public static void main(String[] args) throws URISyntaxException
    {
       URI masterURI = new URI("http://192.168.137.2:11311");
-      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "", new RosMainNode(masterURI, "StereoVisionPublisher", true));
+      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
       
    }
 }

@@ -65,7 +65,7 @@ public class ObstacleDisplayer
    private final Messager reaMessager1;  
    private final Messager reaMessager2;  
    
-   private static UDPDataSender sender;
+   //private static UDPDataSender sender;
    
    //functions
    public static void main(String[] args)
@@ -74,13 +74,14 @@ public class ObstacleDisplayer
          ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
          //connection to realsense D415   
          //new RealSenseBridgeRos2("http://192.168.137.2:11311", "/camera/depth/color/points", ros2Node, ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class), 200000);        
-         new RealSenseBridgeRos2("http://192.168.137.2:11311"
+         
+         new RealSenseBridgeRos2("http://localhost:11311"
                                  , "/cam_1/depth/color/points"
                                  , ros2Node
                                  , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Left"
                                  , 200000);   
          
-         new RealSenseBridgeRos2("http://192.168.137.2:11311"
+         new RealSenseBridgeRos2("http://localhost:11311"
                                  , "/cam_2/depth/color/points"
                                  , ros2Node
                                  , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
@@ -88,9 +89,10 @@ public class ObstacleDisplayer
          
          ObstacleDisplayer module = ObstacleDisplayer.createIntraprocessModule();
          
-         sender = new UDPDataSender("192.168.0.11", 6669);
+         //sender = new UDPDataSender("192.168.0.11", 6669);
          
-         module.start();         
+         module.start();  
+         System.out.println("init complete");
       }
       catch (Exception ex) {
          ex.printStackTrace();         
@@ -173,9 +175,14 @@ public class ObstacleDisplayer
       boundingBox.maxZ = 2.0f;
       boundingBox.minZ = 0.0f;
       reaMessager2.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox); 
-      
-      //reaMessager.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse("lala")); //todo JOBY here I can send new params and tweak planar region
-            
+
+      /*
+      //defailt
+      reaMessager.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse(
+         "search radius: 0.05, max distance from plane: 0.05, maxAngleFromPlane: 0.17453292519943295, minNormalQuality: 0.005"
+         + ", min region size: 50, max standard deviation: 0.015, min volumic density: 100000.0"
+         ));  
+            */             
    }
 
    private void dispatchStereoVisionPointCloudMessageLeft(Subscriber<StereoVisionPointCloudMessage> subscriber)
@@ -226,14 +233,21 @@ public class ObstacleDisplayer
          planarRegionFeatureUpdaterLeft.update(mainOctreeLeft);
          planarRegionFeatureUpdaterRight.update(mainOctreeRight);
 
-         double distanceLeft = obstacleDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
-         double distanceRight = obstacleDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
+         
+         //double distanceLeft = obstacleDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
+         //double distanceRight = obstacleDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
+         /*
          if(distanceLeft > distanceRight) {
             sender.sendDistance("R: " + String.valueOf(distanceRight));
          }
          else {
-            sender.sendDistance("L: " + String.valueOf(distanceLeft));
-         }         
+            //sender.sendDistance("L: " + String.valueOf(distanceLeft));
+         } 
+         */
+
+         double stairLeft = stairDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
+         double stairRight = stairDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
+         System.out.println("calculated");
 
          planarRegionNetworkProviderLeft.update(ocTreeUpdateSuccess);
          planarRegionNetworkProviderRight.update(ocTreeUpdateSuccess);
@@ -254,13 +268,23 @@ public class ObstacleDisplayer
    }
 
    /*
+    * returns 999 if there are no stairs, otherwise return distance to stair
+   */
+   private double stairDistance(PlanarRegionsList planarRegionsList)
+   {   
+      return 0.0;
+   }
+
+   /*
     * returns 999 if there is no obstacle otherwise return distance to obstacle
     */
    private double obstacleDistance(PlanarRegionsList planarRegionsList) {      
-      //params
-      double distance = 999;            
+      //params          
       double positiveAngle = 135;
       double positiveD2Distance = 0.1;
+      
+      //variables
+      double distance = 999;  
       LinkedList<Double> distanceList = new LinkedList<Double>();
       
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {

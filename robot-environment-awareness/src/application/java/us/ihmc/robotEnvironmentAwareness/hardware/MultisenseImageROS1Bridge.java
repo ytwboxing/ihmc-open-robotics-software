@@ -169,7 +169,7 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
             e.printStackTrace();
          }
          savingIndex++;
-         //System.out.println(savePath + " - " + savingIndex);
+         System.out.println(savePath + " - " + savingIndex);
       }
    }
 
@@ -182,42 +182,62 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
    public static void main(String[] args) throws URISyntaxException, IOException
    {
       /*
+      File f = new File("DATASETS/2/LPC/points (62).txt");
+      Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNode");
+      IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
+      StereoVisionPointCloudMessage m = StereoVisionPointCloudDataLoader.getMessageFromFile(f); 
+      while(true) {
+         stereoVisionPublisher.publish(m);
+         
+         try
+         {
+            Thread.sleep(2000);
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }         
+      }
+      */
+
+      
+      final String number = "1";
+      final long artificialDelay = 2000;
+      
       long sleepTime;
-      long lastModified = new File("DATASETS/1/LPC/stereovision_pointcloud_0.txt").lastModified();
+      long lastModified = new File("DATASETS/" + number + "/RPC/points (1).txt").lastModified();
       long myDelay = System.currentTimeMillis();
       Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNode");
       IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
-      int i = 0;
+      int i = 1;
       while(true) {
-         File f = new File("DATASETS/1/LPC/stereovision_pointcloud_" + i + ".txt");   
+         File f = new File("DATASETS/" + number + "/LPC/points (" + i + ").txt");   
          if(f.exists() == false) {
-            i = 0;
-            System.out.println("again");
+            i = 1;
+            //System.out.println("again");
             continue;
             //break;            
          }
             
          StereoVisionPointCloudMessage m = StereoVisionPointCloudDataLoader.getMessageFromFile(f); 
          
-         sleepTime = f.lastModified() - lastModified - (System.currentTimeMillis() - myDelay);
-         if(sleepTime < 0)
-            sleepTime = 0;
-         try
-         {
-            Thread.sleep(sleepTime);
+         sleepTime = f.lastModified() - lastModified - (System.currentTimeMillis() - myDelay) + artificialDelay;
+         if(sleepTime > 0) {
+            try
+            {
+               Thread.sleep(sleepTime);
+            }
+            catch (InterruptedException e)
+            {
+               e.printStackTrace();
+            }            
          }
-         catch (InterruptedException e)
-         {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-         }
-         System.out.println("published " + i);
          stereoVisionPublisher.publish(m);
+         //System.out.println("published " + i);
          myDelay = System.currentTimeMillis();
          lastModified = f.lastModified();
          i++;
       }
-      */
       
       
       /*
@@ -226,13 +246,13 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
       */
       
       /*
-      String datasetNUmber = "1";
+      final String datasetNUmber = "3";
       URI masterURI = new URI("http://192.168.137.2:11311");
       RosMainNode node = new RosMainNode(masterURI, "whatever", true);
-      MultisenseImageROS1Bridge leftI = new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/LI", node);  
-      MultisenseImageROS1Bridge rightI = new MultisenseImageROS1Bridge("/cam_1/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/RI", node); 
-      MultisenseStereoVisionPointCloudROS1Bridge leftPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "DATASETS/" + datasetNUmber + "/LPC", node);
-      MultisenseStereoVisionPointCloudROS1Bridge rightPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "DATASETS/" + datasetNUmber + "/RPC", node);
+      //MultisenseImageROS1Bridge leftI = new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/LI", node);  
+      //MultisenseImageROS1Bridge rightI = new MultisenseImageROS1Bridge("/cam_1/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/RI", node); 
+      MultisenseStereoVisionPointCloudROS1Bridge leftPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "DATASETS/" + datasetNUmber + "/LPC", node, false);
+      //MultisenseStereoVisionPointCloudROS1Bridge rightPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "DATASETS/" + datasetNUmber + "/RPC", node, false);
 
       node.execute();
       Scanner commandScanner = new Scanner(System.in);
@@ -242,18 +262,18 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
 
          if (command.contains(commandToSaveImage))
          {
-            leftI.saveImage.set(true);
-            rightI.saveImage.set(true);
+            //leftI.saveImage.set(true);
+            //rightI.saveImage.set(true);
             leftPC.saveStereoVisionPointCloud.set(true);
-            rightPC.saveStereoVisionPointCloud.set(true);
+            //rightPC.saveStereoVisionPointCloud.set(true);
             System.out.println(commandToSaveImage + " pressed");
          }
          else if (command.contains(commandToStopSavingImage))
          {
-            leftI.saveImage.set(false);
-            rightI.saveImage.set(false);
+            //leftI.saveImage.set(false);
+            //rightI.saveImage.set(false);
             leftPC.saveStereoVisionPointCloud.set(false);
-            rightPC.saveStereoVisionPointCloud.set(false);
+            //rightPC.saveStereoVisionPointCloud.set(false);
             System.out.println(commandToStopSavingImage + " pressed");
          }
       }
