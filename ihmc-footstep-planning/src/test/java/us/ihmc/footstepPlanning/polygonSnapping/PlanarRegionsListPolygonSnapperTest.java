@@ -13,9 +13,14 @@ import us.ihmc.commons.RandomNumbers;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Disabled;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.geometry.tools.EuclidGeometryPolygonTools;
+import us.ihmc.euclid.geometry.tools.EuclidGeometryTestTools;
+import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.footstepPlanning.graphSearch.footstepSnapping.FootstepNodeSnappingTools;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
@@ -55,6 +60,146 @@ public class PlanarRegionsListPolygonSnapperTest
       RigidBodyTransform expectedTransform = new RigidBodyTransform();
       expectedTransform.setTranslation(0.0, 0.0, 0.7);
       assertTrue(expectedTransform.epsilonEquals(snapTransform, 1e-7));
+
+      if (visualize)
+      {
+         ThreadTools.sleepForever();
+      }
+   }
+
+   @Test
+   public void testSnapBridgingTwoCoPlanarRegions()
+   {
+      boolean visualize = true;
+      ConvexPolygon2D polygonToSnap = PlanarRegionsListExamples.createRectanglePolygon(0.5, 0.25);
+      RigidBodyTransform nonSnappedTransform = new RigidBodyTransform();
+
+      PolygonSnapperVisualizer polygonSnapperVisualizer = null;
+//      if (visualize)
+//      {
+//         polygonSnapperVisualizer = new PolygonSnapperVisualizer(polygonToSnap);
+//      }
+
+      PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
+      generator.translate(-0.25, 0.0, -0.2);
+      generator.addRectangle(0.4, 0.5);
+      generator.translate(0.5, 0.0, 0.0);
+      generator.addRectangle(0.4, 0.5);
+      PlanarRegionsList planarRegionsList = generator.getPlanarRegionsList();
+
+      PlanarRegion planarRegion = new PlanarRegion();
+      RigidBodyTransform snapTransform = PlanarRegionsListPolygonSnapper.snapPolygonToPlanarRegionsList(polygonToSnap, planarRegionsList, planarRegion);
+      ConvexPolygon2D footholdPolygonInPlane = FootstepNodeSnappingTools.getConvexHullOfPolygonIntersections(planarRegion, polygonToSnap, snapTransform);
+      planarRegion.transformFromLocalToWorld(footholdPolygonInPlane);
+
+      if (visualize)
+      {
+         polygonSnapperVisualizer = new PolygonSnapperVisualizer(polygonToSnap, footholdPolygonInPlane);
+
+         polygonSnapperVisualizer.addPlanarRegionsList(planarRegionsList, YoAppearance.Gray());
+         polygonSnapperVisualizer.setSnappedPolygon(nonSnappedTransform, snapTransform);
+      }
+
+      RigidBodyTransform expectedTransform = new RigidBodyTransform();
+      expectedTransform.setTranslation(0.0, 0.0, -0.2);
+      assertTrue(expectedTransform.epsilonEquals(snapTransform, 1e-7));
+
+      if (visualize)
+      {
+         ThreadTools.sleepForever();
+      }
+
+      EuclidGeometryTestTools.assertConvexPolygon2DEquals(polygonToSnap, footholdPolygonInPlane, 1e-6);
+   }
+
+   @Test
+   public void testSnapBridgingFourCoPlanarRegions()
+   {
+      boolean visualize = false;
+      ConvexPolygon2D polygonToSnap = PlanarRegionsListExamples.createRectanglePolygon(0.5, 0.25);
+      RigidBodyTransform nonSnappedTransform = new RigidBodyTransform();
+
+      PolygonSnapperVisualizer polygonSnapperVisualizer = null;
+      //      if (visualize)
+      //      {
+      //         polygonSnapperVisualizer = new PolygonSnapperVisualizer(polygonToSnap);
+      //      }
+
+      PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
+      generator.translate(-0.25, 0.125, -0.2);
+      generator.addRectangle(0.4, 0.2);
+      generator.translate(0.0, -0.25, 0.0);
+      generator.addRectangle(0.4, 0.2);
+      generator.translate(0.5, 0.0, 0.0);
+      generator.addRectangle(0.4, 0.2);
+      generator.translate(0.0, 0.25, 0.0);
+      generator.addRectangle(0.4, 0.2);
+      PlanarRegionsList planarRegionsList = generator.getPlanarRegionsList();
+
+      PlanarRegion planarRegion = new PlanarRegion();
+      RigidBodyTransform snapTransform = PlanarRegionsListPolygonSnapper.snapPolygonToPlanarRegionsList(polygonToSnap, planarRegionsList, planarRegion);
+      ConvexPolygon2D footholdPolygonInPlane = FootstepNodeSnappingTools.getConvexHullOfPolygonIntersections(planarRegion, polygonToSnap, snapTransform);
+      planarRegion.transformFromLocalToWorld(footholdPolygonInPlane);
+
+      if (visualize)
+      {
+         polygonSnapperVisualizer = new PolygonSnapperVisualizer(polygonToSnap, footholdPolygonInPlane);
+
+         polygonSnapperVisualizer.addPlanarRegionsList(planarRegionsList, YoAppearance.Gray());
+         polygonSnapperVisualizer.setSnappedPolygon(nonSnappedTransform, snapTransform);
+      }
+
+      RigidBodyTransform expectedTransform = new RigidBodyTransform();
+      expectedTransform.setTranslation(0.0, 0.0, -0.2);
+      assertTrue(expectedTransform.epsilonEquals(snapTransform, 1e-7));
+
+      if (visualize)
+      {
+         ThreadTools.sleepForever();
+      }
+
+      EuclidGeometryTestTools.assertConvexPolygon2DEquals(polygonToSnap, footholdPolygonInPlane, 1e-6);
+   }
+
+
+
+   @Test
+   public void testSnapInCorner()
+   {
+      boolean visualize = true;
+      ConvexPolygon2D polygonToSnap = PlanarRegionsListExamples.createRectanglePolygon(0.5, 0.25);
+      RigidBodyTransform nonSnappedTransform = new RigidBodyTransform();
+
+      PolygonSnapperVisualizer polygonSnapperVisualizer = null;
+      //      if (visualize)
+      //      {
+      //         polygonSnapperVisualizer = new PolygonSnapperVisualizer(polygonToSnap);
+      //      }
+
+      PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
+      generator.rotate(new Quaternion(0.0, Math.toRadians(30), 0.0));
+      generator.translate(-0.25, 0.0, 0.0);
+      generator.addRectangle(0.5, 0.5);
+      generator.identity();
+      generator.translate(0.25, 0.0, 0.0);
+      generator.addRectangle(0.5, 0.5);
+      PlanarRegionsList planarRegionsList = generator.getPlanarRegionsList();
+
+      PlanarRegion planarRegion = new PlanarRegion();
+      RigidBodyTransform snapTransform = PlanarRegionsListPolygonSnapper.snapPolygonToPlanarRegionsList(polygonToSnap, planarRegionsList, planarRegion);
+      ConvexPolygon2D footholdPolygon = FootstepNodeSnappingTools.getConvexHullOfPolygonIntersections(planarRegion, polygonToSnap, snapTransform);
+
+      if (visualize)
+      {
+         polygonSnapperVisualizer = new PolygonSnapperVisualizer(footholdPolygon);
+
+         polygonSnapperVisualizer.addPlanarRegionsList(planarRegionsList, YoAppearance.Gray());
+         polygonSnapperVisualizer.setSnappedPolygon(nonSnappedTransform, snapTransform);
+      }
+
+      RigidBodyTransform expectedTransform = new RigidBodyTransform();
+      expectedTransform.setTranslation(0.0, 0.0, 0.7);
+      fail("This test isn't finished.");
 
       if (visualize)
       {
