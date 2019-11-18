@@ -181,6 +181,7 @@ public class PlanarRegionsListPolygonSnapperTest
       generator.translate(-0.25, 0.0, 0.0);
       generator.addRectangle(0.5, 0.5);
       generator.identity();
+      generator.rotate(new Quaternion(0.0, -Math.toRadians(5), 0.0));
       generator.translate(0.25, 0.0, 0.0);
       generator.addRectangle(0.5, 0.5);
       PlanarRegionsList planarRegionsList = generator.getPlanarRegionsList();

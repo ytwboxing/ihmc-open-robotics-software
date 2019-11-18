@@ -10,6 +10,9 @@ import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.robotics.geometry.PlanarRegion;
 
 public class PlanarRegionPolygonSnapper
@@ -20,7 +23,8 @@ public class PlanarRegionPolygonSnapper
     * @param planarRegionToSnapTo
     * @return RigidBodyTransform required to snap the polygon down onto the PlanarRegion
     */
-   public static RigidBodyTransform snapPolygonToPlanarRegion(ConvexPolygon2DReadOnly polygonToSnap, PlanarRegion planarRegionToSnapTo, Point3D highestVertexInWorld)
+   public static RigidBodyTransform snapPolygonToPlanarRegion(ConvexPolygon2DReadOnly polygonToSnap, PlanarRegion planarRegionToSnapTo,
+                                                              Point3DBasics highestVertexInWorldToPack)
    {
       ArrayList<ConvexPolygon2D> polygonIntersections = new ArrayList<>();
       planarRegionToSnapTo.getPolygonIntersectionsWhenProjectedVertically(polygonToSnap, polygonIntersections);
@@ -52,7 +56,7 @@ public class PlanarRegionPolygonSnapper
             {
                highestZ = vertexInWorld.getZ();
                highestIntersectionVertexInPlaneFrame = new Point2D(vertex);
-               highestVertexInWorld.set(vertexInWorld);
+               highestVertexInWorldToPack.set(vertexInWorld);
             }
          }
       }
@@ -65,7 +69,6 @@ public class PlanarRegionPolygonSnapper
 
       Point3D highestIntersectionVertexInWorldFrame = new Point3D(highestIntersectionVertexInPlaneFrame.getX(), highestIntersectionVertexInPlaneFrame.getY(), 0.0);
       transform.transform(highestIntersectionVertexInWorldFrame);
-      highestIntersectionVertexInPlaneFrame.set(highestIntersectionVertexInWorldFrame.getX(), highestIntersectionVertexInWorldFrame.getY());
 
       RigidBodyTransform transformToReturn = createTransformToMatchSurfaceNormalPreserveX(surfaceNormal);
       setTranslationSettingZAndPreservingXAndY(highestIntersectionVertexInWorldFrame, transformToReturn);
@@ -73,7 +76,7 @@ public class PlanarRegionPolygonSnapper
       return transformToReturn;
    }
 
-   private static void setTranslationSettingZAndPreservingXAndY(Point3D highestVertex, RigidBodyTransform transformToReturn)
+   private static void setTranslationSettingZAndPreservingXAndY(Point3DReadOnly highestVertex, RigidBodyTransform transformToReturn)
    {
       Vector3D newTranslation = new Vector3D(highestVertex.getX(), highestVertex.getY(), 0.0);
       transformToReturn.transform(newTranslation);
@@ -83,7 +86,7 @@ public class PlanarRegionPolygonSnapper
       transformToReturn.setTranslation(newTranslation);
    }
 
-   private static RigidBodyTransform createTransformToMatchSurfaceNormalPreserveX(Vector3D surfaceNormal)
+   private static RigidBodyTransform createTransformToMatchSurfaceNormalPreserveX(Vector3DReadOnly surfaceNormal)
    {
       Vector3D xAxis = new Vector3D();
       Vector3D yAxis = new Vector3D(0.0, 1.0, 0.0);

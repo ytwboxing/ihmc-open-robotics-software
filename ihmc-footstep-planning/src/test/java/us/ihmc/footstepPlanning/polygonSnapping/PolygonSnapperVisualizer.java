@@ -1,6 +1,7 @@
 package us.ihmc.footstepPlanning.polygonSnapping;
 
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.geometry.interfaces.ConvexPolygon2DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -26,7 +27,12 @@ public class PolygonSnapperVisualizer
    private final YoFramePoseUsingYawPitchRoll polygonToSnapPose, snappedPolygonPose;
    private final YoGraphicPolygon polygonToSnapViz, snappedPolygonViz;
 
-   public PolygonSnapperVisualizer(ConvexPolygon2D snappingPolygonShape)
+   public PolygonSnapperVisualizer(ConvexPolygon2DReadOnly snappingPolygonShape)
+   {
+      this(snappingPolygonShape, null);
+   }
+
+   public PolygonSnapperVisualizer(ConvexPolygon2DReadOnly snappingPolygonShape, ConvexPolygon2DReadOnly snappedPolygonShape)
    {
       Robot robot = new Robot("Robot");
       scs = new SimulationConstructionSet(robot);
@@ -36,7 +42,10 @@ public class PolygonSnapperVisualizer
       snappedPolygon = new YoFrameConvexPolygon2D("snappedPolygon", ReferenceFrame.getWorldFrame(), 4, registry);
 
       polygonToSnap.set(snappingPolygonShape);
-      snappedPolygon.set(snappingPolygonShape);
+      if (snappedPolygonShape == null)
+         snappedPolygon.set(snappingPolygonShape);
+      else
+         snappedPolygon.set(snappedPolygonShape);
 
       polygonToSnapPose = new YoFramePoseUsingYawPitchRoll("polygonToSnapPose", ReferenceFrame.getWorldFrame(), registry);
       snappedPolygonPose = new YoFramePoseUsingYawPitchRoll("snappedPolygonPose", ReferenceFrame.getWorldFrame(), registry);

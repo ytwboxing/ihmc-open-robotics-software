@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.geometry.LineSegment2D;
+import us.ihmc.euclid.geometry.interfaces.ConvexPolygon2DReadOnly;
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
@@ -21,11 +22,11 @@ public class FootstepNodeSnappingTools
     * snapTransform
     *
     * @param planarRegion
-    * @param footPolygon foot polygon in world frame
+    * @param footPolygonInWorld foot polygon in world frame
     * @param snapTransform
     * @return intersection polygon in region frame
     */
-   public static ConvexPolygon2D getConvexHullOfPolygonIntersections(PlanarRegion planarRegion, ConvexPolygon2D footPolygon,
+   public static ConvexPolygon2D getConvexHullOfPolygonIntersections(PlanarRegion planarRegion, ConvexPolygon2DReadOnly footPolygonInWorld,
                                                                      RigidBodyTransform snapTransform)
    {
       ArrayList<ConvexPolygon2D> intersections = new ArrayList<>();
@@ -34,9 +35,9 @@ public class FootstepNodeSnappingTools
       RigidBodyTransform inverseSnapTransform = new RigidBodyTransform(snapTransform);
       inverseSnapTransform.invert();
 
-      for (int i = 0; i < footPolygon.getNumberOfVertices(); i++)
+      for (int i = 0; i < footPolygonInWorld.getNumberOfVertices(); i++)
       {
-         Point2DReadOnly vertex = footPolygon.getVertex(i);
+         Point2DReadOnly vertex = footPolygonInWorld.getVertex(i);
          Vector4D transformPoint = new Vector4D(vertex.getX(), vertex.getY(), 0.0, 1.0);
          snapTransform.transform(transformPoint);
          transformPoint.setZ(0.0);
