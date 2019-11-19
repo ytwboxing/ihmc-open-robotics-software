@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.geometry.interfaces.LineSegment2DReadOnly;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -73,20 +72,7 @@ public class PlanarRegionsList
     */
    public void findPlanarRegionsIntersectingLineSegment(LineSegment2DReadOnly lineSegmentInWorld, List<PlanarRegion> intersectingRegionsToPack)
    {
-      for (int i = 0; i < regions.size(); i++)
-      {
-         PlanarRegion candidateRegion = regions.get(i);
-         if (isLineSegmentObviouslyOutsideBoundingBox(candidateRegion, lineSegmentInWorld))
-            continue;
-
-         if (candidateRegion.isVertical())
-            continue;
-
-         if (candidateRegion.isLineSegmentIntersecting(lineSegmentInWorld))
-         {
-            intersectingRegionsToPack.add(candidateRegion);
-         }
-      }
+      PlanarRegionTools.findPlanarRegionsIntersectingLineSegment(lineSegmentInWorld, intersectingRegionsToPack, regions);
    }
 
    /**
@@ -99,81 +85,7 @@ public class PlanarRegionsList
     */
    public void findPlanarRegionsWithinEpsilonOfPoint(Point3DReadOnly pointInWorld, double epsilon, List<PlanarRegion> intersectingRegionsToPack)
    {
-      for (int i = 0; i < regions.size(); i++)
-      {
-         PlanarRegion candidateRegion = regions.get(i);
-         if (isPointXYObviouslyOutsideBoundingBox(candidateRegion, pointInWorld, epsilon))
-            continue;
-
-         if (candidateRegion.isVertical())
-            continue;
-
-         if (candidateRegion.isPointInWorld2DInside(pointInWorld, epsilon))
-         {
-            intersectingRegionsToPack.add(candidateRegion);
-         }
-      }
-   }
-
-   /**
-    * Returns true if lineSegment is Obviously Outside BoundingBox. If returns true, then definitely
-    * outside. If returns false, might still be outside. If intersects, will always return false.
-    *
-    * @param candidateRegion
-    * @param lineSegmentInWorld
-    * @return
-    */
-   private boolean isLineSegmentObviouslyOutsideBoundingBox(PlanarRegion candidateRegion, LineSegment2DReadOnly lineSegmentInWorld)
-   {
-      BoundingBox3D boundingBox = candidateRegion.getBoundingBox3dInWorld();
-
-      double xMin = boundingBox.getMinX();
-      double yMin = boundingBox.getMinY();
-      double xMax = boundingBox.getMaxX();
-      double yMax = boundingBox.getMaxY();
-
-      Point2DReadOnly firstEndpoint = lineSegmentInWorld.getFirstEndpoint();
-      Point2DReadOnly secondEndpoint = lineSegmentInWorld.getSecondEndpoint();
-
-      if ((firstEndpoint.getX() < xMin) && (secondEndpoint.getX() < xMin))
-         return true;
-      if ((firstEndpoint.getX() > xMax) && (secondEndpoint.getX() > xMax))
-         return true;
-      if ((firstEndpoint.getY() < yMin) && (secondEndpoint.getY() < yMin))
-         return true;
-      if ((firstEndpoint.getY() > yMax) && (secondEndpoint.getY() > yMax))
-         return true;
-
-      return false;
-   }
-
-   /**
-    * Returns true if lineSegment is Obviously Outside BoundingBox. If returns true, then definitely
-    * outside. If returns false, might still be outside. If intersects, will always return false.
-    *
-    * @param candidateRegion
-    * @param pointInWorld
-    * @return
-    */
-   private boolean isPointXYObviouslyOutsideBoundingBox(PlanarRegion candidateRegion, Point3DReadOnly pointInWorld, double epsilon)
-   {
-      BoundingBox3D boundingBox = candidateRegion.getBoundingBox3dInWorld();
-
-      double xMin = boundingBox.getMinX();
-      double yMin = boundingBox.getMinY();
-      double xMax = boundingBox.getMaxX();
-      double yMax = boundingBox.getMaxY();
-
-      if (pointInWorld.getX() < xMin - epsilon)
-         return true;
-      if (pointInWorld.getX() > xMax + epsilon)
-         return true;
-      if (pointInWorld.getY() < yMin - epsilon)
-         return true;
-      if (pointInWorld.getY() > yMax + epsilon)
-         return true;
-
-      return false;
+      PlanarRegionTools.findPlanarRegionsWithinEpsilonOfPoint(pointInWorld, regions, epsilon, intersectingRegionsToPack);
    }
 
    /**
@@ -187,20 +99,7 @@ public class PlanarRegionsList
     */
    public List<PlanarRegion> findPlanarRegionsContainingPoint(Point3DReadOnly point, double maximumOrthogonalDistance)
    {
-      List<PlanarRegion> containers = null;
-
-      for (int i = 0; i < regions.size(); i++)
-      {
-         PlanarRegion candidateRegion = regions.get(i);
-         if (candidateRegion.isPointInside(point, maximumOrthogonalDistance))
-         {
-            if (containers == null)
-               containers = new ArrayList<>();
-            containers.add(candidateRegion);
-         }
-      }
-
-      return containers;
+      return PlanarRegionTools.findPlanarRegionsContainingPoint(point, regions, maximumOrthogonalDistance);
    }
 
    /**
@@ -214,7 +113,7 @@ public class PlanarRegionsList
     */
    public List<PlanarRegion> findPlanarRegionsContainingPointByProjectionOntoXYPlane(Point2DReadOnly point)
    {
-      return findPlanarRegionsContainingPointByProjectionOntoXYPlane(point.getX(), point.getY());
+      return PlanarRegionTools.findPlanarRegionsContainingPointByProjectionOntoXYPlane(point, regions);
    }
 
    /**
@@ -229,43 +128,12 @@ public class PlanarRegionsList
     */
    public List<PlanarRegion> findPlanarRegionsContainingPointByProjectionOntoXYPlane(double x, double y)
    {
-      List<PlanarRegion> containers = null;
-
-      for (int i = 0; i < regions.size(); i++)
-      {
-         PlanarRegion candidateRegion = regions.get(i);
-         if (candidateRegion.isPointInsideByProjectionOntoXYPlane(x, y))
-         {
-            if (containers == null)
-               containers = new ArrayList<>();
-            containers.add(candidateRegion);
-         }
-      }
-
-      return containers;
+      return PlanarRegionTools.findPlanarRegionsContainingPointByProjectionOntoXYPlane(x, y, regions);
    }
 
    public List<PlanarRegion> findPlanarRegionsContainingPointByVerticalLineIntersection(Point2DReadOnly point)
    {
-      return findPlanarRegionsContainingPointByVerticalLineIntersection(point.getX(), point.getY());
-   }
-
-   public List<PlanarRegion> findPlanarRegionsContainingPointByVerticalLineIntersection(double x, double y)
-   {
-      List<PlanarRegion> containers = null;
-
-      for (int i = 0; i < regions.size(); i++)
-      {
-         PlanarRegion candidateRegion = regions.get(i);
-         if (candidateRegion.isPointInsideByVerticalLineIntersection(x, y))
-         {
-            if (containers == null)
-               containers = new ArrayList<>();
-            containers.add(candidateRegion);
-         }
-      }
-
-      return containers;
+      return PlanarRegionTools.findPlanarRegionsContainingPointByVerticalLineIntersection(point, regions);
    }
 
    /**
@@ -277,34 +145,7 @@ public class PlanarRegionsList
     */
    public PlanarRegion findClosestPlanarRegionToPointByProjectionOntoXYPlane(Point2DReadOnly point)
    {
-      return findClosestPlanarRegionToPointByProjectionOntoXYPlane(point.getX(), point.getY());
-   }
-
-   /**
-    * Find the closest planar region to the given point. The algorithm is equivalent to
-    * projecting all the regions onto the XY-plane and then finding the closest one to the point.
-    *
-    * @param x the query x-coordinate.
-    * @param y the query y-coordinate.
-    * @return the planar regions closest to the query.
-    */
-   public PlanarRegion findClosestPlanarRegionToPointByProjectionOntoXYPlane(double x, double y)
-   {
-      double shortestDistanceToPoint = Double.POSITIVE_INFINITY;
-      PlanarRegion closestRegion = null;
-
-      for (int i = 0; i < regions.size(); i++)
-      {
-         PlanarRegion candidateRegion = regions.get(i);
-         double distanceToRegion = candidateRegion.distanceToPointByProjectionOntoXYPlane(x, y);
-         if (distanceToRegion < shortestDistanceToPoint)
-         {
-            shortestDistanceToPoint = distanceToRegion;
-            closestRegion = candidateRegion;
-         }
-      }
-
-      return closestRegion;
+      return PlanarRegionTools.findClosestPlanarRegionToPointByProjectionOntoXYPlane(point, regions);
    }
 
    /** Returns true if this list of planar regions is empty (contains no planar regions). */
