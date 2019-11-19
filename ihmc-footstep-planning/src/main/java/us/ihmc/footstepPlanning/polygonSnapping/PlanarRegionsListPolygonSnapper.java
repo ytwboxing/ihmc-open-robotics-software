@@ -105,7 +105,20 @@ public class PlanarRegionsListPolygonSnapper
       return highestTransform;
    }
 
-   static Point3DReadOnly findIntersectingPointOnOtherPlanAtADistance(Point3DReadOnly currentPoint, double yaw, PlanarRegion currentPointRegion, PlanarRegion otherRegion, double desiredDistance)
+   public static RigidBodyTransform snapAndAdaptPolygonToPlanarRegionsList(ConvexPolygon2DReadOnly polygonToSnap, List<PlanarRegion> planarRegionsListToSnapTo, List<PlanarRegion> regionsToPack)
+   {
+      double allowableExtraZ = 0.003; // For close ones. When close, take one that is flatter...
+      List<PlanarRegion> intersectingRegions = PlanarRegionTools.findPlanarRegionsIntersectingPolygon(polygonToSnap, planarRegionsListToSnapTo);
+
+      if ((intersectingRegions == null) || (intersectingRegions.isEmpty()))
+      {
+         return null;
+      }
+
+
+   }
+
+   static Point3DReadOnly findIntersectingPointOnOtherPlaneAtADistance(Point3DReadOnly currentPoint, double yaw, PlanarRegion currentPointRegion, PlanarRegion otherRegion, double desiredDistance)
    {
       double[] planeCoefficients = getPlaneCoefficients(otherRegion.getTransformToWorld(), otherRegion.getNormal());
 
