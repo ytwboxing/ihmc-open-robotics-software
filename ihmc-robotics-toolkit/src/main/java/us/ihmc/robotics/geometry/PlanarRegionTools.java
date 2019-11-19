@@ -1480,6 +1480,33 @@ public class PlanarRegionTools
       return containers;
    }
 
+   public static PlanarRegion findHighestPlanarRegionContainingPointByVerticalLineIntersection(double x, double y, List<PlanarRegion> regions,
+                                                                                               Point3DBasics highestPointToPack)
+   {
+      double highestHeight = Double.NEGATIVE_INFINITY;
+      PlanarRegion highestRegion = null;
+      if (highestPointToPack != null)
+         highestPointToPack.setToNaN();
+
+      for (int i = 0; i < regions.size(); i++)
+      {
+         PlanarRegion candidateRegion = regions.get(i);
+         Point3DReadOnly intersection = candidateRegion.intersectWithVerticalLine(x, y);
+         if (intersection == null)
+            continue;
+
+         if (intersection.getZ() > highestHeight)
+         {
+            highestRegion = candidateRegion;
+            highestHeight = intersection.getZ();
+            if (highestPointToPack != null)
+               highestPointToPack.set(intersection);
+         }
+      }
+
+      return highestRegion;
+   }
+
    /**
     * Find all the planar regions that contain the given point. The algorithm is equivalent to
     * projecting all the regions onto the XY-plane and then finding the regions containing the

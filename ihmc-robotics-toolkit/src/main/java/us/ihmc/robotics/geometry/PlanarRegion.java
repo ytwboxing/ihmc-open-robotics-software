@@ -15,6 +15,7 @@ import us.ihmc.euclid.geometry.LineSegment3D;
 import us.ihmc.euclid.geometry.Plane3D;
 import us.ihmc.euclid.geometry.interfaces.BoundingBox2DReadOnly;
 import us.ihmc.euclid.geometry.interfaces.ConvexPolygon2DReadOnly;
+import us.ihmc.euclid.geometry.interfaces.Line3DReadOnly;
 import us.ihmc.euclid.geometry.interfaces.LineSegment2DReadOnly;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryRandomTools;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
@@ -467,15 +468,21 @@ public class PlanarRegion implements SupportingVertexHolder
 
    public boolean isPointInsideByVerticalLineIntersection(double x, double y)
    {
+      return intersectWithVerticalLine(x, y) != null;
+   }
+
+
+   public Point3DReadOnly intersectWithVerticalLine(double x, double y)
+   {
       Line3D verticalLine = new Line3D(x, y, 0.0, 0.0, 0.0, 1.0);
-      return intersectWithLine(verticalLine) != null;
+      return intersectWithLine(verticalLine);
    }
 
    /**
     * Will return the intersection point between a line and a single planar region. If the line does
     * not intersect the region this method will return null.
     */
-   public Point3D intersectWithLine(Line3D projectionLineInWorld)
+   public Point3DReadOnly intersectWithLine(Line3DReadOnly projectionLineInWorld)
    {
       Vector3DReadOnly planeNormal = new Vector3D(0.0, 0.0, 1.0);
       Point3DReadOnly pointOnPlane = new Point3D(getConvexPolygon(0).getVertex(0));
