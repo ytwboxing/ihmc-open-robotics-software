@@ -4,12 +4,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import us.ihmc.euclid.geometry.BoundingBox2D;
+import us.ihmc.euclid.geometry.interfaces.BoundingBox2DReadOnly;
+import us.ihmc.euclid.geometry.interfaces.ConvexPolygon2DReadOnly;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryPolygonTools;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DBasics;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
 import us.ihmc.euclid.tuple2D.interfaces.Vector2DBasics;
+import us.ihmc.log.LogTools;
 import us.ihmc.pathPlanning.visibilityGraphs.clusterManagement.Cluster;
 import us.ihmc.pathPlanning.visibilityGraphs.clusterManagement.Cluster.ExtrusionSide;
 import us.ihmc.pathPlanning.visibilityGraphs.clusterManagement.ExtrusionHull;
@@ -306,7 +309,7 @@ public class VisibilityTools
          boolean isAnOuterExtrusion = cluster.getExtrusionSide() == ExtrusionSide.OUTSIDE;
          if (isAnOuterExtrusion)
          {
-            BoundingBox2D outerMostBoundingBoxToCheck = checkPreferredExtrusions ?
+            BoundingBox2DReadOnly outerMostBoundingBoxToCheck = checkPreferredExtrusions ?
                   cluster.getPreferredNonNavigableExtrusionsBoundingBox() :
                   cluster.getNonNavigableExtrusionsBoundingBox();
 
@@ -320,6 +323,20 @@ public class VisibilityTools
                   continue;
                }
             }
+
+            /*
+            ConvexPolygon2DReadOnly convexHullToCheck = checkPreferredExtrusions ? cluster.getPreferredNonNavigableExtrusionsConvexHull() :
+                  cluster.getNonNavigableExtrusionsConvexHull();
+
+            if (checkPreferredExtrusions && !convexHullToCheck.isPointInside(observer) && !convexHullToCheck.isPointInside(targetPoint))
+            {
+               if (VisibilityTools.isPointVisible(observer, targetPoint, convexHullToCheck.getPolygonVerticesView(), true))
+               {
+                  continue;
+               }
+            }
+
+             */
          }
 
          if (!VisibilityTools.isPointVisible(observer, targetPoint, cluster.getNonNavigableExtrusionsInLocal(), closed))
