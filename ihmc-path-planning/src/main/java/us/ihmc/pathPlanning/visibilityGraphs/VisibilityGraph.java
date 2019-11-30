@@ -3,6 +3,7 @@ package us.ihmc.pathPlanning.visibilityGraphs;
 import us.ihmc.euclid.geometry.BoundingBox3D;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -462,9 +463,7 @@ public class VisibilityGraph
       ConnectionPoint3D sourceInWorld = sourceNode.getPointInWorld();
       Point2DReadOnly sourceInSourceLocal = sourceNode.getPoint2DInLocal();
 
-      RigidBodyTransform transformFromWorldToSource = new RigidBodyTransform();
-      sourceHomeRegion.getTransformToWorld(transformFromWorldToSource);
-      transformFromWorldToSource.invert();
+      RigidBodyTransformReadOnly transformFromWorldToSource = sourceHomeRegion.getTransformToLocal();
 
       RigidBodyTransform transformFromWorldToTarget = new RigidBodyTransform();
 

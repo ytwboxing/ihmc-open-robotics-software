@@ -139,6 +139,31 @@ public class Cluster
       }
    }
 
+   public boolean isInsidePreferredNonNavigableZone(Point2DReadOnly query)
+   {
+      if (preferredNonNavigableExtrusionsInLocal.isEmpty())
+         return false;
+
+      BoundingBox2DReadOnly boundingBox = getPreferredNonNavigableExtrusionsBoundingBox();
+
+      if (extrusionSide == ExtrusionSide.INSIDE)
+      {
+         if (!boundingBox.isInsideInclusive(query))
+            return true;
+         if (!preferredNonNavigableExtrusionsConvexHull.isPointInside(query))
+            return true;
+         return preferredNonNavigableExtrusionsInLocal.stream().noneMatch(extrusion -> PlanarRegionTools.isPointInsidePolygon(extrusion, query));
+      }
+      else
+      {
+         if (!boundingBox.isInsideInclusive(query))
+            return false;
+         if (!preferredNonNavigableExtrusionsConvexHull.isPointInside(query))
+            return false;
+         return preferredNonNavigableExtrusionsInLocal.stream().anyMatch(extrusion -> PlanarRegionTools.isPointInsidePolygon(extrusion, query));
+      }
+   }
+
    public ExtrusionSide getExtrusionSide()
    {
       return extrusionSide;

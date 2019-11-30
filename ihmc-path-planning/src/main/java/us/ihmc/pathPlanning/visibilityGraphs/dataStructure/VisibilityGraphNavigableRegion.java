@@ -22,7 +22,7 @@ public class VisibilityGraphNavigableRegion
     * is a null edge in the resulting visibility map.
     * See more: https://bitbucket.ihmc.us/projects/LIBS/repos/ihmc-open-robotics-software/pull-requests/1393
     */
-   private static final boolean ENABLE_EXPERIMENTAL_SPEEDUP = false;
+   public static final boolean ENABLE_EXPERIMENTAL_SPEEDUP = false;
 
    private final NavigableRegion navigableRegion;
 
@@ -123,10 +123,9 @@ public class VisibilityGraphNavigableRegion
       Cluster homeRegionCluster = navigableRegion.getHomeRegionCluster();
       List<Cluster> allClusters = navigableRegion.getAllClusters();
       List<Cluster> obstacleClusters = navigableRegion.getObstacleClusters();
-      int mapId = navigableRegion.getMapId();
 
-      createNavigableRegionNodes(this, homeRegionCluster, homePlanarRegion, allClusters, mapId, preferredHomeRegionNodes, homeRegionNodes,
-                                 innerRegionEdges, createEdgesAroundClusterRing);
+      createNavigableRegionNodes(this, homeRegionCluster, homePlanarRegion, allClusters, preferredHomeRegionNodes, homeRegionNodes, innerRegionEdges,
+                                 createEdgesAroundClusterRing);
 
       obstaclePreferredNavigableNodes.clear();
       obstacleNavigableNodes.clear();
@@ -141,8 +140,8 @@ public class VisibilityGraphNavigableRegion
          Cluster obstacleCluster = obstacleClusters.get(i);
          List<VisibilityGraphNode> obstacleNodes = obstacleNavigableNodes.get(i);
          List<VisibilityGraphNode> obstaclePreferredNodes = obstaclePreferredNavigableNodes.get(i);
-         createNavigableRegionNodes(this, obstacleCluster, homePlanarRegion, allClusters, mapId, obstaclePreferredNodes, obstacleNodes,
-                                    innerRegionEdges, createEdgesAroundClusterRing);
+         createNavigableRegionNodes(this, obstacleCluster, homePlanarRegion, allClusters, obstaclePreferredNodes, obstacleNodes, innerRegionEdges,
+                                    createEdgesAroundClusterRing);
       }
    }
 
@@ -233,7 +232,7 @@ public class VisibilityGraphNavigableRegion
 
    // FIXME check the combinatorics
    public static void createNavigableRegionNodes(VisibilityGraphNavigableRegion visibilityGraphNavigableRegion, Cluster clusterToBuildMapOf,
-                                                 PlanarRegion homeRegion, List<Cluster> allClusters, int mapId, List<VisibilityGraphNode> preferredNodesToPack,
+                                                 PlanarRegion homeRegion, List<Cluster> allClusters, List<VisibilityGraphNode> preferredNodesToPack,
                                                  List<VisibilityGraphNode> nodesToPack, ArrayList<VisibilityGraphEdge> edgesToPack,
                                                  boolean createEdgesAroundClusterRing)
    {
