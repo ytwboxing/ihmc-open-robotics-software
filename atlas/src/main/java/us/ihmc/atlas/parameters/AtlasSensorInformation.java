@@ -9,11 +9,7 @@ import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
-import us.ihmc.sensorProcessing.parameters.AvatarRobotCameraParameters;
-import us.ihmc.sensorProcessing.parameters.AvatarRobotLidarParameters;
-import us.ihmc.sensorProcessing.parameters.AvatarRobotPointCloudParameters;
-import us.ihmc.sensorProcessing.parameters.AvatarRobotSensorParameters;
-import us.ihmc.sensorProcessing.parameters.HumanoidRobotSensorInformation;
+import us.ihmc.sensorProcessing.parameters.*;
 
 public class AtlasSensorInformation implements HumanoidRobotSensorInformation
 {
@@ -125,7 +121,7 @@ public class AtlasSensorInformation implements HumanoidRobotSensorInformation
 
    private static final double depthOffsetX = 0.058611;
    private static final double depthOffsetZ = 0.038959;
-   private static final double depthPitchingAngle = 75.0 / 180.0 * Math.PI;
+   private static final double depthPitchingAngle = 73.0 / 180.0 * Math.PI;
    private static final double depthThickness = 0.0245;
 
    private static final double trackingOffsetX = 0.0358;

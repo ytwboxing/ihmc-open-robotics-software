@@ -2,11 +2,7 @@ package us.ihmc.atlas;
 
 import java.net.URI;
 
-import com.martiansoftware.jsap.FlaggedOption;
-import com.martiansoftware.jsap.JSAP;
-import com.martiansoftware.jsap.JSAPException;
-import com.martiansoftware.jsap.JSAPResult;
-import com.martiansoftware.jsap.Switch;
+import com.martiansoftware.jsap.*;
 
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.RobotTarget;
@@ -45,22 +41,22 @@ public class AtlasNetworkProcessor
          DRCRobotModel model;
 
          DRCNetworkModuleParameters networkModuleParams = new DRCNetworkModuleParameters();
-         networkModuleParams.enableBehaviorModule(true);
-         networkModuleParams.enableBehaviorVisualizer(true);
+//         networkModuleParams.enableBehaviorModule(true);
+//         networkModuleParams.enableBehaviorVisualizer(true);
          networkModuleParams.enableSensorModule(true);
-         networkModuleParams.enableRobotEnvironmentAwerenessModule(false);
-         networkModuleParams.enableHeightQuadTreeToolbox(true);
-         networkModuleParams.enableMocapModule(false);
-         networkModuleParams.enableFootstepPlanningToolbox(false);
-         networkModuleParams.enableFootstepPlanningToolboxVisualizer(false);
-         networkModuleParams.enableKinematicsToolbox(true);
-         networkModuleParams.enableKinematicsToolboxVisualizer(false);
+//         networkModuleParams.enableRobotEnvironmentAwerenessModule(false);
+//         networkModuleParams.enableHeightQuadTreeToolbox(true);
+//         networkModuleParams.enableMocapModule(false);
+//         networkModuleParams.enableFootstepPlanningToolbox(false);
+//         networkModuleParams.enableFootstepPlanningToolboxVisualizer(false);
+//         networkModuleParams.enableKinematicsToolbox(true);
+//         networkModuleParams.enableKinematicsToolboxVisualizer(false);
          networkModuleParams.enableKinematicsStreamingToolbox(true, AtlasKinematicsStreamingToolboxModule.class);
-         networkModuleParams.setFilterControllerInputMessages(true);
-         networkModuleParams.enableBipedalSupportPlanarRegionPublisher(true);
-         networkModuleParams.enableAutoREAStateUpdater(true);
-         networkModuleParams.enableWalkingPreviewToolbox(true);
-         networkModuleParams.enableWholeBodyTrajectoryToolbox(true);
+//         networkModuleParams.setFilterControllerInputMessages(true);
+//         networkModuleParams.enableBipedalSupportPlanarRegionPublisher(true);
+//         networkModuleParams.enableAutoREAStateUpdater(true);
+//         networkModuleParams.enableWalkingPreviewToolbox(true);
+//         networkModuleParams.enableWholeBodyTrajectoryToolbox(true);
 
          URI rosuri = NetworkParameters.getROSURI();
          if (rosuri != null)
