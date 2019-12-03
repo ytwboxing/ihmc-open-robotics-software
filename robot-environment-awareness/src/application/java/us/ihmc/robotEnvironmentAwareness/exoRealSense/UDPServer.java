@@ -4,6 +4,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
+/*
+ * testing class
+ */
 public class UDPServer implements Runnable
 {   
    //params

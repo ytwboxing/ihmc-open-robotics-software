@@ -29,6 +29,9 @@ import us.ihmc.utilities.ros.subscriber.AbstractRosTopicSubscriber;
 import us.ihmc.utilities.ros.subscriber.RosPointCloudSubscriber;
 import us.ihmc.utilities.ros.subscriber.RosPointCloudSubscriber.UnpackedPointCloud;
 
+/*
+ * original class changed for testing purposes
+ */
 public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopicSubscriber<PointCloud2>
 {
    private static final MultisenseInformation multisense = MultisenseInformation.CART;
@@ -204,8 +207,78 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
 
    public static void main(String[] args) throws URISyntaxException
    {
+      /*
+      //one particular point cloud
+      File f = new File("DATASETS/2/RPC/points (53).txt");
+      Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNode");
+      IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
+      StereoVisionPointCloudMessage m = StereoVisionPointCloudDataLoader.getMessageFromFile(f); 
+      while(true) {
+         stereoVisionPublisher.publish(m);
+         
+         try
+         {
+            Thread.sleep(2000);
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }         
+      }
+      */
+      
+      /*
+      //whole data set
+      final String number = "2";
+      final String leftRight = "R";
+      final long artificialDelay = 1000;
+      
+      long sleepTime;
+      long lastModified = new File("DATASETS/" + number + "/" + leftRight + "PC/points (1).txt").lastModified();
+      long myDelay = System.currentTimeMillis();
+      Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNode");
+      IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
+      int i = 40;
+      while(true) {
+         File f = new File("DATASETS/" + number + "/" + leftRight + "PC/points (" + i + ").txt");   
+         if(f.exists() == false) {
+            if(i == 1) {
+               System.out.println("nothing to load!");
+               break;
+            }
+            i = 1;
+            //System.out.println("again");
+            continue;
+            //break;            
+         }
+            
+         StereoVisionPointCloudMessage m = StereoVisionPointCloudDataLoader.getMessageFromFile(f); 
+         
+         sleepTime = f.lastModified() - lastModified - (System.currentTimeMillis() - myDelay) + artificialDelay;
+         if(sleepTime > 0) {
+            try
+            {
+               Thread.sleep(sleepTime);
+            }
+            catch (InterruptedException e)
+            {
+               e.printStackTrace();
+            }            
+         }
+         stereoVisionPublisher.publish(m);
+         //System.out.println("published " + i);
+         myDelay = System.currentTimeMillis();
+         lastModified = f.lastModified();
+         i++;
+      }            
+      */
+      
+      
+      //self start      
       URI masterURI = new URI("http://192.168.137.2:11311");
       new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
+      
+      
       
    }
 }

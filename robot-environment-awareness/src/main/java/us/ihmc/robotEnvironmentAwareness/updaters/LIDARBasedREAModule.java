@@ -8,6 +8,7 @@ import java.awt.List;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +47,9 @@ import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.ros2.Ros2Node;
 
+/*
+ * original class changed for testing purposes
+ */
 public class LIDARBasedREAModule
 {
    private static final String ocTreeTimeReport = "OcTree update took: ";
@@ -69,6 +73,7 @@ public class LIDARBasedREAModule
    private final REAOcTreeBuffer stereoVisionBufferUpdater;
    private final REAOcTreeUpdater mainUpdater;
    private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdater;
+   public static final double DEFAULT_DISTANCE_VALUE = 999.0;
 
    private final REAModuleStateReporter moduleStateReporter;
    private final REAPlanarRegionPublicNetworkProvider planarRegionNetworkProvider;
@@ -121,8 +126,6 @@ public class LIDARBasedREAModule
                                                                              subscriberTopicNameGenerator);
       clearOcTree = reaMessager.createInput(REAModuleAPI.OcTreeClear, false);
 
-      // At the very end, we force the modules to submit their state so duplicate inputs have consistent values.
-      reaMessager.submitMessage(REAModuleAPI.RequestEntireModuleState, true);
 
       preserveOcTreeHistory = reaMessager.createInput(REAModuleAPI.StereoVisionBufferPreservingEnable, false);
       enableStereoBuffer = reaMessager.createInput(REAModuleAPI.StereoVisionBufferEnable, false);
@@ -130,26 +133,39 @@ public class LIDARBasedREAModule
       
       reaMessager.submitMessage(REAModuleAPI.LidarBufferEnable, false);
       reaMessager.submitMessage(REAModuleAPI.StereoVisionBufferEnable, true);
-      reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, false);
       reaMessager.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
       reaMessager.submitMessage(REAModuleAPI.UIStereoVisionShow, true);
 
-      reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
-      reaMessager.submitMessage(REAModuleAPI.UIOcTreeBoundingBoxShow, true);
       BoundingBoxParametersMessage boundingBox = new BoundingBoxParametersMessage();
-      boundingBox.maxX = 1.0f;
+      /*
+      //right
+      boundingBox.maxX = 0.0f;
+      boundingBox.minX = -1.0f;
+      boundingBox.maxY = 0.1f;
+      boundingBox.minY = -1.0f;
+      boundingBox.maxZ = 4.5f;
+      boundingBox.minZ = 0.0f;
+      */      
+      //left
+      boundingBox.maxX = 0.0f;
       boundingBox.minX = -1.0f;
       boundingBox.maxY = 1.0f;
       boundingBox.minY = -0.1f;
-      boundingBox.maxZ = 2.0f;
-      boundingBox.minZ = 0.0f;
-      reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox);      
+      boundingBox.maxZ = 10.5f;
+      boundingBox.minZ = 0.0f;      
+      reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox);  
+
+      reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
+      reaMessager.submitMessage(REAModuleAPI.UIOcTreeBoundingBoxShow, true);
       
       //defailt
       reaMessager.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse(
          "search radius: 0.05, max distance from plane: 0.05, maxAngleFromPlane: 0.17453292519943295, minNormalQuality: 0.005"
          + ", min region size: 50, max standard deviation: 0.015, min volumic density: 100000.0"
          ));   
+
+      // At the very end, we force the modules to submit their state so duplicate inputs have consistent values.
+      reaMessager.submitMessage(REAModuleAPI.RequestEntireModuleState, true);
    }
 
    private void dispatchLidarScanMessage(Subscriber<LidarScanMessage> subscriber)
@@ -261,7 +277,15 @@ public class LIDARBasedREAModule
             timeReporter.run(() -> planarRegionFeatureUpdater.update(mainOctree), planarRegionsTimeReport);
             timeReporter.run(() -> moduleStateReporter.reportPlanarRegionsState(planarRegionFeatureUpdater), reportPlanarRegionsStateTimeReport);
 
-            double stairDistance = stairDistance(planarRegionFeatureUpdater.getPlanarRegionsList());
+            double stairDistance = stairDistance2(planarRegionFeatureUpdater.getPlanarRegionsList());
+            if(stairDistance != DEFAULT_DISTANCE_VALUE)
+               System.out.println(stairDistance);
+               
+            /*
+            double distance = obstacleDistance(planarRegionFeatureUpdater.getPlanarRegionsList());
+            if(distance != DEFAULT_DISTANCE_VALUE)
+               System.out.println(distance);
+            */            
             
             planarRegionNetworkProvider.update(ocTreeUpdateSuccess);
             planarRegionNetworkProvider.publishCurrentState();
@@ -289,22 +313,23 @@ public class LIDARBasedREAModule
    }
 
    int counter = 0;
+   
    /*
-    * returns distance to the closest stair, if no stair detected then returns 999.0
+    * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
     */
    private double stairDistance(PlanarRegionsList planarRegionsList)
    {  
       if(planarRegionsList.getNumberOfPlanarRegions() == 0)
-         return 999.0;
+         return DEFAULT_DISTANCE_VALUE;
       
       //params
-      final double angleToCameraTolerance = 25.0; //20
-      final double angleBetweenPlanesTolerance = 10.0;
+      final double angleToCameraTolerance = 25.0;
+      final double angleBetweenPlanesTolerance = 15.0;
       final double XYZTolerance = 0.1;
       
       //variable
-      double distance = 999.0;
-      
+      double distance = DEFAULT_DISTANCE_VALUE;
+
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
          Vector3D normalI = planarRegionI.getNormal();
@@ -345,45 +370,92 @@ public class LIDARBasedREAModule
                continue;            
             
             if(distance > JminZ)
-               distance = JminZ;
+               distance = JminZ;            
+         }     
+      }     
+      
+      return distance;  
+   }
+   
+   /*
+    * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
+    * different approach
+    */
+   private double stairDistance2(PlanarRegionsList planarRegionsList)
+   {  
+      if(planarRegionsList.getNumberOfPlanarRegions() == 0)
+         return DEFAULT_DISTANCE_VALUE;
+      
+      //params
+      final double angleToCameraTolerance = 25.0;
+      final double minXTollerance = 0.05;
+      final double distanceCameraFoot = 0.635;
+      final double distanceFootGround = 0.38;
+      final double distanceCameraGround = distanceCameraFoot + distanceFootGround;
+      
+      final double idealAngleBetweenCameraAndPlane = 90.0;
             
-            //System.out.println(counter++); 
-         }
-         
-         /*
-         normals[i] = planarRegion.getNormal();
-         
-         
-         double angle = Math.acos(vector.getZ())*180/Math.PI;
-         //System.out.println(angle + ", " + (angle > positiveAngle ? "true" : "false"));
-         if(angle > positiveAngle) {
-            double D2Distance = planarRegion.distanceToPointByProjectionOntoXYPlane(0.0, 0.0);
-            //System.out.println(D2Distance);
-            if(D2Distance < positiveD2Distance) {
-               distance = planarRegion.getPlaneZGivenXY(0, 0);
-               //System.out.println("obstacle at " + distance + " meters");
-               distanceList.add(distance);                        
-            }
-         }  */             
-      }
-/*
-      for(int i = 0; i < normals.length; i++) {
-         for(int j = 0; j < normals.length; j++) {
-            if(j == i) {
-               continue;
-            }
-            
-            
-         }
-      }   */   
+      //variable
+      double distance = DEFAULT_DISTANCE_VALUE;
 
-      if(distance != 999.0) {
-         System.out.println(distance);         
-      }      
+      for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
+         PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
+         Vector3D normalI = planarRegionI.getNormal();
+         double angleToCamera = Math.acos(normalI.getZ())*180/Math.PI; //simplified for cemara vector (0, 0, 1)
+         if(angleToCamera < idealAngleBetweenCameraAndPlane - angleToCameraTolerance || angleToCamera > idealAngleBetweenCameraAndPlane + angleToCameraTolerance)
+            continue;
+
+         double minX = planarRegionI.getBoundingBox3dInWorld().getMinX();
+         double minY = planarRegionI.getBoundingBox3dInWorld().getMinY();
+         double minZ = planarRegionI.getBoundingBox3dInWorld().getMinZ();
+
+         double maxX = planarRegionI.getBoundingBox3dInWorld().getMaxX();
+         double maxY = planarRegionI.getBoundingBox3dInWorld().getMaxY();
+         double maxZ = planarRegionI.getBoundingBox3dInWorld().getMaxZ();
+         
+         if(minZ > distanceCameraGround) {
+            double expectedMinX = Math.sqrt(minZ*minZ - distanceCameraGround*distanceCameraGround) * -1.0;
+            if(Math.abs(expectedMinX - minX) > minXTollerance)
+               continue;            
+         }
+
+         if(distance > minZ)
+            distance = minZ; 
+      }     
       
       return distance;  
    }
 
+   /*
+    * returns DEFAULT_DISTANCE_VALUE if there is no obstacle otherwise return distance to obstacle
+    */
+   private double obstacleDistance(PlanarRegionsList planarRegionsList) {                    
+      //variables
+      double distance = DEFAULT_DISTANCE_VALUE;  
+      LinkedList<Double> distanceList = new LinkedList<Double>();
+      
+      for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
+         PlanarRegion planarRegion = planarRegionsList.getPlanarRegion(i);
+         Vector3D vector = planarRegion.getNormal();
+         double angle = Math.acos(vector.getZ())*180/Math.PI;
+         if(angle > 180.0 - 20.0) {
+            double D2Distance = planarRegion.distanceToPointByProjectionOntoXYPlane(0.0, 0.0);
+            if(D2Distance < 0.5) {
+               distance = planarRegion.getPlaneZGivenXY(0, 0);
+               distanceList.add(distance);                        
+            }
+         }               
+      }
+      
+      for(int i = 0; i < distanceList.size() -1; i++){
+         if(distanceList.get(i) < distance) {
+            distance = distanceList.get(i);
+         }
+      }
+      return distance;   
+   }
+
+   
    private boolean isThreadInterrupted()
    {
       return Thread.interrupted() || scheduled == null || scheduled.isCancelled();

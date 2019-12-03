@@ -18,7 +18,7 @@ import us.ihmc.utilities.ros.subscriber.RosPointCloudSubscriber;
 import us.ihmc.utilities.ros.subscriber.RosPointCloudSubscriber.UnpackedPointCloud;
 
 /*
- * class for creating connection between Ros publishing /camera/depth/color/points (realsense D415 camera) and Ros2
+ * class for creating connection between ROS wrapper publishing /camera/depth/color/points (realsense D415 camera) and ROS2
  */
 public class RealSenseBridgeRos2 extends AbstractRosTopicSubscriber<PointCloud2>
 {
