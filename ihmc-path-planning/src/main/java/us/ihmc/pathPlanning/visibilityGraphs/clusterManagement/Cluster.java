@@ -150,17 +150,17 @@ public class Cluster
       {
          if (!boundingBox.isInsideInclusive(query))
             return true;
-         if (!preferredNonNavigableExtrusionsConvexHull.isPointInside(query))
+         if (!PlanarRegionTools.isPointInsidePolygon(preferredNonNavigableExtrusionsConvexHull.getPolygonVerticesView(), query))
             return true;
-         return preferredNonNavigableExtrusionsInLocal.stream().noneMatch(extrusion -> PlanarRegionTools.isPointInsidePolygon(extrusion, query));
+         return preferredNonNavigableExtrusionsInLocal.stream().noneMatch(extrusion -> PlanarRegionTools.isPointInsidePolygon(extrusion.getPoints(), query));
       }
       else
       {
          if (!boundingBox.isInsideInclusive(query))
             return false;
-         if (!preferredNonNavigableExtrusionsConvexHull.isPointInside(query))
+         if (!PlanarRegionTools.isPointInsidePolygon(preferredNonNavigableExtrusionsConvexHull.getPolygonVerticesView(), query))
             return false;
-         return preferredNonNavigableExtrusionsInLocal.stream().anyMatch(extrusion -> PlanarRegionTools.isPointInsidePolygon(extrusion, query));
+         return preferredNonNavigableExtrusionsInLocal.stream().anyMatch(extrusion -> PlanarRegionTools.isPointInsidePolygon(extrusion.getPoints(), query));
       }
    }
 
