@@ -276,7 +276,7 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
       
       //self start      
       URI masterURI = new URI("http://192.168.137.2:11311");
-      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
+      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
       
       
       

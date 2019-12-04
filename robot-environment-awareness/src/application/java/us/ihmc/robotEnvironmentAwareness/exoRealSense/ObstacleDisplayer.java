@@ -89,12 +89,9 @@ public class ObstacleDisplayer
    private static long TIME_BEFORE_NO_DISTANCE_REPORT = 2000;
    private static boolean PRINT_SENDER = false;
    private static double MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = 0.05;
-   private static double DISTANCE_CAMERA_FOOT= 0.635;
-   private static double DISTANCE_FOOT_GROUND = 0.38; //0.38 for 4th and 5th dataset
+   private static double DISTANCE_CAMERA_GROUND= 0.635;
    private static String ALGORITHM_SELECTOR = "stairDistance2"; //name of function   
    private static boolean DISTANCE_IN_FEET = false;
-
-   private static final double distanceCameraGround = DISTANCE_CAMERA_FOOT + DISTANCE_FOOT_GROUND;
    
    private static final String MARK_MAX_NUMBER_OF_POINTS = "MAX_POINTS"; 
    private static final String MARK_THREAD_PERIOD_MILLISECONDS = "THREAD_PERIOD_MILLISECONDS";
@@ -114,8 +111,7 @@ public class ObstacleDisplayer
    private static final String MARK_TIME_BEFORE_NO_DISTANCE_REPORT = "TIME_BEFORE_NO_DISTANCE_REPORT";
    private static final String MARK_PRINT_SENDER = "PRINT_SENDER";
    private static final String MARK_MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = "MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE";
-   private static final String MARK_DISTANCE_CAMERA_FOOT = "DISTANCE_CAMERA_FOOT";
-   private static final String MARK_DISTANCE_FOOT_GROUND = "DISTANCE_FOOT_GROUND";
+   private static final String MARK_DISTANCE_CAMERA_GROUND = "DISTANCE_CAMERA_GROUND";
    private static final String MARK_ALGORITHM_SELECTOR = "ALGORITHM_SELECTOR";
    private static final String MARK_DISTANCE_IN_FEET = "DISTANCE_IN_FEET";
    
@@ -296,11 +292,8 @@ public class ObstacleDisplayer
                case MARK_MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE:
                   MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = Double.valueOf(bReader.readLine());                   
                   break;
-               case MARK_DISTANCE_CAMERA_FOOT:
-                  DISTANCE_CAMERA_FOOT = Double.valueOf(bReader.readLine());                   
-                  break;
-               case MARK_DISTANCE_FOOT_GROUND:
-                  DISTANCE_FOOT_GROUND = Double.valueOf(bReader.readLine()); 
+               case MARK_DISTANCE_CAMERA_GROUND:
+                  DISTANCE_CAMERA_GROUND = Double.valueOf(bReader.readLine());                   
                   break;
                case MARK_ALGORITHM_SELECTOR:
                   ALGORITHM_SELECTOR = bReader.readLine();
@@ -475,21 +468,16 @@ public class ObstacleDisplayer
             if(angleBetweenPlanes < 90.0 - ANGLE_BETWEEN_PLANES_TOLERANCE || angleBetweenPlanes > 90.0 + ANGLE_BETWEEN_PLANES_TOLERANCE)
                continue;           
 
-            double IminX = planarRegionI.getBoundingBox3dInWorld().getMinX();
             double IminY = planarRegionI.getBoundingBox3dInWorld().getMinY();
-            double IminZ = planarRegionI.getBoundingBox3dInWorld().getMinZ();
 
             double ImaxX = planarRegionI.getBoundingBox3dInWorld().getMaxX();
-            double ImaxY = planarRegionI.getBoundingBox3dInWorld().getMaxY();
-            double ImaxZ = planarRegionI.getBoundingBox3dInWorld().getMaxZ();            
+            double ImaxY = planarRegionI.getBoundingBox3dInWorld().getMaxY();           
 
             double JminX = planarRegionJ.getBoundingBox3dInWorld().getMinX();
             double JminY = planarRegionJ.getBoundingBox3dInWorld().getMinY();
             double JminZ = planarRegionJ.getBoundingBox3dInWorld().getMinZ();
             
-            double JmaxX = planarRegionJ.getBoundingBox3dInWorld().getMaxX();
             double JmaxY = planarRegionJ.getBoundingBox3dInWorld().getMaxY();
-            double JmaxZ = planarRegionJ.getBoundingBox3dInWorld().getMaxZ();
             
             if(Math.abs(ImaxX - JminX) > XYZ_TOLERANCE) 
                continue;
@@ -525,15 +513,10 @@ public class ObstacleDisplayer
             continue;
 
          double minX = planarRegionI.getBoundingBox3dInWorld().getMinX();
-         double minY = planarRegionI.getBoundingBox3dInWorld().getMinY();
          double minZ = planarRegionI.getBoundingBox3dInWorld().getMinZ();
-
-         double maxX = planarRegionI.getBoundingBox3dInWorld().getMaxX();
-         double maxY = planarRegionI.getBoundingBox3dInWorld().getMaxY();
-         double maxZ = planarRegionI.getBoundingBox3dInWorld().getMaxZ();
          
-         if(minZ > distanceCameraGround) {
-            double expectedMinX = Math.sqrt(minZ*minZ - distanceCameraGround*distanceCameraGround) * -1.0;
+         if(minZ > DISTANCE_CAMERA_GROUND) {
+            double expectedMinX = Math.sqrt(minZ*minZ - DISTANCE_CAMERA_GROUND*DISTANCE_CAMERA_GROUND) * -1.0;
             if(Math.abs(expectedMinX - minX) > MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE)
                continue;            
          }
