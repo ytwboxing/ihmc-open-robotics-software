@@ -29,7 +29,7 @@ import us.ihmc.commonWalkingControlModules.controlModules.legConfiguration.LegCo
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
 import us.ihmc.simulationconstructionset.util.simulationRunner.BlockingSimulationRunner.SimulationExceededMaximumTimeException;
 
-@Tag("humanoid-flat-ground")
+@Tag("humanoid-flat-ground-slow")
 public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
 {
    private final AtlasRobotModel atlasRobotModel = new MyAtlasRobotModel();
@@ -145,13 +145,13 @@ public class AtlasStraightLegWalkingTest extends AvatarStraightLegWalkingTest
       }
 
       @Override
-      public double getMaxICPErrorBeforeSingleSupportX()
+      public double getMaxICPErrorBeforeSingleSupportForwardX()
       {
          return 0.04;
       }
 
       @Override
-      public double getMaxICPErrorBeforeSingleSupportY()
+      public double getMaxICPErrorBeforeSingleSupportInnerY()
       {
          return 0.02;
       }
