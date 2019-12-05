@@ -15,6 +15,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
+import std_msgs.msg.dds.Float64;
 import us.ihmc.communication.ROS2Tools;
 import us.ihmc.communication.util.NetworkPorts;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -22,6 +23,7 @@ import us.ihmc.jOctoMap.ocTree.NormalOcTree;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.Messager;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
+import us.ihmc.pubsub.TopicDataType;
 import us.ihmc.pubsub.subscriber.Subscriber;
 import us.ihmc.robotEnvironmentAwareness.communication.KryoMessager;
 import us.ihmc.robotEnvironmentAwareness.communication.REACommunicationProperties;
@@ -38,15 +40,18 @@ import us.ihmc.robotEnvironmentAwareness.updaters.REAPlanarRegionFeatureUpdater;
 import us.ihmc.robotEnvironmentAwareness.updaters.REAPlanarRegionPublicNetworkProvider;
 import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
+import us.ihmc.ros2.NewMessageListener;
+import us.ihmc.ros2.RealtimeRos2Node;
 import us.ihmc.ros2.Ros2Node;
 
 /*
- * main class that connect realsense D435 (RealSenseBridgeRos2), runs point cloud through planar region finder (most of this class), evaluate obstacles (function obstacleDistance) and present them to hololense (UDPDataSender) 
+ * main class that connect realsense D435 (RealSenseBridgeRos2), runs point cloud through planar region finder (most of this class), evaluate obstacles (function obstacleDistance) with the help of informations from Exo (callback subscribers on realTimeRos2Node) and present them to hololense (UDPDataSender) 
  */
 public class ObstacleDisplayer
 {   
    //variables
    private static Ros2Node ros2Node;
+   private static RealtimeRos2Node realTimeRos2Node;
 
    protected static final boolean DEBUG = true;
    
@@ -54,7 +59,7 @@ public class ObstacleDisplayer
    private final REAOcTreeUpdater mainUpdaterLeft; 
    private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdaterLeft;
    private final REAPlanarRegionPublicNetworkProvider planarRegionNetworkProviderLeft;   
-   public static final double DEFAULT_DISTANCE_VALUE = 999.0;
+   private final double DEFAULT_DISTANCE_VALUE = 999.0;
    
    private final REAOcTreeBuffer stereoVisionBufferUpdaterRight;
    private final REAOcTreeUpdater mainUpdaterRight; 
@@ -69,6 +74,10 @@ public class ObstacleDisplayer
    private static UDPDataSender sender;
    private boolean nonEmptyLeftOcTree = false;
    private boolean nonEmptyRightOcTree = false;   
+   private boolean recievingLeftKneeHeight = false;
+   private boolean recievingRightKneeHeight = false;
+   private boolean recievingLeftThighAngle = false;
+   private boolean recievingRightThighAngle = false;   
    
    //config parametrs
    private static int MAX_NUMBER_OF_POINTS = 20000;
@@ -82,18 +91,27 @@ public class ObstacleDisplayer
    private static float MAXZ = 1.5f;
    private static float MINZ = 0.0f;   
    private static String PLANAR_REGIONS_SEGMENTATION_PARAMETERS = "search radius: 0.05, max distance from plane: 0.05, maxAngleFromPlane: 0.17453292519943295, minNormalQuality: 0.005, min region size: 50, max standard deviation: 0.015, min volumic density: 100000.0";
-   private static double ANGLE_TO_CAMERA_TOLERANCE = 20.0;
+   private static double ANGLE_CAMERA_PLANE_TOLERANCE = 10.0;
    private static double ANGLE_BETWEEN_PLANES_TOLERANCE = 10.0;
    private static double XYZ_TOLERANCE = 0.1;
-   private static double IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = 90.0;
    private static long TIME_BEFORE_NO_DISTANCE_REPORT = 2000;
    private static boolean PRINT_SENDER = false;
-   private static double MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = 0.05;
-   private static double DISTANCE_CAMERA_GROUND= 0.635;
-   private static String ALGORITHM_SELECTOR = "stairDistance2"; //name of function   
-   private static boolean DISTANCE_IN_FEET = false;
+   private static double MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = 0.05;   
+   private static double DEFAULT_DISTANCE_CAMERA_GROUND = 0.635; //todo JOBY make sure about this value   
+   private static double DEFAULT_THIGH_ANGLE = 90.0;
+   private static double DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = 90.0;
+   private static String ALGORITHM_SELECTOR = "stairDistance2"; //name of function      
+   private static boolean DISTANCE_IN_FEET = false;   
+   private static int CAMERA_POSITION = 2; //1 - parallel with tight, 2 - pointing down almost 45°
    
-   private static final String MARK_MAX_NUMBER_OF_POINTS = "MAX_POINTS"; 
+   private static double DISTANCE_LEFT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
+   private static double DISTANCE_RIGHT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
+   private static double LEFT_THIGH_ANGLE = DEFAULT_THIGH_ANGLE;
+   private static double RIGHT_THIGH_ANGLE = DEFAULT_THIGH_ANGLE;
+   private static double LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE;
+   private static double RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE;
+   
+   private static final String MARK_MAX_NUMBER_OF_POINTS = "MAX_NUMBER_OF_POINTS"; 
    private static final String MARK_THREAD_PERIOD_MILLISECONDS = "THREAD_PERIOD_MILLISECONDS";
    private static final String MARK_BUFFER_THREAD_PERIOD_MILLISECONDS = "BUFFER_THREAD_PERIOD_MILLISECONDS";   
    private static final String MARK_DEFAULT_OCTREE_RESOLUTION = "DEFAULT_OCTREE_RESOLUTION";
@@ -102,18 +120,20 @@ public class ObstacleDisplayer
    private static final String MARK_MAXY = "MAXY";
    private static final String MARK_MINY = "MINY";
    private static final String MARK_MAXZ = "MAXZ";
-   private static final String MARK_MINZ = "MINZ";
+   private static final String MARK_MINZ = "MINZ";   
    private static final String MARK_PLANAR_REGIONS_SEGMENTATION_PARAMETERS = "PLANAR_REGIONS_SEGMENTATION_PARAMETERS";
-   private static final String MARK_ANGLE_TO_CAMERA_TOLERANCE = "ANGLE_TO_CAMERA_TOLERANCE";
+   private static final String MARK_ANGLE_CAMERA_PLANE_TOLERANCE = "ANGLE_CAMERA_PLANE_TOLERANCE";
    private static final String MARK_ANGLE_BETWEEN_PLANES_TOLERANCE = "ANGLE_BETWEEN_PLANES_TOLERANCE";
-   private static final String MARK_XYZ_TOLERANCE = "XYZ_TOLERANCE";
-   private static final String MARK_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = "IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE";
+   private static final String MARK_XYZ_TOLERANCE = "XYZ_TOLERANCE";   
    private static final String MARK_TIME_BEFORE_NO_DISTANCE_REPORT = "TIME_BEFORE_NO_DISTANCE_REPORT";
    private static final String MARK_PRINT_SENDER = "PRINT_SENDER";
-   private static final String MARK_MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = "MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE";
-   private static final String MARK_DISTANCE_CAMERA_GROUND = "DISTANCE_CAMERA_GROUND";
-   private static final String MARK_ALGORITHM_SELECTOR = "ALGORITHM_SELECTOR";
-   private static final String MARK_DISTANCE_IN_FEET = "DISTANCE_IN_FEET";
+   private static final String MARK_MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = "MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE";   
+   private static final String MARK_DEFAULT_DISTANCE_CAMERA_GROUND = "DEFAULT_DISTANCE_CAMERA_GROUND";   
+   private static final String MARK_DEFAULT_THIGH_ANGLE = "DEFAULT_THIGH_ANGLE";   
+   private static final String MARK_DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = "DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE";   
+   private static final String MARK_ALGORITHM_SELECTOR = "ALGORITHM_SELECTOR";   
+   private static final String MARK_DISTANCE_IN_FEET = "DISTANCE_IN_FEET";   
+   private static final String MARK_CAMERA_POSITION = "CAMERA_POSITION";   
    
    //functions
    public static void main(String[] args)
@@ -122,6 +142,7 @@ public class ObstacleDisplayer
          loadConfFile();
          
          ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
+         realTimeRos2Node = ROS2Tools.createRealtimeRos2Node(PubSubImplementation.FAST_RTPS, "whatever");
          
          //connect to cameras
          new RealSenseBridgeRos2("http://localhost:11311" // "http://192.168.137.2:11311" //   
@@ -175,7 +196,24 @@ public class ObstacleDisplayer
       ROS2Tools.createCallbackSubscription(ros2Node
                                            , StereoVisionPointCloudMessage.class
                                            , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
-                                           , this::dispatchStereoVisionPointCloudMessageRight);
+                                           , this::dispatchStereoVisionPointCloudMessageRight);      
+      
+      ROS2Tools.createCallbackSubscription(realTimeRos2Node
+                                           , Float64.class
+                                           , "mina_v2/knee_height/left"
+                                           , this::handleExoLeftKneeHeight);
+      ROS2Tools.createCallbackSubscription(realTimeRos2Node
+                                           , Float64.class
+                                           , "mina_v2/knee_height/right"
+                                           , this::handleExoRightKneeHeight);
+      ROS2Tools.createCallbackSubscription(realTimeRos2Node
+                                           , Float64.class
+                                           , "mina_v2/thigh_angle/left"
+                                           , this::handleExoLeftThighAngle);
+      ROS2Tools.createCallbackSubscription(realTimeRos2Node
+                                           , Float64.class
+                                           , "mina_v2/thigh_angle/right"
+                                           , this::handleExoRightThighAngle);
 
       FilePropertyHelper filePropertyHelper = new FilePropertyHelper(configurationFile);
       loadConfigurationFile(filePropertyHelper);
@@ -226,6 +264,17 @@ public class ObstacleDisplayer
       reaMessager1.submitMessage(REAModuleAPI.RequestEntireModuleState, true); 
       reaMessager2.submitMessage(REAModuleAPI.RequestEntireModuleState, true); 
    }
+
+   private void loadConfigurationFile(FilePropertyHelper filePropertyHelper)
+   {
+      stereoVisionBufferUpdaterLeft.loadConfiguration(filePropertyHelper);
+      mainUpdaterLeft.loadConfiguration(filePropertyHelper);
+      planarRegionFeatureUpdaterLeft.loadConfiguration(filePropertyHelper);
+      
+      stereoVisionBufferUpdaterRight.loadConfiguration(filePropertyHelper);
+      mainUpdaterRight.loadConfiguration(filePropertyHelper);
+      planarRegionFeatureUpdaterRight.loadConfiguration(filePropertyHelper);
+   }
    
    private static void loadConfFile() throws Exception
    {
@@ -240,16 +289,16 @@ public class ObstacleDisplayer
             {
                case MARK_MAX_NUMBER_OF_POINTS:
                   MAX_NUMBER_OF_POINTS = Integer.valueOf(bReader.readLine());
-                  break;
+                  break;                  
                case MARK_THREAD_PERIOD_MILLISECONDS:
                   THREAD_PERIOD_MILLISECONDS = Integer.valueOf(bReader.readLine());                     
-                  break;
+                  break;                  
                case MARK_BUFFER_THREAD_PERIOD_MILLISECONDS:
                   BUFFER_THREAD_PERIOD_MILLISECONDS = Integer.valueOf(bReader.readLine());  
-                  break;
+                  break;                  
                case MARK_DEFAULT_OCTREE_RESOLUTION:
                   DEFAULT_OCTREE_RESOLUTION = Double.valueOf(bReader.readLine());                       
-                  break;
+                  break;                  
                case MARK_MAXX:
                   MAXX = Float.valueOf(bReader.readLine());                   
                   break;
@@ -267,39 +316,45 @@ public class ObstacleDisplayer
                   break;
                case MARK_MINZ:
                   MINZ = Float.valueOf(bReader.readLine());                   
-                  break;
+                  break;                  
                case MARK_PLANAR_REGIONS_SEGMENTATION_PARAMETERS:
                   PLANAR_REGIONS_SEGMENTATION_PARAMETERS = bReader.readLine();
-                  break;
-               case MARK_ANGLE_TO_CAMERA_TOLERANCE:
-                  ANGLE_TO_CAMERA_TOLERANCE = Double.valueOf(bReader.readLine());                  
-                  break; 
+                  break;                  
+               case MARK_ANGLE_CAMERA_PLANE_TOLERANCE:
+                  ANGLE_CAMERA_PLANE_TOLERANCE = Double.valueOf(bReader.readLine());                  
+                  break;                   
                case MARK_ANGLE_BETWEEN_PLANES_TOLERANCE:
                   ANGLE_BETWEEN_PLANES_TOLERANCE = Double.valueOf(bReader.readLine()); 
-                  break;
+                  break;                  
                case MARK_XYZ_TOLERANCE:
                   XYZ_TOLERANCE = Double.valueOf(bReader.readLine()); 
-                  break;
-               case MARK_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE:
-                  IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = Double.valueOf(bReader.readLine());                   
-                  break;
+                  break;                  
                case MARK_TIME_BEFORE_NO_DISTANCE_REPORT:
                   TIME_BEFORE_NO_DISTANCE_REPORT = Long.valueOf(bReader.readLine());
-                  break;
+                  break;                  
                case MARK_PRINT_SENDER:
                   PRINT_SENDER = Boolean.valueOf(bReader.readLine());
-                  break;
+                  break;                  
                case MARK_MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE:
                   MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = Double.valueOf(bReader.readLine());                   
+                  break;                  
+               case MARK_DEFAULT_DISTANCE_CAMERA_GROUND:
+                  DEFAULT_DISTANCE_CAMERA_GROUND = Double.valueOf(bReader.readLine());                   
+                  break;                  
+               case MARK_DEFAULT_THIGH_ANGLE:
+                  DEFAULT_THIGH_ANGLE = Double.valueOf(bReader.readLine());
                   break;
-               case MARK_DISTANCE_CAMERA_GROUND:
-                  DISTANCE_CAMERA_GROUND = Double.valueOf(bReader.readLine());                   
-                  break;
+               case MARK_DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE:
+                  DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = Double.valueOf(bReader.readLine());
+                  break;                  
                case MARK_ALGORITHM_SELECTOR:
                   ALGORITHM_SELECTOR = bReader.readLine();
                   break;
                case MARK_DISTANCE_IN_FEET:
                   DISTANCE_IN_FEET = Boolean.valueOf(bReader.readLine());
+                  break;
+               case MARK_CAMERA_POSITION:
+                  CAMERA_POSITION = Integer.valueOf(bReader.readLine());
                   break;
                default:
                   break;
@@ -307,7 +362,14 @@ public class ObstacleDisplayer
             
             line = bReader.readLine();
          } 
-         bReader.close();          
+         bReader.close(); 
+         
+         DISTANCE_LEFT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
+         DISTANCE_RIGHT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
+         LEFT_THIGH_ANGLE = DEFAULT_THIGH_ANGLE;
+         RIGHT_THIGH_ANGLE = DEFAULT_THIGH_ANGLE;
+         LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE;
+         RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE;
       }      
    }
 
@@ -324,16 +386,111 @@ public class ObstacleDisplayer
       stereoVisionBufferUpdaterRight.handleStereoVisionPointCloudMessage(message);      
       mainUpdaterRight.handleStereoVisionPointCloudMessage(message);
    }
-
-   private void loadConfigurationFile(FilePropertyHelper filePropertyHelper)
-   {
-      stereoVisionBufferUpdaterLeft.loadConfiguration(filePropertyHelper);
-      mainUpdaterLeft.loadConfiguration(filePropertyHelper);
-      planarRegionFeatureUpdaterLeft.loadConfiguration(filePropertyHelper);
+   
+   private void handleExoLeftKneeHeight(Subscriber<Float64> subscriber) {
+      Double value = subscriber.takeNextData().data_;
+      if(value == 0.0)
+         return;
       
-      stereoVisionBufferUpdaterRight.loadConfiguration(filePropertyHelper);
-      mainUpdaterRight.loadConfiguration(filePropertyHelper);
-      planarRegionFeatureUpdaterRight.loadConfiguration(filePropertyHelper);
+      if(value == 500.0) {
+         DISTANCE_LEFT_CAMERA_GROUND = 500.0;
+         return;
+      }
+      
+      if(recievingLeftKneeHeight == false) {
+         recievingLeftKneeHeight = true;
+         System.out.println("recieving Left Knee Height");
+      }
+      
+      switch (CAMERA_POSITION)
+      {
+         case 1:
+            DISTANCE_LEFT_CAMERA_GROUND = value + Math.sin((LEFT_THIGH_ANGLE - 0.506)) * 0.12; //0.506 rad (29.0°) and 0.12 meters are measurements from exo
+            break;
+         case 2:
+            DISTANCE_LEFT_CAMERA_GROUND = value + Math.sin((LEFT_THIGH_ANGLE - 0.358)) * 0.094; //0.358 rad (20.5°) and 0.094 meters are measurements from exo
+            break;
+         default:
+            break;
+      }
+   } 
+   
+   private void handleExoRightKneeHeight(Subscriber<Float64> subscriber) {
+      Double value = subscriber.takeNextData().data_;
+      if(value == 0.0)
+         return;
+      
+      if(value == 500.0) {
+         DISTANCE_RIGHT_CAMERA_GROUND = 500.0;
+         return;
+      }
+      
+      if(recievingRightKneeHeight == false) {
+         recievingRightKneeHeight = true;
+         System.out.println("recieving Right Knee Height");
+      }
+      
+      switch (CAMERA_POSITION)
+      {
+         case 1:
+            DISTANCE_RIGHT_CAMERA_GROUND = value + Math.sin((RIGHT_THIGH_ANGLE - 0.506)) * 0.12; //0.506 rad (29.0°) and 0.12 meters are measurements from exo
+            break;
+         case 2:
+            DISTANCE_RIGHT_CAMERA_GROUND = value + Math.sin((RIGHT_THIGH_ANGLE - 0.358)) * 0.094; //0.358 rad (20.5°) and 0.094 meters are measurements from exo
+            break;
+         default:
+            break;
+      }
+   }
+   
+   private void handleExoLeftThighAngle(Subscriber<Float64> subscriber) {
+      Double value = subscriber.takeNextData().data_;
+      if(value == 0.0 || value == 500.0)
+         return;
+      
+      if(recievingLeftThighAngle == false) {
+         recievingLeftThighAngle = true;
+         System.out.println("recieving Left Thigh Angle");
+      }
+      
+      LEFT_THIGH_ANGLE = value;  
+      
+      switch (CAMERA_POSITION)
+      {
+         case 1:
+            LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (LEFT_THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and step 
+            break;
+         case 2:
+            LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.733038) - (LEFT_THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.733038 rad (42°)            
+            break;
+         default:
+            break;
+      }
+   }
+   
+   private void handleExoRightThighAngle(Subscriber<Float64> subscriber) {
+      Double value = subscriber.takeNextData().data_;
+      if(value == 0.0 || value == 500.0)
+         return;
+
+      if(recievingRightThighAngle == false) {
+         recievingRightThighAngle = true;
+         System.out.println("recieving Right Thigh Angle");
+      }
+      
+      RIGHT_THIGH_ANGLE = value; 
+      
+      switch (CAMERA_POSITION)
+      {
+         case 1:
+            RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (RIGHT_THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and step 
+            break;
+         case 2:
+            RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.733038) - (RIGHT_THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.733038 rad (42°)
+            break;
+         default:
+            break;
+      }
    }
 
    double distanceLeft = DEFAULT_DISTANCE_VALUE;
@@ -382,8 +539,8 @@ public class ObstacleDisplayer
          //detection part
          switch(ALGORITHM_SELECTOR) {
             case "stairDistance2": 
-               distanceLeft = stairDistance2(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
-               distanceRight = stairDistance2(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
+               distanceLeft = stairDistance2(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE);
+               distanceRight = stairDistance2(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE);
                break;
             case "stairDistance": 
                distanceLeft = stairDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
@@ -402,18 +559,18 @@ public class ObstacleDisplayer
             
             if(distanceLeft > distanceRight) {
                if(DISTANCE_IN_FEET) {
-                  sender.send("R: " + String.format("%.2f", (distanceRight/0.0328084)) + " feet");                      
+                  sender.send("R: " + String.format("%.2f", (distanceRight/3.28084)) + " feet");                      
                }
                else {
-                  sender.send("R: " + String.format("%.2f", distanceRight) + " cm");                  
+                  sender.send("R: " + String.format("%.2f", distanceRight) + " meters");                  
                }
             }
             else {
                if(DISTANCE_IN_FEET) {
-                  sender.send("L: " + String.format("%.2f", (distanceLeft/0.0328084)) + " feet");                    
+                  sender.send("L: " + String.format("%.2f", (distanceLeft/3.28084)) + " feet");                    
                }
                else {
-                  sender.send("L: " + String.format("%.2f", distanceLeft) + " cm");
+                  sender.send("L: " + String.format("%.2f", distanceLeft) + " meters");
                }
             }
          }
@@ -455,7 +612,7 @@ public class ObstacleDisplayer
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
          Vector3D normalI = planarRegionI.getNormal();
          double angleToCamera = Math.acos(normalI.getZ())*180/Math.PI; //simplified for cemara vector (0, 0, 1)
-         if(angleToCamera < IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - ANGLE_TO_CAMERA_TOLERANCE)
+         if(angleToCamera < DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - ANGLE_CAMERA_PLANE_TOLERANCE)
             continue;
         
          for(int j = 0; j < planarRegionsList.getNumberOfPlanarRegions(); j++) {
@@ -497,9 +654,9 @@ public class ObstacleDisplayer
     * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
     * different approach
     */
-   private double stairDistance2(PlanarRegionsList planarRegionsList)
+   private double stairDistance2(PlanarRegionsList planarRegionsList, double distanceCameraGround, double idealAngleBetweenCameraAndPlane)
    {  
-      if(planarRegionsList.getNumberOfPlanarRegions() == 0)
+      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || distanceCameraGround == 500.0) // 500 means leg in swing
          return DEFAULT_DISTANCE_VALUE;      
             
       //variable
@@ -508,15 +665,15 @@ public class ObstacleDisplayer
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
          Vector3D normalI = planarRegionI.getNormal();
-         double angleToCamera = Math.acos(normalI.getZ())*180/Math.PI; //simplified for cemara vector (0, 0, 1)
-         if(angleToCamera < IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - ANGLE_TO_CAMERA_TOLERANCE || angleToCamera > IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE + ANGLE_TO_CAMERA_TOLERANCE)
+         double angleToCamera = Math.acos(normalI.getZ())*(180/Math.PI); //simplified for cemara vector (0, 0, 1)
+         if(angleToCamera < idealAngleBetweenCameraAndPlane - ANGLE_CAMERA_PLANE_TOLERANCE || angleToCamera > idealAngleBetweenCameraAndPlane + ANGLE_CAMERA_PLANE_TOLERANCE)
             continue;
 
          double minX = planarRegionI.getBoundingBox3dInWorld().getMinX();
          double minZ = planarRegionI.getBoundingBox3dInWorld().getMinZ();
          
-         if(minZ > DISTANCE_CAMERA_GROUND) {
-            double expectedMinX = Math.sqrt(minZ*minZ - DISTANCE_CAMERA_GROUND*DISTANCE_CAMERA_GROUND) * -1.0;
+         if(minZ > distanceCameraGround) {
+            double expectedMinX = Math.sqrt(minZ*minZ - distanceCameraGround*distanceCameraGround) * -1.0;
             if(Math.abs(expectedMinX - minX) > MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE)
                continue;            
          }
@@ -532,7 +689,7 @@ public class ObstacleDisplayer
     * returns DEFAULT_DISTANCE_VALUE if there is no obstacle otherwise return distance to obstacle
     * OBSOLETE
     */
-   private double obstacleDistance(PlanarRegionsList planarRegionsList) {                    
+   private double obstacleDistance(PlanarRegionsList planarRegionsList) {
       //variables
       double distance = DEFAULT_DISTANCE_VALUE;  
       LinkedList<Double> distanceList = new LinkedList<Double>();
@@ -541,7 +698,7 @@ public class ObstacleDisplayer
          PlanarRegion planarRegion = planarRegionsList.getPlanarRegion(i);
          Vector3D vector = planarRegion.getNormal();
          double angle = Math.acos(vector.getZ())*180/Math.PI;
-         if(angle > IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - ANGLE_TO_CAMERA_TOLERANCE) {
+         if(angle > DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - ANGLE_CAMERA_PLANE_TOLERANCE) {
             double D2Distance = planarRegion.distanceToPointByProjectionOntoXYPlane(0.0, 0.0);
             if(D2Distance < XYZ_TOLERANCE) {
                distance = planarRegion.getPlaneZGivenXY(0, 0);
@@ -578,6 +735,7 @@ public class ObstacleDisplayer
       reaMessager1.closeMessager();
       reaMessager2.closeMessager();
       ros2Node.destroy();
+      realTimeRos2Node.destroy();
 
       if (scheduled != null)
       {
