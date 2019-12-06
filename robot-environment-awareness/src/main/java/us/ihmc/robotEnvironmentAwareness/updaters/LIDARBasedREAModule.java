@@ -22,6 +22,7 @@ import controller_msgs.msg.dds.REASensorDataFilterParametersMessage;
 import controller_msgs.msg.dds.REAStateRequestMessage;
 import controller_msgs.msg.dds.RequestPlanarRegionsListMessage;
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
+import std_msgs.msg.dds.Float64;
 import us.ihmc.communication.ROS2Tools;
 import us.ihmc.communication.packets.PlanarRegionMessageConverter;
 import us.ihmc.communication.packets.PlanarRegionsRequestType;
@@ -45,6 +46,7 @@ import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools.ExceptionHan
 import us.ihmc.robotEnvironmentAwareness.ui.graphicsBuilders.OcTreeMeshBuilder.DisplayType;
 import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
+import us.ihmc.ros2.RealtimeRos2Node;
 import us.ihmc.ros2.Ros2Node;
 
 /*
@@ -66,6 +68,7 @@ public class LIDARBasedREAModule
    protected static final boolean DEBUG = true;
 
    private final Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
+   private final RealtimeRos2Node realTimeRos2Node = ROS2Tools.createRealtimeRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName() + "RealTime");
 
    private final AtomicReference<Double> octreeResolution;
 
@@ -112,6 +115,15 @@ public class LIDARBasedREAModule
       ROS2Tools.createCallbackSubscription(ros2Node, REAStateRequestMessage.class, subscriberTopicNameGenerator, this::handleREAStateRequestMessage);
       ROS2Tools.createCallbackSubscription(ros2Node, REASensorDataFilterParametersMessage.class, subscriberTopicNameGenerator,
                                            this::handleREASensorDataFilterParametersMessage);
+      
+      ROS2Tools.createCallbackSubscription(realTimeRos2Node
+                                           , Float64.class
+                                           , "mina_v2/knee_height"
+                                           , this::handleExoKneeHeight);
+      ROS2Tools.createCallbackSubscription(realTimeRos2Node
+                                           , Float64.class
+                                           , "mina_v2/thigh_angle"
+                                           , this::handleExoThighAngle);
 
       FilePropertyHelper filePropertyHelper = new FilePropertyHelper(configurationFile);
       loadConfigurationFile(filePropertyHelper);
@@ -167,7 +179,54 @@ public class LIDARBasedREAModule
       // At the very end, we force the modules to submit their state so duplicate inputs have consistent values.
       reaMessager.submitMessage(REAModuleAPI.RequestEntireModuleState, true);
    }
-
+   
+   private double DISTANCE_CAMERA_GROUND = 0.635;
+   private int CAMERA_POSITION = 2;
+   private void handleExoKneeHeight(Subscriber<Float64> subscriber) {
+      Double value = subscriber.takeNextData().data_;
+      if(value == 0.0)
+         return;
+      
+      if(value == 500.0) {
+         DISTANCE_CAMERA_GROUND = 500.0;
+         return;
+      }
+      
+      switch (CAMERA_POSITION)
+      {
+         case 1:
+            DISTANCE_CAMERA_GROUND = value + Math.sin((THIGH_ANGLE - 0.506)) * 0.12; //0.506 rad (29.0°) and 0.12 meters are measurements from exo
+            break;
+         case 2:
+            DISTANCE_CAMERA_GROUND = value + Math.sin((THIGH_ANGLE - 0.358)) * 0.094; //0.358 rad (20.5°) and 0.094 meters are measurements from exo
+            break;
+         default:
+            break;
+      }
+   } 
+   
+   private double THIGH_ANGLE = 90.0;
+   private double IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = 90.0;
+   private void handleExoThighAngle(Subscriber<Float64> subscriber) {
+      Double value = subscriber.takeNextData().data_;
+      if(value == 0.0 || value == 500.0)
+         return;
+      
+      THIGH_ANGLE = value;  
+      
+      switch (CAMERA_POSITION)
+      {
+         case 1:
+            IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and step 
+            break;
+         case 2:
+            IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.733038) - (THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.733038 rad (42°)            
+            break;
+         default:
+            break;
+      }
+   }
+   
    private void dispatchLidarScanMessage(Subscriber<LidarScanMessage> subscriber)
    {
       LidarScanMessage message = subscriber.takeNextData();
@@ -316,6 +375,7 @@ public class LIDARBasedREAModule
    
    /*
     * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
+    * OBSOLETE
     */
    private double stairDistance(PlanarRegionsList planarRegionsList)
    {  
@@ -377,23 +437,16 @@ public class LIDARBasedREAModule
       return distance;  
    }
    
+   private static double ANGLE_CAMERA_PLANE_TOLERANCE = 10.0;
+   private static double MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = 0.05;  
    /*
     * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
     * different approach
     */
    private double stairDistance2(PlanarRegionsList planarRegionsList)
    {  
-      if(planarRegionsList.getNumberOfPlanarRegions() == 0)
-         return DEFAULT_DISTANCE_VALUE;
-      
-      //params
-      final double angleToCameraTolerance = 25.0;
-      final double minXTollerance = 0.05;
-      final double distanceCameraFoot = 0.635;
-      final double distanceFootGround = 0.38;
-      final double distanceCameraGround = distanceCameraFoot + distanceFootGround;
-      
-      final double idealAngleBetweenCameraAndPlane = 90.0;
+      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || DISTANCE_CAMERA_GROUND == 500.0) // 500 means leg in swing
+         return DEFAULT_DISTANCE_VALUE;      
             
       //variable
       double distance = DEFAULT_DISTANCE_VALUE;
@@ -401,21 +454,16 @@ public class LIDARBasedREAModule
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
          Vector3D normalI = planarRegionI.getNormal();
-         double angleToCamera = Math.acos(normalI.getZ())*180/Math.PI; //simplified for cemara vector (0, 0, 1)
-         if(angleToCamera < idealAngleBetweenCameraAndPlane - angleToCameraTolerance || angleToCamera > idealAngleBetweenCameraAndPlane + angleToCameraTolerance)
+         double angleToCamera = Math.acos(normalI.getZ())*(180/Math.PI); //simplified for cemara vector (0, 0, 1)
+         if(angleToCamera < IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - ANGLE_CAMERA_PLANE_TOLERANCE || angleToCamera > IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE + ANGLE_CAMERA_PLANE_TOLERANCE)
             continue;
 
          double minX = planarRegionI.getBoundingBox3dInWorld().getMinX();
-         double minY = planarRegionI.getBoundingBox3dInWorld().getMinY();
          double minZ = planarRegionI.getBoundingBox3dInWorld().getMinZ();
-
-         double maxX = planarRegionI.getBoundingBox3dInWorld().getMaxX();
-         double maxY = planarRegionI.getBoundingBox3dInWorld().getMaxY();
-         double maxZ = planarRegionI.getBoundingBox3dInWorld().getMaxZ();
          
-         if(minZ > distanceCameraGround) {
-            double expectedMinX = Math.sqrt(minZ*minZ - distanceCameraGround*distanceCameraGround) * -1.0;
-            if(Math.abs(expectedMinX - minX) > minXTollerance)
+         if(minZ > DISTANCE_CAMERA_GROUND) {
+            double expectedMinX = Math.sqrt(minZ*minZ - DISTANCE_CAMERA_GROUND*DISTANCE_CAMERA_GROUND) * -1.0;
+            if(Math.abs(expectedMinX - minX) > MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE)
                continue;            
          }
 
@@ -423,11 +471,12 @@ public class LIDARBasedREAModule
             distance = minZ; 
       }     
       
-      return distance;  
+      return distance;        
    }
 
    /*
     * returns DEFAULT_DISTANCE_VALUE if there is no obstacle otherwise return distance to obstacle
+    * OBSOLETE
     */
    private double obstacleDistance(PlanarRegionsList planarRegionsList) {                    
       //variables
@@ -477,6 +526,7 @@ public class LIDARBasedREAModule
 
       reaMessager.closeMessager();
       ros2Node.destroy();
+      realTimeRos2Node.destroy();
 
       if (scheduled != null)
       {

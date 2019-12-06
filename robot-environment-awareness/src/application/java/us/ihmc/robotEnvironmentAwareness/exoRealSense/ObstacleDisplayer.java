@@ -51,7 +51,7 @@ public class ObstacleDisplayer
 {   
    //variables
    private static Ros2Node ros2Node;
-   private static RealtimeRos2Node realTimeRos2Node;
+   private static RealtimeRos2Node realTimeRos2Node;   
 
    protected static final boolean DEBUG = true;
    
@@ -142,8 +142,8 @@ public class ObstacleDisplayer
          loadConfFile();
          
          ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
-         realTimeRos2Node = ROS2Tools.createRealtimeRos2Node(PubSubImplementation.FAST_RTPS, "whatever");
-         
+         realTimeRos2Node = ROS2Tools.createRealtimeRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName() + "RealTime");
+
          //connect to cameras
          new RealSenseBridgeRos2("http://localhost:11311" // "http://192.168.137.2:11311" //   
                                  , "/cam_1/depth/color/points"

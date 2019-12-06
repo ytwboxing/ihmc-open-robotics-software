@@ -20,6 +20,7 @@ import std_msgs.Header;
 import us.ihmc.communication.IHMCROS2Publisher;
 import us.ihmc.communication.ROS2Tools;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
+import us.ihmc.robotEnvironmentAwareness.exoRealSense.ExoDataCollector;
 import us.ihmc.robotEnvironmentAwareness.fusion.MultisenseInformation;
 import us.ihmc.ros2.Ros2Node;
 import us.ihmc.utilities.ros.RosMainNode;
@@ -418,26 +419,25 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
             e.printStackTrace();
          }         
       }
-      */
-      
+      */      
       /*
       //standalone
-      URI masterURI = new URI("http://192.168.137.2:11311");
-      new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw/compressed", "", new RosMainNode(masterURI, "whatever", true), true);
-      */      
+      URI masterURI = new URI("http://192.168.0.12:11311");
+      new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "", new RosMainNode(masterURI, "whatever", true), true);
+      */   
       
-      /*
       //dataset creator
       final String datasetNUmber = "1";
       URI masterURI = new URI("http://192.168.0.12:11311");
-      RosMainNode node = new RosMainNode(masterURI, "whatever", true);
+      //RosMainNode node = new RosMainNode(masterURI, "whatever", true);
       
       //MultisenseImageROS1Bridge leftI = new MultisenseImageROS1Bridge("/cam_1/color/image_raw", "DATASETS/" + datasetNUmber + "/LI", node, false);  
       //MultisenseImageROS1Bridge rightI = new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/RI", node, false); 
-      MultisenseStereoVisionPointCloudROS1Bridge leftPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "DATASETS/" + datasetNUmber + "/LPC", node, false);
-      MultisenseStereoVisionPointCloudROS1Bridge rightPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "DATASETS/" + datasetNUmber + "/RPC", node, false);
+      //MultisenseStereoVisionPointCloudROS1Bridge leftPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "DATASETS/" + datasetNUmber + "/LPC", node, false);
+      //MultisenseStereoVisionPointCloudROS1Bridge rightPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "DATASETS/" + datasetNUmber + "/RPC", node, false);
+      ExoDataCollector exoDataCollector = new ExoDataCollector("DATASETS/" + datasetNUmber + "/EXO");
 
-      node.execute();
+      //node.execute();
       Scanner commandScanner = new Scanner(System.in);
       while (true)
       {
@@ -447,18 +447,21 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
          {
             //leftI.saveImage.set(true);
             //rightI.saveImage.set(true);
-            leftPC.saveStereoVisionPointCloud.set(true);
-            rightPC.saveStereoVisionPointCloud.set(true);
+            //leftPC.saveStereoVisionPointCloud.set(true);
+            //rightPC.saveStereoVisionPointCloud.set(true);
+            exoDataCollector.saveIntoFiles.set(true);
             System.out.println(commandToSaveImage + " pressed");
          }
          else if (command.contains(commandToStopSavingImage))
          {
             //leftI.saveImage.set(false);
             //rightI.saveImage.set(false);
-            leftPC.saveStereoVisionPointCloud.set(false);
-            rightPC.saveStereoVisionPointCloud.set(false);
+            //leftPC.saveStereoVisionPointCloud.set(false);
+            //rightPC.saveStereoVisionPointCloud.set(false);
+            exoDataCollector.saveIntoFiles.set(false);
             System.out.println(commandToStopSavingImage + " pressed");
          }
-      }*/ 
+      }
+      
    }
 }
