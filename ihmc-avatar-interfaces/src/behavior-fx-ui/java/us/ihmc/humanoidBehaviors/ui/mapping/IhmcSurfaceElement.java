@@ -43,6 +43,25 @@ public class IhmcSurfaceElement
       planeTransform.getRotation().getColumn(2, newNormal);
       setPlane(new Point3D(planeTransform.getTranslation()), newNormal);
    }
+   
+   public void transform(RigidBodyTransformReadOnly slamTransformer, RigidBodyTransformReadOnly sensorPoseToWorld)
+   {
+      RigidBodyTransform preMultiplier = new RigidBodyTransform(sensorPoseToWorld);
+      preMultiplier.multiply(slamTransformer);
+      preMultiplier.multiplyInvertOther(sensorPoseToWorld);
+      
+      Point3D centerCopy = plane.getPointCopy();
+      Vector3D normalCopy = plane.getNormalCopy();
+
+      RigidBodyTransform newPlaneTransform = new RigidBodyTransform();
+      newPlaneTransform.setTranslation(centerCopy);
+      newPlaneTransform.setRotation(EuclidGeometryTools.axisAngleFromZUpToVector3D(normalCopy));
+      newPlaneTransform.preMultiply(preMultiplier);
+
+      Vector3D newNormal = new Vector3D();
+      newPlaneTransform.getRotation().getColumn(2, newNormal);
+      setPlane(new Point3D(newPlaneTransform.getTranslation()), newNormal);
+   }
 
    public void setPlane(Point3DReadOnly pointOnPlane, Vector3DReadOnly planeNormal)
    {

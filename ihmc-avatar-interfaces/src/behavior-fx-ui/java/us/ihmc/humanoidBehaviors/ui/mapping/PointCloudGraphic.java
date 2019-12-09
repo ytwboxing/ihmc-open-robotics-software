@@ -2,6 +2,7 @@ package us.ihmc.humanoidBehaviors.ui.mapping;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import javafx.scene.Group;
@@ -78,9 +79,10 @@ public class PointCloudGraphic extends Group
 
       int numberOfScanPoints = points.length;
       int sizeOfPointCloudToVisualize = Math.min(numberOfScanPoints, NUMBER_OF_POINTS_PER_MESSAGE);
+      Random random = new Random(0612L);
       for (int j = 0; j < sizeOfPointCloudToVisualize; j++)
       {
-         scanPoint.set(points[j]);
+         scanPoint.set(points[random.nextInt(numberOfScanPoints - 1)]);
          meshBuilder.addMesh(MeshDataGenerator.Tetrahedron(SCAN_POINT_SIZE), scanPoint, colorToViz);
       }
    }

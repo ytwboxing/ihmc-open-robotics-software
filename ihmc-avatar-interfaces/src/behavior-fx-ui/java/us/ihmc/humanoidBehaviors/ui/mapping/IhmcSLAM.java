@@ -5,6 +5,8 @@ import java.util.List;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import gnu.trove.list.array.TDoubleArrayList;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.geometry.interfaces.Vertex2DSupplier;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
@@ -14,6 +16,7 @@ import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionPolygonizer;
 import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionSegmentationParameters;
 import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionSegmentationRawData;
 import us.ihmc.robotEnvironmentAwareness.planarRegion.PolygonizerParameters;
+import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.robotics.numericalMethods.GradientDescentModule;
 
@@ -40,6 +43,8 @@ public class IhmcSLAM
    private final PolygonizerParameters polygonizerParameters = new PolygonizerParameters();
    private final CustomRegionMergeParameters customRegionMergeParameters = new CustomRegionMergeParameters();
    private final PlanarRegionSegmentationParameters planarRegionSegmentationParameters = new PlanarRegionSegmentationParameters();
+
+   public List<List<IhmcSurfaceElement>> allSurfaceElements = new ArrayList<>();
 
    private static final double OPTIMIZER_POSITION_LIMIT = 0.1;
    private static final double OPTIMIZER_ANGLE_LIMIT = Math.toRadians(10.);
@@ -116,9 +121,31 @@ public class IhmcSLAM
                                                                                                frame.getInitialSensorPoseToWorld().getTranslation(),
                                                                                                OCTREE_RESOLUTION, planarRegionSegmentationParameters);
       planarRegionsMap = PlanarRegionPolygonizer.createPlanarRegionsList(rawData, concaveHullFactoryParameters, polygonizerParameters);
+      //addFirstPlanarRegion(); //TODO: try to fix first supporting polygon.
    }
 
-   public List<List<IhmcSurfaceElement>> allSurfaceElements = new ArrayList<>();
+   public void addFirstPlanarRegion()
+   {
+      double[][] vertex = new double[4][2];
+      double length = 0.4;
+      vertex[0][0] = length;
+      vertex[0][1] = -length;
+      
+      vertex[1][0] = length;
+      vertex[1][1] = length;
+      
+      vertex[2][0] = -length;
+      vertex[2][1] = -length;
+      
+      vertex[3][0] = -length;
+      vertex[3][1] = length;
+      
+      Vertex2DSupplier supplier = Vertex2DSupplier.asVertex2DSupplier(vertex);
+      ConvexPolygon2D polygon = new ConvexPolygon2D(supplier);
+
+      PlanarRegion planarRegion = new PlanarRegion(new RigidBodyTransform(), polygon);
+      planarRegionsMap = new PlanarRegionsList(planarRegion);
+   }
 
    public boolean addFrame(StereoVisionPointCloudMessage pointCloudMessage)
    {
@@ -146,7 +173,7 @@ public class IhmcSLAM
          System.out.println();
          System.out.println(optimizedMultiplier);
          for (IhmcSurfaceElement surfaceElement : surfaceElements)
-            surfaceElement.transform(optimizedMultiplier);
+            surfaceElement.transform(optimizedMultiplier, frame.getInitialSensorPoseToWorld());
 
          allSurfaceElements.add(surfaceElements);
       }
@@ -187,7 +214,8 @@ public class IhmcSLAM
       optimizer.setReducingStepSizeRatio(2);
 
       int run = optimizer.run();
-      System.out.println("optimizer Query() " + run + " " + function.getQuery(initialQuery) + " " + optimizer.getOptimalQuery());
+      System.out.println("optimizer Query() " + run + " " + function.getQuery(initialQuery) + " " + optimizer.getOptimalQuery() + " "
+            + optimizer.getComputationTime());
       TDoubleArrayList optimalInput = optimizer.getOptimalInput();
 
       RigidBodyTransform transformer = new RigidBodyTransform();

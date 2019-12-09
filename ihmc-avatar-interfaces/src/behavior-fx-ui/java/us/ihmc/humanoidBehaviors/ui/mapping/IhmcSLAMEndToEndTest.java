@@ -25,11 +25,11 @@ public class IhmcSLAMEndToEndTest
    //private final String stereoPath = "E:\\Data\\Walking11-kinematic\\PointCloud\\";
 
    private final boolean showLidarPlanarRegions = false;
-   private final String planarRegionsPath = "E:\\Data\\SimpleArea3\\20191127_222138_PlanarRegion\\";
+   //private final String planarRegionsPath = "E:\\Data\\SimpleArea3\\20191127_222138_PlanarRegion\\";
    //private final String planarRegionsPath = "E:\\Data\\Walking7-fixedframe\\PlanarRegions\\";
-   //private final String planarRegionsPath = "E:\\Data\\Walking11-kinematic\\20191125_164741_PlanarRegion\\";
+   private final String planarRegionsPath = "E:\\Data\\Walking11-kinematic\\20191125_164741_PlanarRegion\\";
 
-   private final boolean doNaiveSLAM = true;
+   private final boolean doNaiveSLAM = false;
 
    public IhmcSLAMEndToEndTest()
    {

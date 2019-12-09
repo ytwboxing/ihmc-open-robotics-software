@@ -107,7 +107,7 @@ public class IhmcSLAMTools
       referenceOctree.setCustomRayMissProbabilityUpdater(new AdaptiveRayMissProbabilityUpdater());
 
       NormalEstimationParameters normalEstimationParameters = new NormalEstimationParameters();
-      normalEstimationParameters.setNumberOfIterations(7);
+      normalEstimationParameters.setNumberOfIterations(5);
       referenceOctree.setNormalEstimationParameters(normalEstimationParameters);
 
       referenceOctree.updateNormals();
@@ -134,7 +134,7 @@ public class IhmcSLAMTools
       referenceOctree.setCustomRayMissProbabilityUpdater(new AdaptiveRayMissProbabilityUpdater());
 
       NormalEstimationParameters normalEstimationParameters = new NormalEstimationParameters();
-      normalEstimationParameters.setNumberOfIterations(7);
+      normalEstimationParameters.setNumberOfIterations(5);
       referenceOctree.setNormalEstimationParameters(normalEstimationParameters);
 
       referenceOctree.updateNormals();

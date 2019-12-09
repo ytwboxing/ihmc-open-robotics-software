@@ -71,7 +71,8 @@ public class PreMultiplierOptimizerCostFunction implements SingleQueryFunction
          transformer.transform(convertedNormal);
          transformer.transform(convertedCenter);
          IhmcSurfaceElement convertedElement = new IhmcSurfaceElement(surfaceElements.get(i));
-         convertedElement.transform(transformer);
+         //convertedElement.transform(transformer);
+         convertedElement.transform(transformer, transformWorldToSensorPose);
          convertedElements.add(convertedElement);
       }
 

@@ -95,7 +95,7 @@ public class IhmcSLAMFrame
    private void update()
    {
       optimizedSensorPoseToWorld.set(sensorPoseToWorld);
-      optimizedSensorPoseToWorld.preMultiply(slamTransformer);
+      optimizedSensorPoseToWorld.multiply(slamTransformer);
 
       for (int i = 0; i < optimizedPointCloudToWorld.length; i++)
       {
@@ -151,7 +151,10 @@ public class IhmcSLAMFrame
    public void computeOctreeInPreviousView(double octreeResolution)
    {
       if (previousFrame == null)
+      {
          octreeNodesInPreviousView = null;
+         return;
+      }
 
       double[][] vertex = new double[pointCloudToSensorFrame.length][2];
 

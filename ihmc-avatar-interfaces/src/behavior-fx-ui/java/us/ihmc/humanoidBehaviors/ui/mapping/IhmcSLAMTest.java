@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import gnu.trove.list.array.TDoubleArrayList;
 import javafx.scene.paint.Color;
+import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
@@ -49,7 +50,15 @@ public class IhmcSLAMTest
       double stairWidth = 0.5;
       double stairLength = 0.25;
 
-      StereoVisionPointCloudMessage message = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(stairHeight, stairWidth, stairLength);
+      RigidBodyTransform sensorPose = new RigidBodyTransform();
+      sensorPose.setTranslation(0.0, 0.0, 1.0);
+      sensorPose.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOrigin = new RigidBodyTransform();
+      RigidBodyTransform perturb = new RigidBodyTransform();
+
+      StereoVisionPointCloudMessage message = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPose, satirOrigin, stairLength,
+                                                                                                                       stairLength, stairWidth, stairHeight,
+                                                                                                                       perturb, true);
       IhmcSLAMViewer viewer = new IhmcSLAMViewer();
       viewer.addStereoMessage(message);
       viewer.start("testSimulatedPointCloudFrameForStair");
@@ -60,26 +69,34 @@ public class IhmcSLAMTest
    @Test
    public void testSimulatedContinuousFramesForStair()
    {
-      double movingForward = 0.05;
-
       double stairHeight = 0.3;
       double stairWidth = 0.5;
       double stairLength = 0.25;
 
-      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(stairHeight, stairWidth, stairLength,
-                                                                                                                          stairLength);
+      RigidBodyTransform sensorPoseOne = new RigidBodyTransform();
+      sensorPoseOne.setTranslation(0.0, 0.0, 1.0);
+      sensorPoseOne.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginOne = new RigidBodyTransform();
+      RigidBodyTransform perturbOne = new RigidBodyTransform();
 
-      double translationX = movingForward / 2;
-      double translationY = 0.0;
-      double translationZ = 0.0;
-      double rotateY = Math.toRadians(1.0);
-      RigidBodyTransform preMultiplier = new RigidBodyTransform();
-      preMultiplier.setTranslation(translationX, translationY, translationZ);
-      preMultiplier.appendPitchRotation(rotateY);
-      StereoVisionPointCloudMessage messageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(preMultiplier, stairHeight,
-                                                                                                                          stairWidth,
+      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseOne, satirOriginOne,
+                                                                                                                          stairLength, stairLength, stairWidth,
+                                                                                                                          stairHeight, perturbOne, true);
+
+      double movingForward = 0.1;
+      double movingUpward = 0.05;
+      RigidBodyTransform sensorPoseTwo = new RigidBodyTransform();
+      sensorPoseTwo.setTranslation(movingForward, 0.0, 1.0 + movingUpward);
+      sensorPoseTwo.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginTwo = new RigidBodyTransform(satirOriginOne);
+      satirOriginTwo.appendTranslation(movingForward, 0.0, 0.0);
+      RigidBodyTransform perturbTwo = new RigidBodyTransform();
+
+      StereoVisionPointCloudMessage messageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseTwo, satirOriginTwo,
                                                                                                                           stairLength - movingForward,
-                                                                                                                          stairLength + movingForward, true);
+                                                                                                                          stairLength + movingForward,
+                                                                                                                          stairWidth, stairHeight, perturbTwo,
+                                                                                                                          true);
       IhmcSLAMViewer viewer = new IhmcSLAMViewer();
       viewer.addStereoMessage(messageOne, Color.BLUE);
       viewer.addStereoMessage(messageTwo, Color.GREEN);
@@ -95,17 +112,37 @@ public class IhmcSLAMTest
       double stairWidth = 0.5;
       double stairLength = 0.25;
 
-      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(stairHeight, stairWidth, stairLength);
+      RigidBodyTransform sensorPoseOne = new RigidBodyTransform();
+      sensorPoseOne.setTranslation(0.0, 0.0, 1.0);
+      sensorPoseOne.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginOne = new RigidBodyTransform();
+      RigidBodyTransform perturbOne = new RigidBodyTransform();
+
+      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseOne, satirOriginOne,
+                                                                                                                          stairLength, stairLength, stairWidth,
+                                                                                                                          stairHeight, perturbOne, true);
+
+      double movingForward = 0.1;
+      double movingUpward = 0.05;
+      RigidBodyTransform sensorPoseTwo = new RigidBodyTransform();
+      sensorPoseTwo.setTranslation(movingForward, 0.0, 1.0 + movingUpward);
+      sensorPoseTwo.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginTwo = new RigidBodyTransform(satirOriginOne);
+      satirOriginTwo.appendTranslation(movingForward, 0.0, 0.0);
+      RigidBodyTransform perturbTwo = new RigidBodyTransform();
 
       double translationX = -0.02;
       double translationY = 0.03;
       double translationZ = 0.0;
       double rotateY = Math.toRadians(3.0);
-      RigidBodyTransform preMultiplier = new RigidBodyTransform();
-      preMultiplier.setTranslation(translationX, translationY, translationZ);
-      preMultiplier.appendPitchRotation(rotateY);
-      StereoVisionPointCloudMessage messageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(preMultiplier, stairHeight,
-                                                                                                                          stairWidth, stairLength);
+      perturbTwo.setTranslation(translationX, translationY, translationZ);
+      perturbTwo.appendPitchRotation(rotateY);
+
+      StereoVisionPointCloudMessage messageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseTwo, satirOriginTwo,
+                                                                                                                          stairLength - movingForward,
+                                                                                                                          stairLength + movingForward,
+                                                                                                                          stairWidth, stairHeight, perturbTwo,
+                                                                                                                          true);
 
       IhmcSLAMViewer viewer = new IhmcSLAMViewer();
       viewer.addStereoMessage(messageOne, Color.BLUE);
@@ -122,6 +159,16 @@ public class IhmcSLAMTest
       double stairWidth = 0.5;
       double stairLength = 0.25;
 
+      RigidBodyTransform sensorPose = new RigidBodyTransform();
+      sensorPose.setTranslation(0.0, 0.0, 1.0);
+      sensorPose.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOrigin = new RigidBodyTransform();
+      RigidBodyTransform perturb = new RigidBodyTransform();
+
+      StereoVisionPointCloudMessage message = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPose, satirOrigin, stairLength,
+                                                                                                                       stairLength, stairWidth, stairHeight,
+                                                                                                                       perturb, true);
+
       double octreeResolution = 0.02;
       ConcaveHullFactoryParameters concaveHullFactoryParameters = new ConcaveHullFactoryParameters();
       PolygonizerParameters polygonizerParameters = new PolygonizerParameters();
@@ -130,12 +177,11 @@ public class IhmcSLAMTest
       planarRegionSegmentationParameters.setMaxAngleFromPlane(Math.toRadians(10.0));
       planarRegionSegmentationParameters.setMaxDistanceFromPlane(0.02);
 
-      StereoVisionPointCloudMessage message = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(stairHeight, stairWidth, stairLength);
       Point3DReadOnly[] pointCloud = IhmcSLAMTools.extractPointsFromMessage(message);
-      RigidBodyTransformReadOnly sensorPose = IhmcSLAMTools.extractSensorPoseFromMessage(message);
+      RigidBodyTransformReadOnly sensorPoseFromMessage = IhmcSLAMTools.extractSensorPoseFromMessage(message);
 
-      List<PlanarRegionSegmentationRawData> rawData = IhmcSLAMTools.computePlanarRegionRawData(pointCloud, sensorPose.getTranslation(), octreeResolution,
-                                                                                               planarRegionSegmentationParameters);
+      List<PlanarRegionSegmentationRawData> rawData = IhmcSLAMTools.computePlanarRegionRawData(pointCloud, sensorPoseFromMessage.getTranslation(),
+                                                                                               octreeResolution, planarRegionSegmentationParameters);
       PlanarRegionsList planarRegionsMap = PlanarRegionPolygonizer.createPlanarRegionsList(rawData, concaveHullFactoryParameters, polygonizerParameters);
 
       IhmcSLAMViewer viewer = new IhmcSLAMViewer();
@@ -163,29 +209,36 @@ public class IhmcSLAMTest
 
       List<Point3DReadOnly[]> pointCloudMap = new ArrayList<>();
 
-      StereoVisionPointCloudMessage firstMessage = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(0.0, groundWidth, stairLength,
-                                                                                                                            stairLength, false);
+      RigidBodyTransform firstSensorPose = new RigidBodyTransform();
+      firstSensorPose.setTranslation(0.0, 0.0, 1.0);
+      RigidBodyTransform firstOrigin = new RigidBodyTransform();
+      StereoVisionPointCloudMessage firstMessage = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimplePlane(firstSensorPose, firstOrigin,
+                                                                                                                            stairLength, groundWidth);
       Point3DReadOnly[] firstPointCloud = IhmcSLAMTools.extractPointsFromMessage(firstMessage);
-      RigidBodyTransformReadOnly firstSensorPose = IhmcSLAMTools.extractSensorPoseFromMessage(firstMessage);
+      RigidBodyTransformReadOnly firstSensorPoseFromMessage = IhmcSLAMTools.extractSensorPoseFromMessage(firstMessage);
       pointCloudMap.add(firstPointCloud);
 
-      List<PlanarRegionSegmentationRawData> firstRawData = IhmcSLAMTools.computePlanarRegionRawData(firstPointCloud, firstSensorPose.getTranslation(),
+      List<PlanarRegionSegmentationRawData> firstRawData = IhmcSLAMTools.computePlanarRegionRawData(firstPointCloud,
+                                                                                                    firstSensorPoseFromMessage.getTranslation(),
                                                                                                     octreeResolution, planarRegionSegmentationParameters);
       PlanarRegionsList planarRegionsMap = PlanarRegionPolygonizer.createPlanarRegionsList(firstRawData, concaveHullFactoryParameters, polygonizerParameters);
 
       for (int i = 1; i < numberOfMessages; i++)
       {
-         RigidBodyTransform preMultiplier = new RigidBodyTransform();
-         preMultiplier.setTranslation(i * stairLength, 0.0, 0.0);
-         StereoVisionPointCloudMessage message = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(preMultiplier, 0.0, groundWidth,
-                                                                                                                          stairLength, stairLength, false);
+         RigidBodyTransform sensorPose = new RigidBodyTransform(firstSensorPose);
+         sensorPose.appendTranslation(i * stairLength, 0.0, 0.0);
+         RigidBodyTransform origin = new RigidBodyTransform(firstOrigin);
+         origin.appendTranslation(i * stairLength, 0.0, 0.0);
+
+         StereoVisionPointCloudMessage message = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimplePlane(sensorPose, origin, stairLength,
+                                                                                                                          groundWidth);
 
          Point3DReadOnly[] pointCloud = IhmcSLAMTools.extractPointsFromMessage(message);
-         RigidBodyTransformReadOnly sensorPose = IhmcSLAMTools.extractSensorPoseFromMessage(message);
+         RigidBodyTransformReadOnly sensorPoseFromMessage = IhmcSLAMTools.extractSensorPoseFromMessage(message);
          pointCloudMap.add(pointCloud);
 
-         List<PlanarRegionSegmentationRawData> rawData = IhmcSLAMTools.computePlanarRegionRawData(pointCloud, sensorPose.getTranslation(), octreeResolution,
-                                                                                                  planarRegionSegmentationParameters);
+         List<PlanarRegionSegmentationRawData> rawData = IhmcSLAMTools.computePlanarRegionRawData(pointCloud, sensorPoseFromMessage.getTranslation(),
+                                                                                                  octreeResolution, planarRegionSegmentationParameters);
 
          planarRegionsMap = EnvironmentMappingTools.buildNewMap(rawData, planarRegionsMap, customRegionMergeParameters, concaveHullFactoryParameters,
                                                                 polygonizerParameters);
@@ -209,45 +262,43 @@ public class IhmcSLAMTest
    @Test
    public void testInverseInterpolation()
    {
-      double movingForward = 0.1;
-      double fixedHeight = 1.0;
+      double octreeResolution = 0.02;
 
-      double sensorPitchAngle = Math.toRadians(90.0 + 70.0);
       double stairHeight = 0.3;
       double stairWidth = 0.5;
       double stairLength = 0.25;
 
-      double octreeResolution = 0.02;
-
       RigidBodyTransform sensorPoseOne = new RigidBodyTransform();
-      sensorPoseOne.setTranslation(0.0, 0.0, fixedHeight);
-      sensorPoseOne.appendPitchRotation(sensorPitchAngle);
-      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseOne,
-                                                                                                                          new RigidBodyTransform(), stairHeight,
-                                                                                                                          stairWidth, stairLength, stairLength,
-                                                                                                                          false);
+      sensorPoseOne.setTranslation(0.0, 0.0, 1.0);
+      sensorPoseOne.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginOne = new RigidBodyTransform();
+      RigidBodyTransform perturbOne = new RigidBodyTransform();
 
-      double translationX = movingForward / 2;
-      double translationY = 0.0;
-      double translationZ = 0.0;
-      double rotateY = Math.toRadians(0.0);
-      RigidBodyTransform preMultiplier = new RigidBodyTransform();
-      preMultiplier.setTranslation(translationX, translationY, translationZ);
-      preMultiplier.appendPitchRotation(rotateY);
+      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseOne, satirOriginOne,
+                                                                                                                          stairLength, stairLength, stairWidth,
+                                                                                                                          stairHeight, perturbOne, true);
 
+      double movingForward = 0.1;
+      double movingUpward = 0.05;
       RigidBodyTransform sensorPoseTwo = new RigidBodyTransform();
-      sensorPoseTwo.setTranslation(movingForward, 0.0, fixedHeight);
-      sensorPoseTwo.appendPitchRotation(sensorPitchAngle);
+      sensorPoseTwo.setTranslation(movingForward, 0.0, 1.0 + movingUpward);
+      sensorPoseTwo.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginTwo = new RigidBodyTransform(satirOriginOne);
+      satirOriginTwo.appendTranslation(movingForward, 0.0, 0.0);
+      RigidBodyTransform perturbTwo = createRandomDriftedTransform(new Random(0612L), 0.05, 5.0);
+      perturbTwo.setIdentity();
+      double translationX = -0.02;
+      double translationY = 0.03;
+      double translationZ = 0.0;
+      double rotateY = Math.toRadians(3.0);
+      perturbTwo.setTranslation(translationX, translationY, translationZ);
+      perturbTwo.appendPitchRotation(rotateY);
 
-      RigidBodyTransform randomTransformer = createRandomDriftedTransform(new Random(0612L), 0.05, 5.0);
-      preMultiplier.multiply(randomTransformer);
-      sensorPoseTwo.multiply(randomTransformer);
-
-      StereoVisionPointCloudMessage driftedMessageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseTwo, preMultiplier,
-                                                                                                                                 stairHeight, stairWidth,
+      StereoVisionPointCloudMessage driftedMessageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseTwo, satirOriginTwo,
                                                                                                                                  stairLength - movingForward,
                                                                                                                                  stairLength + movingForward,
-                                                                                                                                 false);
+                                                                                                                                 stairWidth, stairHeight,
+                                                                                                                                 perturbTwo, true);
 
       IhmcSLAMFrame frameOne = new IhmcSLAMFrame(messageOne);
       IhmcSLAMFrame driftedFrameTwo = new IhmcSLAMFrame(frameOne, driftedMessageTwo);
@@ -268,51 +319,50 @@ public class IhmcSLAMTest
    @Test
    public void testDetectingSimilarPlanarRegions()
    {
-      double movingForward = 0.1;
-      double fixedHeight = 1.0;
+      double octreeResolution = 0.02;
 
-      double sensorPitchAngle = Math.toRadians(90.0 + 70.0);
       double stairHeight = 0.3;
       double stairWidth = 0.5;
       double stairLength = 0.25;
 
-      double octreeResolution = 0.02;
+      RigidBodyTransform sensorPoseOne = new RigidBodyTransform();
+      sensorPoseOne.setTranslation(0.0, 0.0, 1.0);
+      sensorPoseOne.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginOne = new RigidBodyTransform();
+      RigidBodyTransform perturbOne = new RigidBodyTransform();
+
+      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseOne, satirOriginOne,
+                                                                                                                          stairLength, stairLength, stairWidth,
+                                                                                                                          stairHeight, perturbOne, true);
+
+      double movingForward = 0.1;
+      double movingUpward = 0.05;
+      RigidBodyTransform sensorPoseTwo = new RigidBodyTransform();
+      sensorPoseTwo.setTranslation(movingForward, 0.0, 1.0 + movingUpward);
+      sensorPoseTwo.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginTwo = new RigidBodyTransform(satirOriginOne);
+      satirOriginTwo.appendTranslation(movingForward, 0.0, 0.0);
+      RigidBodyTransform perturbTwo = createRandomDriftedTransform(new Random(0612L), 0.05, 5.0);
+      perturbTwo.setIdentity();
+      double translationX = -0.02;
+      double translationY = 0.03;
+      double translationZ = 0.0;
+      double rotateY = Math.toRadians(3.0);
+      perturbTwo.setTranslation(translationX, translationY, translationZ);
+      perturbTwo.appendPitchRotation(rotateY);
+
+      StereoVisionPointCloudMessage driftedMessageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseTwo, satirOriginTwo,
+                                                                                                                                 stairLength - movingForward,
+                                                                                                                                 stairLength + movingForward,
+                                                                                                                                 stairWidth, stairHeight,
+                                                                                                                                 perturbTwo, true);
+
       ConcaveHullFactoryParameters concaveHullFactoryParameters = new ConcaveHullFactoryParameters();
       PolygonizerParameters polygonizerParameters = new PolygonizerParameters();
       PlanarRegionSegmentationParameters planarRegionSegmentationParameters = new PlanarRegionSegmentationParameters();
       planarRegionSegmentationParameters.setMinRegionSize(200);
       planarRegionSegmentationParameters.setMaxAngleFromPlane(Math.toRadians(10.0));
       planarRegionSegmentationParameters.setMaxDistanceFromPlane(0.02);
-
-      RigidBodyTransform sensorPoseOne = new RigidBodyTransform();
-      sensorPoseOne.setTranslation(0.0, 0.0, fixedHeight);
-      sensorPoseOne.appendPitchRotation(sensorPitchAngle);
-      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseOne,
-                                                                                                                          new RigidBodyTransform(), stairHeight,
-                                                                                                                          stairWidth, stairLength, stairLength,
-                                                                                                                          true);
-
-      double translationX = movingForward / 2;
-      double translationY = 0.0;
-      double translationZ = 0.0;
-      double rotateY = Math.toRadians(0.0);
-      RigidBodyTransform preMultiplier = new RigidBodyTransform();
-      preMultiplier.setTranslation(translationX, translationY, translationZ);
-      preMultiplier.appendPitchRotation(rotateY);
-
-      RigidBodyTransform sensorPoseTwo = new RigidBodyTransform();
-      sensorPoseTwo.setTranslation(movingForward, 0.0, fixedHeight);
-      sensorPoseTwo.appendPitchRotation(sensorPitchAngle);
-
-      RigidBodyTransform randomTransformer = createRandomDriftedTransform(new Random(0612L), 0.15, 15.0);
-      preMultiplier.multiply(randomTransformer);
-      sensorPoseTwo.multiply(randomTransformer);
-
-      StereoVisionPointCloudMessage driftedMessageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseTwo, preMultiplier,
-                                                                                                                                 stairHeight, stairWidth,
-                                                                                                                                 stairLength - movingForward,
-                                                                                                                                 stairLength + movingForward,
-                                                                                                                                 false);
 
       IhmcSLAMFrame frameOne = new IhmcSLAMFrame(messageOne);
       IhmcSLAMFrame driftedFrameTwo = new IhmcSLAMFrame(frameOne, driftedMessageTwo);
@@ -356,51 +406,50 @@ public class IhmcSLAMTest
    @Test
    public void testOptimization()
    {
-      double movingForward = 0.1;
-      double fixedHeight = 1.0;
+      double octreeResolution = 0.02;
 
-      double sensorPitchAngle = Math.toRadians(90.0 + 70.0);
       double stairHeight = 0.3;
       double stairWidth = 0.5;
       double stairLength = 0.25;
 
-      double octreeResolution = 0.02;
+      RigidBodyTransform sensorPoseOne = new RigidBodyTransform();
+      sensorPoseOne.setTranslation(0.0, 0.0, 1.0);
+      sensorPoseOne.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginOne = new RigidBodyTransform();
+      RigidBodyTransform perturbOne = new RigidBodyTransform();
+
+      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseOne, satirOriginOne,
+                                                                                                                          stairLength, stairLength, stairWidth,
+                                                                                                                          stairHeight, perturbOne, false);
+
+      double movingForward = 0.1;
+      double movingUpward = 0.05;
+      RigidBodyTransform sensorPoseTwo = new RigidBodyTransform();
+      sensorPoseTwo.setTranslation(movingForward, 0.0, 1.0 + movingUpward);
+      sensorPoseTwo.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginTwo = new RigidBodyTransform(satirOriginOne);
+      satirOriginTwo.appendTranslation(movingForward, 0.0, 0.0);
+      RigidBodyTransform randomTransformer = createRandomDriftedTransform(new Random(0612L), 0.05, 5.0);
+      randomTransformer.setIdentity();
+      double translationX = -0.02;
+      double translationY = 0.03;
+      double translationZ = 0.0;
+      double rotateY = Math.toRadians(3.0);
+      randomTransformer.setTranslation(translationX, translationY, translationZ);
+      randomTransformer.appendPitchRotation(rotateY);
+
+      StereoVisionPointCloudMessage driftedMessageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseTwo, satirOriginTwo,
+                                                                                                                                 stairLength - movingForward,
+                                                                                                                                 stairLength + movingForward,
+                                                                                                                                 stairWidth, stairHeight,
+                                                                                                                                 randomTransformer, false);
+
       ConcaveHullFactoryParameters concaveHullFactoryParameters = new ConcaveHullFactoryParameters();
       PolygonizerParameters polygonizerParameters = new PolygonizerParameters();
       PlanarRegionSegmentationParameters planarRegionSegmentationParameters = new PlanarRegionSegmentationParameters();
       planarRegionSegmentationParameters.setMinRegionSize(200);
       planarRegionSegmentationParameters.setMaxAngleFromPlane(Math.toRadians(10.0));
       planarRegionSegmentationParameters.setMaxDistanceFromPlane(0.02);
-
-      RigidBodyTransform sensorPoseOne = new RigidBodyTransform();
-      sensorPoseOne.setTranslation(0.0, 0.0, fixedHeight);
-      sensorPoseOne.appendPitchRotation(sensorPitchAngle);
-      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseOne,
-                                                                                                                          new RigidBodyTransform(), stairHeight,
-                                                                                                                          stairWidth, stairLength, stairLength,
-                                                                                                                          true);
-
-      double translationX = movingForward / 2;
-      double translationY = 0.0;
-      double translationZ = 0.0;
-      double rotateY = Math.toRadians(0.0);
-      RigidBodyTransform preMultiplier = new RigidBodyTransform();
-      preMultiplier.setTranslation(translationX, translationY, translationZ);
-      preMultiplier.appendPitchRotation(rotateY);
-
-      RigidBodyTransform sensorPoseTwo = new RigidBodyTransform();
-      sensorPoseTwo.setTranslation(movingForward, 0.0, fixedHeight);
-      sensorPoseTwo.appendPitchRotation(sensorPitchAngle);
-
-      RigidBodyTransform randomTransformer = createRandomDriftedTransform(new Random(0612L), 0.05, 5.0);
-      preMultiplier.multiply(randomTransformer);
-      sensorPoseTwo.multiply(randomTransformer);
-
-      StereoVisionPointCloudMessage driftedMessageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseTwo, preMultiplier,
-                                                                                                                                 stairHeight, stairWidth,
-                                                                                                                                 stairLength - movingForward,
-                                                                                                                                 stairLength + movingForward,
-                                                                                                                                 false);
 
       IhmcSLAMFrame frameOne = new IhmcSLAMFrame(messageOne);
       IhmcSLAMFrame driftedFrameTwo = new IhmcSLAMFrame(frameOne, driftedMessageTwo);
@@ -447,7 +496,7 @@ public class IhmcSLAMTest
       optimizer.setReducingStepSizeRatio(2);
 
       int run = optimizer.run();
-      System.out.println(run + " " + function.getQuery(IhmcSLAM.initialQuery) + " " + optimizer.getOptimalQuery());
+      System.out.println(run + " " + function.getQuery(IhmcSLAM.initialQuery) + " " + optimizer.getOptimalQuery() + " " + optimizer.getComputationTime());
       TDoubleArrayList optimalInput = optimizer.getOptimalInput();
       System.out.println(optimalInput.get(0) + " " + optimalInput.get(1) + " " + optimalInput.get(2) + " " + optimalInput.get(3));
 
@@ -472,162 +521,37 @@ public class IhmcSLAMTest
       ThreadTools.sleepForever();
    }
 
-   @Test
-   public void testOptimizationForFlatGround()
-   {
-      double movingForward = 0.1;
-      double fixedHeight = 1.0;
-
-      double sensorPitchAngle = Math.toRadians(90.0 + 70.0);
-      double stairHeight = 0.0;
-      double stairWidth = 0.5;
-      double stairLength = 0.25;
-
-      double octreeResolution = 0.02;
-      ConcaveHullFactoryParameters concaveHullFactoryParameters = new ConcaveHullFactoryParameters();
-      PolygonizerParameters polygonizerParameters = new PolygonizerParameters();
-      PlanarRegionSegmentationParameters planarRegionSegmentationParameters = new PlanarRegionSegmentationParameters();
-      planarRegionSegmentationParameters.setMinRegionSize(200);
-      planarRegionSegmentationParameters.setMaxAngleFromPlane(Math.toRadians(10.0));
-      planarRegionSegmentationParameters.setMaxDistanceFromPlane(0.02);
-
-      RigidBodyTransform sensorPoseOne = new RigidBodyTransform();
-      sensorPoseOne.setTranslation(0.0, 0.0, fixedHeight);
-      sensorPoseOne.appendPitchRotation(sensorPitchAngle);
-      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseOne,
-                                                                                                                          new RigidBodyTransform(), stairHeight,
-                                                                                                                          stairWidth, stairLength, stairLength,
-                                                                                                                          true);
-
-      double translationX = movingForward / 2;
-      double translationY = 0.0;
-      double translationZ = 0.0;
-      double rotateY = Math.toRadians(0.0);
-      RigidBodyTransform preMultiplier = new RigidBodyTransform();
-      preMultiplier.setTranslation(translationX, translationY, translationZ);
-      preMultiplier.appendPitchRotation(rotateY);
-
-      RigidBodyTransform sensorPoseTwo = new RigidBodyTransform();
-      sensorPoseTwo.setTranslation(movingForward, 0.0, fixedHeight);
-      sensorPoseTwo.appendPitchRotation(sensorPitchAngle);
-
-      RigidBodyTransform randomTransformer = createRandomDriftedTransform(new Random(0612L), 0.05, 5.0);
-      preMultiplier.multiply(randomTransformer);
-      sensorPoseTwo.multiply(randomTransformer);
-      
-      StereoVisionPointCloudMessage driftedMessageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimpleStair(sensorPoseTwo, preMultiplier,
-                                                                                                                                 stairHeight, stairWidth,
-                                                                                                                                 stairLength - movingForward,
-                                                                                                                                 stairLength + movingForward,
-                                                                                                                                 false);
-
-      IhmcSLAMFrame frameOne = new IhmcSLAMFrame(messageOne);
-      IhmcSLAMFrame driftedFrameTwo = new IhmcSLAMFrame(frameOne, driftedMessageTwo);
-
-      List<PlanarRegionSegmentationRawData> rawData = IhmcSLAMTools.computePlanarRegionRawData(frameOne.getPointCloud(),
-                                                                                               frameOne.getSensorPose().getTranslation(), octreeResolution,
-                                                                                               planarRegionSegmentationParameters);
-      PlanarRegionsList planarRegionsMap = PlanarRegionPolygonizer.createPlanarRegionsList(rawData, concaveHullFactoryParameters, polygonizerParameters);
-
-      double validRatio = 0.0;
-      double maximumDistance = 0.1;
-      double maximumAngle = Math.toRadians(30.0);
-      driftedFrameTwo.computeOctreeInPreviousView(octreeResolution);
-      driftedFrameTwo.computeMergeableSurfaceElements(planarRegionsMap, octreeResolution, validRatio, maximumDistance, maximumAngle);
-      List<IhmcSurfaceElement> surfaceElements = driftedFrameTwo.getMergeableSurfaceElements();
-
-      IhmcSLAMViewer viewer = new IhmcSLAMViewer();
-      viewer.addSensorPose(frameOne.getSensorPose(), Color.BLUE);
-      viewer.addSensorPose(driftedFrameTwo.getSensorPose(), Color.YELLOW);
-      viewer.addPointCloud(frameOne.getPointCloud(), Color.BLUE);
-      viewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.YELLOW);
-      viewer.addOctree(surfaceElements, Color.CORAL);
-      viewer.addPlanarRegions(planarRegionsMap);
-      viewer.start("testOptimization");
-
-      IhmcSLAMViewer localViewer = new IhmcSLAMViewer();
-      localViewer.addPointCloud(frameOne.getPointCloud(), Color.RED);
-      localViewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.YELLOW);
-      localViewer.addOctree(surfaceElements, Color.CORAL);
-      PreMultiplierOptimizerCostFunction function = new PreMultiplierOptimizerCostFunction(surfaceElements, driftedFrameTwo.getInitialSensorPoseToWorld());
-      GradientDescentModule optimizer = new GradientDescentModule(function, IhmcSLAM.initialQuery);
-
-      int maxIterations = 200;
-      double convergenceThreshold = 10E-5;
-      double optimizerStepSize = -0.1;
-      double optimizerPerturbationSize = 0.0001;
-
-      optimizer.setInputLowerLimit(IhmcSLAM.lowerLimit);
-      optimizer.setInputUpperLimit(IhmcSLAM.upperLimit);
-      optimizer.setMaximumIterations(maxIterations);
-      optimizer.setConvergenceThreshold(convergenceThreshold);
-      optimizer.setStepSize(optimizerStepSize);
-      optimizer.setPerturbationSize(optimizerPerturbationSize);
-      optimizer.setReducingStepSizeRatio(2);
-
-      int run = optimizer.run();
-      System.out.println(run + " " + function.getQuery(IhmcSLAM.initialQuery) + " " + optimizer.getOptimalQuery());
-      TDoubleArrayList optimalInput = optimizer.getOptimalInput();
-      System.out.println(optimalInput.get(0) + " " + optimalInput.get(1) + " " + optimalInput.get(2) + " " + optimalInput.get(3));
-
-      RigidBodyTransform slamTransformer = new RigidBodyTransform();
-      function.convertToSensorPoseMultiplier(optimalInput, slamTransformer);
-      System.out.println("slam transformer");
-      System.out.println(slamTransformer);
-
-      System.out.println("randomTransformer");
-      System.out.println(randomTransformer);
-
-      driftedFrameTwo.updateSLAM(slamTransformer);
-
-      System.out.println("Test Result : " + slamTransformer.geometricallyEquals(randomTransformer, 0.05));
-      System.out.println("Position Diff    : " + slamTransformer.getTranslation().geometricallyEquals(randomTransformer.getTranslation(), 0.05));
-      System.out.println("Orientation Diff : " + Math.toRadians(slamTransformer.getRotation().distance(randomTransformer.getRotation())) + " deg.");
-
-      Color color = Color.rgb(0, 255, 0);
-      localViewer.addPointCloud(driftedFrameTwo.getPointCloud(), color);
-      
-      for(IhmcSurfaceElement element:surfaceElements)
-         element.transform(slamTransformer);
-      localViewer.addOctree(surfaceElements, Color.BEIGE);
-      
-      //localViewer.addPlanarRegions(planarRegionsMap);
-      localViewer.start("iteration ");
-
-      ThreadTools.sleepForever();
-   }
    @Test
    public void testTransformer()
    {
       RigidBodyTransform transformer = new RigidBodyTransform();
       transformer.setTranslation(0.1, 0.0, 0.0);
       transformer.appendYawRotation(Math.toRadians(30.0));
-      
+
       IhmcSLAMViewer slamViewer = new IhmcSLAMViewer();
       RigidBodyTransform sensorPoseOne = new RigidBodyTransform();
       sensorPoseOne.setTranslation(1.0, 0.0, 1.0);
       sensorPoseOne.appendPitchRotation(Math.toRadians(70.0 + 90.0));
-      
+
       slamViewer.addSensorPose(sensorPoseOne, Color.RED);
-      
+
       RigidBodyTransform pointToSensorPose = new RigidBodyTransform();
       pointToSensorPose.setTranslation(0.1, 0.1, 1.0);
       pointToSensorPose.preMultiply(sensorPoseOne);
       slamViewer.addSensorPose(pointToSensorPose, Color.ORANGE);
-      
-      
+
       sensorPoseOne.preMultiply(transformer);
       pointToSensorPose.preMultiply(transformer);
       slamViewer.addSensorPose(sensorPoseOne, Color.BLACK);
       slamViewer.addSensorPose(pointToSensorPose, Color.DARKORANGE);
-      
+
       slamViewer.start("testTransformer");
 
       ThreadTools.sleepForever();
    }
-   
+
    @Test
-   public void testNewPlanarRegionComingOut()
+   public void testStairAndFlatAndComplex()
    {
       String stereoPath = "E:\\Data\\SimpleArea3\\PointCloud\\";
       String planarRegionsPath = "E:\\Data\\SimpleArea3\\20191127_222138_PlanarRegion\\";
@@ -640,23 +564,8 @@ public class IhmcSLAMTest
 
       IhmcSLAM slam = new IhmcSLAM(doNaiveSLAM);
       slam.addFirstFrame(messages.get(0));
-      slam.addFrame(messages.get(35));
-      slam.addFrame(messages.get(36));
-      slam.addFrame(messages.get(37));
-      slam.addFrame(messages.get(38));
-      slam.addFrame(messages.get(39));
-      slam.addFrame(messages.get(40));
-      slam.addFrame(messages.get(42));
-      slam.addFrame(messages.get(43));
-      slam.addFrame(messages.get(44));
-      slam.addFrame(messages.get(45));
-      slam.addFrame(messages.get(46));
-      slam.addFrame(messages.get(47));
-      slam.addFrame(messages.get(48));
-      slam.addFrame(messages.get(49));
-      slam.addFrame(messages.get(50));
-      slam.addFrame(messages.get(51));
-      slam.addFrame(messages.get(54));
+      for (int i = 1; i < messages.size(); i++)
+         slam.addFrame(messages.get(i));
 
       if (doNaiveSLAM)
          slam.doNaiveSLAM();
@@ -665,16 +574,19 @@ public class IhmcSLAMTest
 
       for (int i = 0; i < slam.getOriginalPointCloudMap().size(); i++)
       {
-         //slamViewer.addPointCloud(slam.getOriginalPointCloudMap().get(i), Color.BLACK);
-         //slamViewer.addSensorPose(slam.getOriginalSensorPoses().get(i), Color.BLACK);
+         slamViewer.addPointCloud(slam.getOriginalPointCloudMap().get(i), Color.BLACK);
+         slamViewer.addSensorPose(slam.getOriginalSensorPoses().get(i), Color.BLACK);
       }
       for (int i = 0; i < slam.getPointCloudMap().size(); i++)
       {
          //slamViewer.addPointCloud(slam.getPointCloudMap().get(i), Color.BLUE);
-         //slamViewer.addSensorPose(slam.getSensorPoses().get(i), Color.BLUE);
+         int redScaler = (int) (0xFF * (1 - (double) i / slam.getPointCloudMap().size()));
+         int blueScaler = (int) (0xFF * ((double) i / slam.getPointCloudMap().size()));
+         Color color = Color.rgb(redScaler, 0, blueScaler);
+         slamViewer.addSensorPose(slam.getSensorPoses().get(i), color);
       }
 
-//      slamViewer.addPlanarRegions(slam.getPlanarRegionsMap());
+      slamViewer.addPlanarRegions(slam.getPlanarRegionsMap());
       if (showLidarPlanarRegions)
       {
          PlanarRegionsList importPlanarRegionData = PlanarRegionFileTools.importPlanarRegionData(new File(planarRegionsPath));
@@ -693,20 +605,10 @@ public class IhmcSLAMTest
          int blueScaler = (int) (0xFF * ((double) i / size));
          Color color = Color.rgb(redScaler, 0, blueScaler);
          List<IhmcSurfaceElement> surfaceElements = allSurfaceElements.get(i);
-         slamViewer.addOctree(surfaceElements, color);
+         //slamViewer.addOctree(surfaceElements, color);
       }
 
       slamViewer.start("EndToEnd");
-
-//      IhmcSLAMViewer slamViewer2 = new IhmcSLAMViewer();
-//      PlanarRegionsList planarRegionsList = new PlanarRegionsList();
-//      List<IhmcSurfaceElement> mergeableSurfaceElements = slam.getSLAMFrame(3).getMergeableSurfaceElements();
-//      System.out.println(mergeableSurfaceElements.size());
-//      for (IhmcSurfaceElement element : mergeableSurfaceElements)
-//         planarRegionsList.addPlanarRegion(element.getMergeablePlanarRegion());
-//      slamViewer2.addPlanarRegions(planarRegionsList);
-//      slamViewer2.addOctree(slam.getSLAMFrame(3).getMergeableSurfaceElements(), Color.BEIGE);
-//      slamViewer2.start("part");
 
       ThreadTools.sleepForever();
    }
