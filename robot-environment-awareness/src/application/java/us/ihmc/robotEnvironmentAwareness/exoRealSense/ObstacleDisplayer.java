@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import std_msgs.msg.dds.Float64;
+import us.ihmc.communication.IHMCROS2Publisher;
 import us.ihmc.communication.ROS2Tools;
 import us.ihmc.communication.util.NetworkPorts;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -52,6 +53,11 @@ public class ObstacleDisplayer
    //variables
    private static Ros2Node ros2Node;
    private static RealtimeRos2Node realTimeRos2Node;   
+
+   private IHMCROS2Publisher<Float64> ExoLeftKneeHeightPublisher;
+   private IHMCROS2Publisher<Float64> ExoRightKneeHeightPublisher;
+   private IHMCROS2Publisher<Float64> ExoLeftThighAnglePublisher;
+   private IHMCROS2Publisher<Float64> ExoRightThighAnglePublisher;
 
    protected static final boolean DEBUG = true;
    
@@ -103,6 +109,7 @@ public class ObstacleDisplayer
    private static String ALGORITHM_SELECTOR = "stairDistance2"; //name of function      
    private static boolean DISTANCE_IN_FEET = false;   
    private static int CAMERA_POSITION = 2; //1 - parallel with tight, 2 - pointing down almost 45°
+   private static int EXO_DATA_MINIMUM_TIME_GAP = 10;
    
    private static double DISTANCE_LEFT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
    private static double DISTANCE_RIGHT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
@@ -133,7 +140,8 @@ public class ObstacleDisplayer
    private static final String MARK_DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = "DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE";   
    private static final String MARK_ALGORITHM_SELECTOR = "ALGORITHM_SELECTOR";   
    private static final String MARK_DISTANCE_IN_FEET = "DISTANCE_IN_FEET";   
-   private static final String MARK_CAMERA_POSITION = "CAMERA_POSITION";   
+   private static final String MARK_CAMERA_POSITION = "CAMERA_POSITION"; 
+   private static final String MARK_EXO_DATA_MINIMUM_TIME_GAP = "EXO_DATA_MINIMUM_TIME_GAP";
    
    //functions
    public static void main(String[] args)
@@ -214,6 +222,11 @@ public class ObstacleDisplayer
                                            , Float64.class
                                            , "mina_v2/thigh_angle/right"
                                            , this::handleExoRightThighAngle);
+
+      ExoLeftKneeHeightPublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "knee_height/left");
+      ExoRightKneeHeightPublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "knee_height/right");
+      ExoLeftThighAnglePublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "thigh_angle/left");
+      ExoRightThighAnglePublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "thigh_angle/right");
 
       FilePropertyHelper filePropertyHelper = new FilePropertyHelper(configurationFile);
       loadConfigurationFile(filePropertyHelper);
@@ -356,6 +369,9 @@ public class ObstacleDisplayer
                case MARK_CAMERA_POSITION:
                   CAMERA_POSITION = Integer.valueOf(bReader.readLine());
                   break;
+               case MARK_EXO_DATA_MINIMUM_TIME_GAP:
+                  EXO_DATA_MINIMUM_TIME_GAP = Integer.valueOf(bReader.readLine());
+                  break;
                default:
                   break;
             }
@@ -387,8 +403,17 @@ public class ObstacleDisplayer
       mainUpdaterRight.handleStereoVisionPointCloudMessage(message);
    }
    
+   long lastExoLeftKneeHeight = System.currentTimeMillis();
    private void handleExoLeftKneeHeight(Subscriber<Float64> subscriber) {
-      Double value = subscriber.takeNextData().data_;
+      long time = System.currentTimeMillis();
+      if(time - lastExoLeftKneeHeight < EXO_DATA_MINIMUM_TIME_GAP)
+         return;
+ 
+      lastExoLeftKneeHeight = time;
+      
+      Float64 f = subscriber.takeNextData();
+      Double value = f.data_;      
+      ExoLeftKneeHeightPublisher.publish(new Float64(f));
       if(value == 0.0)
          return;
       
@@ -415,8 +440,17 @@ public class ObstacleDisplayer
       }
    } 
    
+   long lastExoRightKneeHeight = lastExoLeftKneeHeight;
    private void handleExoRightKneeHeight(Subscriber<Float64> subscriber) {
-      Double value = subscriber.takeNextData().data_;
+      long time = System.currentTimeMillis();
+      if(time - lastExoRightKneeHeight < EXO_DATA_MINIMUM_TIME_GAP)
+         return;
+ 
+      lastExoRightKneeHeight = time;
+      
+      Float64 f = subscriber.takeNextData();
+      Double value = f.data_;      
+      ExoRightKneeHeightPublisher.publish(new Float64(f));
       if(value == 0.0)
          return;
       
@@ -443,8 +477,17 @@ public class ObstacleDisplayer
       }
    }
    
+   long lastExoLeftThighAngle = lastExoRightKneeHeight;
    private void handleExoLeftThighAngle(Subscriber<Float64> subscriber) {
-      Double value = subscriber.takeNextData().data_;
+      long time = System.currentTimeMillis();
+      if(time - lastExoLeftThighAngle < EXO_DATA_MINIMUM_TIME_GAP)
+         return;
+ 
+      lastExoLeftThighAngle = time;
+      
+      Float64 f = subscriber.takeNextData();
+      Double value = f.data_;      
+      ExoLeftThighAnglePublisher.publish(new Float64(f));
       if(value == 0.0 || value == 500.0)
          return;
       
@@ -468,8 +511,17 @@ public class ObstacleDisplayer
       }
    }
    
+   long lastExoRightThighAngle = lastExoLeftThighAngle;
    private void handleExoRightThighAngle(Subscriber<Float64> subscriber) {
-      Double value = subscriber.takeNextData().data_;
+      long time = System.currentTimeMillis();
+      if(time - lastExoRightThighAngle < EXO_DATA_MINIMUM_TIME_GAP)
+         return;
+ 
+      lastExoRightThighAngle = time;
+      
+      Float64 f = subscriber.takeNextData();
+      Double value = f.data_;      
+      ExoRightThighAnglePublisher.publish(new Float64(f));
       if(value == 0.0 || value == 500.0)
          return;
 
