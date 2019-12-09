@@ -42,16 +42,6 @@ public class PreMultiplierOptimizerCostFunction implements SingleQueryFunction
       transformToPack.setRotationYawPitchRoll(input.get(3) / ANGLE_SCALER, input.get(4) / ANGLE_SCALER, input.get(5) / ANGLE_SCALER); // TODO: improve this.
    }
 
-   public void convertToPointCloudTransformer(TDoubleArrayList input, RigidBodyTransform transformToPack)
-   {
-      RigidBodyTransform preMultiplier = new RigidBodyTransform();
-      convertToSensorPoseMultiplier(input, preMultiplier);
-
-      transformToPack.set(transformWorldToSensorPose);
-      transformToPack.multiply(preMultiplier);
-      transformToPack.multiplyInvertOther(transformWorldToSensorPose);
-   }
-
    @Override
    public double getQuery(TDoubleArrayList values)
    {
@@ -59,7 +49,6 @@ public class PreMultiplierOptimizerCostFunction implements SingleQueryFunction
        * values are difference in 6 dimensions : dx, dy, dz, du, dv, dw
        */
       RigidBodyTransform transformer = new RigidBodyTransform();
-      //convertToPointCloudTransformer(values, transformer);
       convertToSensorPoseMultiplier(values, transformer);
 
       List<IhmcSurfaceElement> convertedElements = new ArrayList<>();
@@ -71,7 +60,6 @@ public class PreMultiplierOptimizerCostFunction implements SingleQueryFunction
          transformer.transform(convertedNormal);
          transformer.transform(convertedCenter);
          IhmcSurfaceElement convertedElement = new IhmcSurfaceElement(surfaceElements.get(i));
-         //convertedElement.transform(transformer);
          convertedElement.transform(transformer, transformWorldToSensorPose);
          convertedElements.add(convertedElement);
       }
@@ -96,7 +84,7 @@ public class PreMultiplierOptimizerCostFunction implements SingleQueryFunction
          if (convertedElement.isInPlanarRegion())
             cnt++;
       }
-      
+
       double snappingScore;
       if (assumeFlatGround)
          snappingScore = 0.0;

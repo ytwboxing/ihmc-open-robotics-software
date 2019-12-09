@@ -1,15 +1,12 @@
 package us.ihmc.humanoidBehaviors.ui.mapping;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import us.ihmc.communication.packets.MessageTools;
-import us.ihmc.euclid.geometry.Plane3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.jOctoMap.normalEstimation.NormalEstimationParameters;
@@ -17,20 +14,15 @@ import us.ihmc.jOctoMap.ocTree.NormalOcTree;
 import us.ihmc.jOctoMap.pointCloud.PointCloud;
 import us.ihmc.jOctoMap.pointCloud.Scan;
 import us.ihmc.jOctoMap.pointCloud.ScanCollection;
-import us.ihmc.robotEnvironmentAwareness.communication.converters.OcTreeMessageConverter;
-import us.ihmc.robotEnvironmentAwareness.communication.packets.NormalOcTreeMessage;
 import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionSegmentationCalculator;
 import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionSegmentationParameters;
 import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionSegmentationRawData;
 import us.ihmc.robotEnvironmentAwareness.planarRegion.SurfaceNormalFilterParameters;
-import us.ihmc.robotEnvironmentAwareness.ui.UIOcTree;
-import us.ihmc.robotEnvironmentAwareness.ui.UIOcTreeNode;
 import us.ihmc.robotEnvironmentAwareness.updaters.AdaptiveRayMissProbabilityUpdater;
-import us.ihmc.robotics.geometry.PlanarRegion;
-import us.ihmc.robotics.geometry.PlanarRegionsList;
 
 public class IhmcSLAMTools
 {
+   private static final int NUMBER_OF_ITERATION_TO_UPDATE_NORMAL = 5;
    public static Point3D[] extractPointsFromMessage(StereoVisionPointCloudMessage message)
    {
       int numberOfPoints = message.getColors().size();
@@ -107,7 +99,7 @@ public class IhmcSLAMTools
       referenceOctree.setCustomRayMissProbabilityUpdater(new AdaptiveRayMissProbabilityUpdater());
 
       NormalEstimationParameters normalEstimationParameters = new NormalEstimationParameters();
-      normalEstimationParameters.setNumberOfIterations(5);
+      normalEstimationParameters.setNumberOfIterations(NUMBER_OF_ITERATION_TO_UPDATE_NORMAL);
       referenceOctree.setNormalEstimationParameters(normalEstimationParameters);
 
       referenceOctree.updateNormals();
@@ -134,7 +126,7 @@ public class IhmcSLAMTools
       referenceOctree.setCustomRayMissProbabilityUpdater(new AdaptiveRayMissProbabilityUpdater());
 
       NormalEstimationParameters normalEstimationParameters = new NormalEstimationParameters();
-      normalEstimationParameters.setNumberOfIterations(5);
+      normalEstimationParameters.setNumberOfIterations(NUMBER_OF_ITERATION_TO_UPDATE_NORMAL);
       referenceOctree.setNormalEstimationParameters(normalEstimationParameters);
 
       referenceOctree.updateNormals();

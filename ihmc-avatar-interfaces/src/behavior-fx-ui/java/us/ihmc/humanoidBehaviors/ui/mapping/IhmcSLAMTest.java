@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import gnu.trove.list.array.TDoubleArrayList;
 import javafx.scene.paint.Color;
-import us.ihmc.commons.Conversions;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
@@ -605,7 +604,7 @@ public class IhmcSLAMTest
          int blueScaler = (int) (0xFF * ((double) i / size));
          Color color = Color.rgb(redScaler, 0, blueScaler);
          List<IhmcSurfaceElement> surfaceElements = allSurfaceElements.get(i);
-         //slamViewer.addOctree(surfaceElements, color);
+         slamViewer.addOctree(surfaceElements, color);
       }
 
       slamViewer.start("EndToEnd");
