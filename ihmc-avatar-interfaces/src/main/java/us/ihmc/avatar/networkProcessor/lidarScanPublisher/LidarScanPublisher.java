@@ -13,9 +13,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import controller_msgs.msg.dds.LidarScanMessage;
 import controller_msgs.msg.dds.RobotConfigurationData;
 import controller_msgs.msg.dds.SimulatedLidarScanPacket;
+import geometry_msgs.Point;
 import gnu.trove.list.array.TFloatArrayList;
 import scan_to_cloud.PointCloud2WithSource;
 import sensor_msgs.PointCloud2;
+import sensor_msgs.PointField;
 import us.ihmc.avatar.ros.RobotROSClockCalculator;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.IHMCROS2Publisher;
@@ -31,6 +33,7 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Point3D32;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.Quaternion32;
 import us.ihmc.ihmcPerception.depthData.CollisionBoxProvider;
 import us.ihmc.ihmcPerception.depthData.CollisionShapeTester;
@@ -71,6 +74,7 @@ public class LidarScanPublisher
 
    private final IHMCROS2Publisher<LidarScanMessage> lidarScanPublisher;
    private final IHMCRealtimeROS2Publisher<LidarScanMessage> lidarScanRealtimePublisher;
+   private final IHMCROS2Publisher<sensor_msgs.msg.dds.PointCloud2> pointCloud2Publisher;
 
    private double shadowAngleThreshold = DEFAULT_SHADOW_ANGLE_THRESHOLD;
 
@@ -118,6 +122,8 @@ public class LidarScanPublisher
          lidarScanPublisher = null;
          lidarScanRealtimePublisher = ROS2Tools.createPublisher(realtimeRos2Node, LidarScanMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
       }
+
+      pointCloud2Publisher = ROS2Tools.createPublisher(ros2Node, sensor_msgs.msg.dds.PointCloud2.class, "/ihmc/multisense_lidar");
    }
 
    public void start()
@@ -217,9 +223,32 @@ public class LidarScanPublisher
       return new AbstractRosTopicSubscriber<PointCloud2WithSource>(PointCloud2WithSource._TYPE)
       {
          @Override
-         public void onNewMessage(PointCloud2WithSource pointCloud)
+         public void onNewMessage(PointCloud2WithSource ros1PointCloud)
          {
-            PointCloud2 cloud = pointCloud.getCloud();
+            sensor_msgs.msg.dds.PointCloud2 pointCloud2 = new sensor_msgs.msg.dds.PointCloud2();
+            pointCloud2.getHeader().setFrameId(ros1PointCloud.getCloud().getHeader().getFrameId());
+            pointCloud2.setHeight(ros1PointCloud.getCloud().getHeight());
+            pointCloud2.setWidth(ros1PointCloud.getCloud().getWidth());
+            for (PointField field : ros1PointCloud.getCloud().getFields())
+            {
+               sensor_msgs.msg.dds.PointField pointField = new sensor_msgs.msg.dds.PointField();
+               pointField.setName(field.getName());
+               pointField.setOffset(field.getOffset());
+               pointField.setDatatype(field.getDatatype());
+               pointField.setCount(field.getCount());
+               pointCloud2.getFields().add(pointField);
+            }
+            pointCloud2.setIsBigendian(ros1PointCloud.getCloud().getIsBigendian());
+            pointCloud2.setPointStep(ros1PointCloud.getCloud().getPointStep());
+            pointCloud2.setRowStep(ros1PointCloud.getCloud().getRowStep());
+            for (byte b : ros1PointCloud.getCloud().getData().array())
+            {
+               pointCloud2.getData().add(b);
+            }
+            pointCloud2.setIsDense(ros1PointCloud.getCloud().getIsDense());
+            pointCloud2Publisher.publish(pointCloud2);
+
+            PointCloud2 cloud = ros1PointCloud.getCloud();
             UnpackedPointCloud pointCloudData = RosPointCloudReceiver.unpackPointsAndIntensities(cloud);
             Point3D[] scanPoints = pointCloudData.getPoints();
             long timestamp = cloud.getHeader().getStamp().totalNsecs();
