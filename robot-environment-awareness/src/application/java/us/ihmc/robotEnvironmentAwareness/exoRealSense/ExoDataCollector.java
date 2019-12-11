@@ -46,22 +46,22 @@ public class ExoDataCollector
       
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "mina_v2/knee_height/left"
+                                           , "knee_height/left" //mina_v2/
                                            , this::handleExoLeftKneeHeight);
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "mina_v2/knee_height/right"
+                                           , "knee_height/right" //mina_v2/
                                            , this::handleExoRightKneeHeight);
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "mina_v2/thigh_angle/left"
+                                           , "thigh_angle/left" //mina_v2/
                                            , this::handleExoLeftThighAngle);
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "mina_v2/thigh_angle/right"
+                                           , "thigh_angle/right" //mina_v2/
                                            , this::handleExoRightThighAngle);
    }
-   
+
    private void handleExoLeftKneeHeight(Subscriber<Float64> subscriber) {
       if(recievingLeftKneeHeight == false) {
          recievingLeftKneeHeight = true;
@@ -81,7 +81,7 @@ public class ExoDataCollector
             ex.printStackTrace();
          } 
       }         
-   } 
+   }    
    
    private void handleExoRightKneeHeight(Subscriber<Float64> subscriber) {
       if(recievingRightKneeHeight == false) {
@@ -147,7 +147,7 @@ public class ExoDataCollector
    }
    
    public static void main(String[] args)
-   {    
+   {          
       /*
       double value = 0.0;
       try { 
@@ -202,4 +202,5 @@ public class ExoDataCollector
       }
       */
    }
+   
 }

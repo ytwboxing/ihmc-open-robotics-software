@@ -46,31 +46,28 @@ import us.ihmc.ros2.RealtimeRos2Node;
 import us.ihmc.ros2.Ros2Node;
 
 /*
- * main class that connect realsense D435 (RealSenseBridgeRos2), runs point cloud through planar region finder (most of this class), evaluate obstacles (function obstacleDistance) with the help of informations from Exo (callback subscribers on realTimeRos2Node) and present them to hololense (UDPDataSender) 
+ * main class that connect realsense D435 (RealSenseBridgeRos2), runs point cloud through planar region finder (most of this class), evaluate obstacles (function obstacleDistance) with the help of informations from Exo (callback subscribers on ros2Node) and present them to hololense (UDPDataSender) 
  */
 public class ObstacleDisplayer
 {   
    //variables
    private static Ros2Node ros2Node;
-   private static RealtimeRos2Node realTimeRos2Node;   
-
+   
    private IHMCROS2Publisher<Float64> ExoLeftKneeHeightPublisher;
    private IHMCROS2Publisher<Float64> ExoRightKneeHeightPublisher;
    private IHMCROS2Publisher<Float64> ExoLeftThighAnglePublisher;
    private IHMCROS2Publisher<Float64> ExoRightThighAnglePublisher;
-
+   
    protected static final boolean DEBUG = true;
+   private final double DEFAULT_DISTANCE_VALUE = 999.0;
    
    private final REAOcTreeBuffer stereoVisionBufferUpdaterLeft;
    private final REAOcTreeUpdater mainUpdaterLeft; 
-   private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdaterLeft;
-   private final REAPlanarRegionPublicNetworkProvider planarRegionNetworkProviderLeft;   
-   private final double DEFAULT_DISTANCE_VALUE = 999.0;
+   private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdaterLeft;    
    
    private final REAOcTreeBuffer stereoVisionBufferUpdaterRight;
    private final REAOcTreeUpdater mainUpdaterRight; 
    private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdaterRight;
-   private final REAPlanarRegionPublicNetworkProvider planarRegionNetworkProviderRight;
 
    private ScheduledExecutorService executorService = ExecutorServiceTools.newScheduledThreadPool(2, getClass(), ExceptionHandling.CATCH_AND_REPORT);
    private ScheduledFuture<?> scheduled;
@@ -110,6 +107,7 @@ public class ObstacleDisplayer
    private static boolean DISTANCE_IN_FEET = false;   
    private static int CAMERA_POSITION = 2; //1 - parallel with tight, 2 - pointing down almost 45°
    private static int EXO_DATA_MINIMUM_TIME_GAP = 10;
+   private static boolean PUBLISH_EXO = false; 
    
    private static double DISTANCE_LEFT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
    private static double DISTANCE_RIGHT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
@@ -142,6 +140,7 @@ public class ObstacleDisplayer
    private static final String MARK_DISTANCE_IN_FEET = "DISTANCE_IN_FEET";   
    private static final String MARK_CAMERA_POSITION = "CAMERA_POSITION"; 
    private static final String MARK_EXO_DATA_MINIMUM_TIME_GAP = "EXO_DATA_MINIMUM_TIME_GAP";
+   private static final String MARK_PUBLISH_EXO = "PUBLISH_EXO";
    
    //functions
    public static void main(String[] args)
@@ -150,7 +149,6 @@ public class ObstacleDisplayer
          loadConfFile();
          
          ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
-         realTimeRos2Node = ROS2Tools.createRealtimeRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName() + "RealTime");
 
          //connect to cameras
          new RealSenseBridgeRos2("http://localhost:11311" // "http://192.168.137.2:11311" //   
@@ -206,44 +204,33 @@ public class ObstacleDisplayer
                                            , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
                                            , this::dispatchStereoVisionPointCloudMessageRight);      
       
-      ROS2Tools.createCallbackSubscription(realTimeRos2Node
+      ROS2Tools.createCallbackSubscription(ros2Node
                                            , Float64.class
                                            , "mina_v2/knee_height/left"
                                            , this::handleExoLeftKneeHeight);
-      ROS2Tools.createCallbackSubscription(realTimeRos2Node
+      ROS2Tools.createCallbackSubscription(ros2Node
                                            , Float64.class
                                            , "mina_v2/knee_height/right"
                                            , this::handleExoRightKneeHeight);
-      ROS2Tools.createCallbackSubscription(realTimeRos2Node
+      ROS2Tools.createCallbackSubscription(ros2Node
                                            , Float64.class
                                            , "mina_v2/thigh_angle/left"
                                            , this::handleExoLeftThighAngle);
-      ROS2Tools.createCallbackSubscription(realTimeRos2Node
+      ROS2Tools.createCallbackSubscription(ros2Node
                                            , Float64.class
                                            , "mina_v2/thigh_angle/right"
                                            , this::handleExoRightThighAngle);
 
-      ExoLeftKneeHeightPublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "knee_height/left");
-      ExoRightKneeHeightPublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "knee_height/right");
-      ExoLeftThighAnglePublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "thigh_angle/left");
-      ExoRightThighAnglePublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "thigh_angle/right");
+      if(PUBLISH_EXO) {
+         ExoLeftKneeHeightPublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "knee_height/left");
+         ExoRightKneeHeightPublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "knee_height/right");
+         ExoLeftThighAnglePublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "thigh_angle/left");
+         ExoRightThighAnglePublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "thigh_angle/right");         
+      }
 
       FilePropertyHelper filePropertyHelper = new FilePropertyHelper(configurationFile);
       loadConfigurationFile(filePropertyHelper);
 
-      reaMessager1.registerTopicListener(REAModuleAPI.SaveBufferConfiguration, (content) -> stereoVisionBufferUpdaterLeft.saveConfiguration(filePropertyHelper));
-      reaMessager1.registerTopicListener(REAModuleAPI.SaveMainUpdaterConfiguration, (content) -> mainUpdaterLeft.saveConfiguration(filePropertyHelper));
-      reaMessager1.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration, (content) -> planarRegionFeatureUpdaterLeft.saveConfiguration(filePropertyHelper));
-      
-      reaMessager2.registerTopicListener(REAModuleAPI.SaveBufferConfiguration, (content) -> stereoVisionBufferUpdaterRight.saveConfiguration(filePropertyHelper));
-      reaMessager2.registerTopicListener(REAModuleAPI.SaveMainUpdaterConfiguration, (content) -> mainUpdaterRight.saveConfiguration(filePropertyHelper));
-      reaMessager2.registerTopicListener(REAModuleAPI.SaveRegionUpdaterConfiguration, (content) -> planarRegionFeatureUpdaterRight.saveConfiguration(filePropertyHelper));
-      
-      planarRegionNetworkProviderLeft = new REAPlanarRegionPublicNetworkProvider(reaMessager1, planarRegionFeatureUpdaterLeft, ros2Node, publisherTopicNameGenerator,
-                                                                             subscriberTopicNameGenerator);
-      planarRegionNetworkProviderRight = new REAPlanarRegionPublicNetworkProvider(reaMessager2, planarRegionFeatureUpdaterRight, ros2Node, publisherTopicNameGenerator,
-                                                                                 subscriberTopicNameGenerator);
-      
       reaMessager1.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
       BoundingBoxParametersMessage boundingBox = new BoundingBoxParametersMessage();
       boundingBox.maxX = MAXX;
@@ -372,6 +359,9 @@ public class ObstacleDisplayer
                case MARK_EXO_DATA_MINIMUM_TIME_GAP:
                   EXO_DATA_MINIMUM_TIME_GAP = Integer.valueOf(bReader.readLine());
                   break;
+               case MARK_PUBLISH_EXO:
+                  PUBLISH_EXO = Boolean.valueOf(bReader.readLine());
+                  break;
                default:
                   break;
             }
@@ -412,8 +402,9 @@ public class ObstacleDisplayer
       lastExoLeftKneeHeight = time;
       
       Float64 f = subscriber.takeNextData();
-      Double value = f.data_;      
-      ExoLeftKneeHeightPublisher.publish(new Float64(f));
+      Double value = f.data_;
+      if(PUBLISH_EXO)
+         ExoLeftKneeHeightPublisher.publish(new Float64(f));
       if(value == 0.0)
          return;
       
@@ -449,8 +440,9 @@ public class ObstacleDisplayer
       lastExoRightKneeHeight = time;
       
       Float64 f = subscriber.takeNextData();
-      Double value = f.data_;      
-      ExoRightKneeHeightPublisher.publish(new Float64(f));
+      Double value = f.data_;
+      if(PUBLISH_EXO)
+         ExoRightKneeHeightPublisher.publish(new Float64(f));
       if(value == 0.0)
          return;
       
@@ -487,7 +479,8 @@ public class ObstacleDisplayer
       
       Float64 f = subscriber.takeNextData();
       Double value = f.data_;      
-      ExoLeftThighAnglePublisher.publish(new Float64(f));
+      if(PUBLISH_EXO)
+         ExoLeftThighAnglePublisher.publish(new Float64(f));
       if(value == 0.0 || value == 500.0)
          return;
       
@@ -521,7 +514,8 @@ public class ObstacleDisplayer
       
       Float64 f = subscriber.takeNextData();
       Double value = f.data_;      
-      ExoRightThighAnglePublisher.publish(new Float64(f));
+      if(PUBLISH_EXO)
+         ExoRightThighAnglePublisher.publish(new Float64(f));
       if(value == 0.0 || value == 500.0)
          return;
 
@@ -551,17 +545,12 @@ public class ObstacleDisplayer
    int runningMessageCounter = 0;
    long lastValidDistance = System.currentTimeMillis();
    private void mainUpdate()
-   {      
-      if (isThreadInterrupted())
-         return;
-      
-      if(cycleCounter == 0) {
-         cycleCounter = 100;
+   {          
+      if(cycleCounter == 100) {
+         cycleCounter = 0;
          System.out.println("running " + runningMessageCounter++);
       }
-      cycleCounter--;
-
-      boolean ocTreeUpdateSuccess = true;
+      cycleCounter++;
 
       try
       {
@@ -581,9 +570,6 @@ public class ObstacleDisplayer
          mainUpdaterRight.clearOcTree();
          mainUpdaterLeft.update();
          mainUpdaterRight.update();
-
-         if (isThreadInterrupted())
-            return;
 
          planarRegionFeatureUpdaterLeft.update(mainOctreeLeft);
          planarRegionFeatureUpdaterRight.update(mainOctreeRight);
@@ -629,11 +615,6 @@ public class ObstacleDisplayer
          else if(System.currentTimeMillis() - lastValidDistance > TIME_BEFORE_NO_DISTANCE_REPORT){
             sender.send("free to go");
          }
-
-         planarRegionNetworkProviderLeft.update(ocTreeUpdateSuccess);
-         planarRegionNetworkProviderRight.update(ocTreeUpdateSuccess);
-         planarRegionNetworkProviderLeft.publishCurrentState();
-         planarRegionNetworkProviderRight.publishCurrentState();
       }
       catch (Exception e)
       {
@@ -663,7 +644,7 @@ public class ObstacleDisplayer
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
          Vector3D normalI = planarRegionI.getNormal();
-         double angleToCamera = Math.acos(normalI.getZ())*180/Math.PI; //simplified for cemara vector (0, 0, 1)
+         double angleToCamera = Math.acos(normalI.getZ())*(180/Math.PI); //simplified for cemara vector (0, 0, 1)
          if(angleToCamera < DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - ANGLE_CAMERA_PLANE_TOLERANCE)
             continue;
         
@@ -673,7 +654,7 @@ public class ObstacleDisplayer
             
             PlanarRegion planarRegionJ = planarRegionsList.getPlanarRegion(j);
             Vector3D normalJ = planarRegionJ.getNormal();
-            double angleBetweenPlanes = normalJ.angle(normalI)*180/Math.PI;
+            double angleBetweenPlanes = normalJ.angle(normalI)*(180/Math.PI);
             if(angleBetweenPlanes < 90.0 - ANGLE_BETWEEN_PLANES_TOLERANCE || angleBetweenPlanes > 90.0 + ANGLE_BETWEEN_PLANES_TOLERANCE)
                continue;           
 
@@ -739,7 +720,6 @@ public class ObstacleDisplayer
    
    /*
     * returns DEFAULT_DISTANCE_VALUE if there is no obstacle otherwise return distance to obstacle
-    * OBSOLETE
     */
    private double obstacleDistance(PlanarRegionsList planarRegionsList) {
       //variables
@@ -750,7 +730,7 @@ public class ObstacleDisplayer
          PlanarRegion planarRegion = planarRegionsList.getPlanarRegion(i);
          Vector3D vector = planarRegion.getNormal();
          double angle = Math.acos(vector.getZ())*180/Math.PI;
-         if(angle > DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - ANGLE_CAMERA_PLANE_TOLERANCE) {
+         if(angle > 180 - ANGLE_CAMERA_PLANE_TOLERANCE) {
             double D2Distance = planarRegion.distanceToPointByProjectionOntoXYPlane(0.0, 0.0);
             if(D2Distance < XYZ_TOLERANCE) {
                distance = planarRegion.getPlaneZGivenXY(0, 0);
@@ -787,7 +767,6 @@ public class ObstacleDisplayer
       reaMessager1.closeMessager();
       reaMessager2.closeMessager();
       ros2Node.destroy();
-      realTimeRos2Node.destroy();
 
       if (scheduled != null)
       {

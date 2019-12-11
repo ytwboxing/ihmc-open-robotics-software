@@ -27,6 +27,7 @@ public class UDPDataSender
       }
    }
    
+   long lastTime = System.currentTimeMillis(); 
    public void send(String data) {
       if(socket == null)
          return;
@@ -35,8 +36,11 @@ public class UDPDataSender
          byte[] sendData = data.getBytes();
          DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
          socket.send(sendPacket);  
-         if(printSendingData)
-            System.out.println("Sender: " + data);
+         if(printSendingData) {
+            long time = System.currentTimeMillis(); 
+            System.out.println("Sender(" + (time - lastTime) +" ms): " + data);
+            lastTime = time;
+         }
       }
       catch (Exception e)
       {
