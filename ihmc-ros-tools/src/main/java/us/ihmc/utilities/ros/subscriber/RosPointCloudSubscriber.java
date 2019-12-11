@@ -46,6 +46,9 @@ public abstract class RosPointCloudSubscriber extends AbstractRosTopicSubscriber
 
    public static class UnpackedPointCloud
    {
+      public String frameId;
+      public int pointStep;
+      public int rowStep;
       Point3D[] points = null;
       float[] intensities = null;
       int[] pointColors = null;
@@ -126,6 +129,9 @@ public abstract class RosPointCloudSubscriber extends AbstractRosTopicSubscriber
       packet.pointType = PointType.fromFromFieldNames(pointCloud.getFields());
       packet.width = pointCloud.getWidth();
       packet.height = pointCloud.getHeight();
+      packet.frameId = pointCloud.getHeader().getFrameId();
+      packet.pointStep = pointCloud.getPointStep();
+      packet.rowStep = pointCloud.getRowStep();
 
       switch (packet.pointType)
       {
