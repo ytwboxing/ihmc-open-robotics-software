@@ -22,7 +22,7 @@ import us.ihmc.robotEnvironmentAwareness.updaters.AdaptiveRayMissProbabilityUpda
 
 public class IhmcSLAMTools
 {
-   private static final int NUMBER_OF_ITERATION_TO_UPDATE_NORMAL = 5;
+   private static final int NUMBER_OF_ITERATION_TO_UPDATE_NORMAL = 10;
    public static Point3D[] extractPointsFromMessage(StereoVisionPointCloudMessage message)
    {
       int numberOfPoints = message.getColors().size();

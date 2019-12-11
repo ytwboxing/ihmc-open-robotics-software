@@ -259,6 +259,58 @@ public class IhmcSLAMTest
    }
 
    @Test
+   public void testInverseInterpolationForFlat()
+   {
+      double octreeResolution = 0.02;
+
+      double stairWidth = 0.5;
+      double stairLength = 0.6;
+
+      RigidBodyTransform sensorPoseOne = new RigidBodyTransform();
+      sensorPoseOne.setTranslation(0.0, 0.0, 1.0);
+      sensorPoseOne.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginOne = new RigidBodyTransform();
+
+      StereoVisionPointCloudMessage messageOne = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimplePlane(sensorPoseOne, satirOriginOne,
+                                                                                                                          stairLength, stairWidth);
+
+      double movingForward = 0.1;
+      double movingUpward = 0.05;
+      RigidBodyTransform sensorPoseTwo = new RigidBodyTransform();
+      sensorPoseTwo.setTranslation(movingForward, 0.0, 1.0 + movingUpward);
+      sensorPoseTwo.appendPitchRotation(Math.toRadians(70.0 + 90.0));
+      RigidBodyTransform satirOriginTwo = new RigidBodyTransform(satirOriginOne);
+      satirOriginTwo.appendTranslation(movingForward, 0.0, 0.0);
+      RigidBodyTransform perturbTwo = createRandomDriftedTransform(new Random(0612L), 0.05, 5.0);
+      perturbTwo.setIdentity();
+      double translationX = -0.02;
+      double translationY = 0.03;
+      double translationZ = 0.0;
+      double rotateY = Math.toRadians(3.0);
+      perturbTwo.setTranslation(translationX, translationY, translationZ);
+      perturbTwo.appendPitchRotation(rotateY);
+      satirOriginTwo.multiply(perturbTwo);
+
+      StereoVisionPointCloudMessage driftedMessageTwo = SimulatedStereoVisionPointCloudMessageLibrary.generateMessageSimplePlane(sensorPoseTwo, satirOriginTwo,
+                                                                                                                                 stairLength, stairWidth);
+
+      IhmcSLAMFrame frameOne = new IhmcSLAMFrame(messageOne);
+      IhmcSLAMFrame driftedFrameTwo = new IhmcSLAMFrame(frameOne, driftedMessageTwo);
+      driftedFrameTwo.computeOctreeInPreviousView(octreeResolution);
+      NormalOcTree overlappedOctreeNode = driftedFrameTwo.getOctreeNodesInPreviousView();
+
+      IhmcSLAMViewer viewer = new IhmcSLAMViewer();
+      viewer.addSensorPose(frameOne.getSensorPose(), Color.BLUE);
+      viewer.addSensorPose(driftedFrameTwo.getSensorPose(), Color.GREEN);
+      viewer.addPointCloud(frameOne.getPointCloud(), Color.BLUE);
+      viewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.GREEN);
+      viewer.addOctree(overlappedOctreeNode, Color.YELLOW, octreeResolution);
+      viewer.start("testInverseInterpolationForFlat");
+
+      ThreadTools.sleepForever();
+   }
+
+   @Test
    public void testInverseInterpolation()
    {
       double octreeResolution = 0.02;
@@ -306,10 +358,10 @@ public class IhmcSLAMTest
 
       IhmcSLAMViewer viewer = new IhmcSLAMViewer();
       viewer.addSensorPose(frameOne.getSensorPose(), Color.BLUE);
-      viewer.addSensorPose(driftedFrameTwo.getSensorPose(), Color.YELLOW);
+      viewer.addSensorPose(driftedFrameTwo.getSensorPose(), Color.GREEN);
       viewer.addPointCloud(frameOne.getPointCloud(), Color.BLUE);
-      viewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.YELLOW);
-      viewer.addOctree(overlappedOctreeNode, Color.GREEN, octreeResolution);
+      viewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.GREEN);
+      viewer.addOctree(overlappedOctreeNode, Color.YELLOW, octreeResolution);
       viewer.start("testInverseInterpolation");
 
       ThreadTools.sleepForever();
@@ -391,11 +443,12 @@ public class IhmcSLAMTest
 
       IhmcSLAMViewer viewer = new IhmcSLAMViewer();
       viewer.addSensorPose(frameOne.getSensorPose(), Color.BLUE);
-      viewer.addSensorPose(driftedFrameTwo.getSensorPose(), Color.YELLOW);
+      viewer.addSensorPose(driftedFrameTwo.getSensorPose(), Color.GREEN);
       viewer.addPointCloud(frameOne.getPointCloud(), Color.BLUE);
-      viewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.YELLOW);
-      viewer.addOctree(groupOne, Color.CORAL);
-      viewer.addOctree(groupTwo, Color.BLACK);
+      //viewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.GREEN);
+      viewer.addPlanarRegions(planarRegionsMap);
+//      viewer.addOctree(groupOne, Color.CORAL);
+//      viewer.addOctree(groupTwo, Color.BLACK);
 
       viewer.start("testDetectingSimilarPlanarRegions");
 
@@ -467,15 +520,15 @@ public class IhmcSLAMTest
 
       IhmcSLAMViewer viewer = new IhmcSLAMViewer();
       viewer.addSensorPose(frameOne.getSensorPose(), Color.BLUE);
-      viewer.addSensorPose(driftedFrameTwo.getSensorPose(), Color.YELLOW);
+      viewer.addSensorPose(driftedFrameTwo.getSensorPose(), Color.GREEN);
       viewer.addPointCloud(frameOne.getPointCloud(), Color.BLUE);
-      viewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.YELLOW);
+      viewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.GREEN);
       viewer.addOctree(surfaceElements, Color.CORAL);
       viewer.start("testOptimization");
 
       IhmcSLAMViewer localViewer = new IhmcSLAMViewer();
-      localViewer.addPointCloud(frameOne.getPointCloud(), Color.RED);
-      localViewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.YELLOW);
+      localViewer.addPointCloud(frameOne.getPointCloud(), Color.BLUE);
+      localViewer.addPointCloud(driftedFrameTwo.getPointCloud(), Color.GREEN);
       localViewer.addOctree(surfaceElements, Color.CORAL);
       localViewer.addPlanarRegions(planarRegionsMap);
       PreMultiplierOptimizerCostFunction function = new PreMultiplierOptimizerCostFunction(surfaceElements, driftedFrameTwo.getInitialSensorPoseToWorld());
@@ -513,7 +566,7 @@ public class IhmcSLAMTest
       System.out.println("Position Diff    : " + slamTransformer.getTranslation().geometricallyEquals(randomTransformer.getTranslation(), 0.05));
       System.out.println("Orientation Diff : " + Math.toRadians(slamTransformer.getRotation().distance(randomTransformer.getRotation())) + " deg.");
 
-      Color color = Color.rgb(0, 255, 0);
+      Color color = Color.rgb(255, 255, 0);
       localViewer.addPointCloud(driftedFrameTwo.getPointCloud(), color);
       localViewer.start("iteration ");
 

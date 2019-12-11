@@ -21,13 +21,15 @@ public class IhmcSLAMEndToEndTest
    //private final String stereoPath = "E:\\Data\\Complicated\\PointCloud\\";
    //private final String stereoPath = "E:\\Data\\SimpleArea\\PointCloud\\";
    //private final String stereoPath = "E:\\Data\\SimpleArea2\\PointCloud\\";
-   private final String stereoPath = "E:\\Data\\SimpleArea3\\PointCloud\\";
+   //private final String stereoPath = "E:\\Data\\SimpleArea3\\PointCloud\\";
    //private final String stereoPath = "E:\\Data\\Walking11-kinematic\\PointCloud\\";
+   private final String stereoPath = "E:\\Data\\Walking6\\PointCloud\\";
 
    private final boolean showLidarPlanarRegions = false;
    //private final String planarRegionsPath = "E:\\Data\\SimpleArea3\\20191127_222138_PlanarRegion\\";
    //private final String planarRegionsPath = "E:\\Data\\Walking7-fixedframe\\PlanarRegions\\";
-   private final String planarRegionsPath = "E:\\Data\\Walking11-kinematic\\20191125_164741_PlanarRegion\\";
+   //private final String planarRegionsPath = "E:\\Data\\Walking11-kinematic\\20191125_164741_PlanarRegion\\";
+   private final String planarRegionsPath = "E:\\Data\\Walking6\\PlanarRegions\\";
 
    private final boolean doNaiveSLAM = false;
 
@@ -37,8 +39,10 @@ public class IhmcSLAMEndToEndTest
       messages.addAll(messagesFromFile);
       System.out.println("number of messages " + messages.size());
 
+      PlanarRegionsList importPlanarRegionsData = PlanarRegionFileTools.importPlanarRegionData(new File(planarRegionsPath));
       IhmcSLAM slam = new IhmcSLAM(doNaiveSLAM);
       slam.addFirstFrame(messages.get(0));
+      slam.setKeyFramePlanarRegionsMap(importPlanarRegionsData);
       for (int i = 1; i < messages.size(); i++)
 //      for (int i = 20; i < 60; i++)
          slam.addFrame(messages.get(i));
@@ -54,7 +58,7 @@ public class IhmcSLAMEndToEndTest
       }
       for (int i = 0; i < slam.getPointCloudMap().size(); i++)
       {
-//         slamViewer.addPointCloud(slam.getPointCloudMap().get(i), Color.BLUE);
+         slamViewer.addPointCloud(slam.getPointCloudMap().get(i), Color.BLUE);
 //         slamViewer.addSensorPose(slam.getSensorPoses().get(i), Color.BLUE);
       }
 

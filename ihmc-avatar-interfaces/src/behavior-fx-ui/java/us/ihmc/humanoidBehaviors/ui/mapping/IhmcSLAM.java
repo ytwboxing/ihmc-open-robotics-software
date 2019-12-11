@@ -121,7 +121,12 @@ public class IhmcSLAM
                                                                                                frame.getInitialSensorPoseToWorld().getTranslation(),
                                                                                                OCTREE_RESOLUTION, planarRegionSegmentationParameters);
       planarRegionsMap = PlanarRegionPolygonizer.createPlanarRegionsList(rawData, concaveHullFactoryParameters, polygonizerParameters);
-      //addFirstPlanarRegion(); //TODO: try to fix first supporting polygon.
+      addFirstPlanarRegion(); //TODO: try to fix first supporting polygon.
+   }
+   
+   public void setKeyFramePlanarRegionsMap(PlanarRegionsList planarRegionsMap)
+   {
+      this.planarRegionsMap = planarRegionsMap;
    }
 
    public void addFirstPlanarRegion()
