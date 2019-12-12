@@ -1,9 +1,12 @@
 package us.ihmc.robotEnvironmentAwareness.exoRealSense;
 
 import java.awt.Color;
+import java.io.File;
+import java.io.FileWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import sensor_msgs.PointCloud2;
@@ -26,7 +29,7 @@ public class RealSenseBridgeRos2 extends AbstractRosTopicSubscriber<PointCloud2>
    private int MAX_NUMBER_OF_POINTS;
    
    //constructor
-   public RealSenseBridgeRos2(String sourceURI, String rosWrapperTopic, Ros2Node ros2Node, String ros2Topic, int maxNumberOfPoints) throws URISyntaxException
+   public RealSenseBridgeRos2(String sourceURI, String rosWrapperTopic, Ros2Node ros2Node, String ros2Topic, int maxNumberOfPoints, String savePath) throws URISyntaxException
    {
       super(PointCloud2._TYPE);
       URI masterURI = new URI(sourceURI);
@@ -35,6 +38,7 @@ public class RealSenseBridgeRos2 extends AbstractRosTopicSubscriber<PointCloud2>
       rosMainNode.execute();
 
       this.MAX_NUMBER_OF_POINTS = maxNumberOfPoints;
+      this.savePath = savePath;
       stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ros2Topic);
    }
 
@@ -52,6 +56,9 @@ public class RealSenseBridgeRos2 extends AbstractRosTopicSubscriber<PointCloud2>
    int[] colorsInteger;
    Point3D scanPoint;
    StereoVisionPointCloudMessage stereoVisionMessage;
+   String savePath;
+   int savingIndex = 0;
+   public AtomicReference<Boolean> saveStereoVisionPointCloud = new AtomicReference<Boolean>(false);   
    
    //functions
    @Override
@@ -95,5 +102,32 @@ public class RealSenseBridgeRos2 extends AbstractRosTopicSubscriber<PointCloud2>
 
       //publishing
       stereoVisionPublisher.publish(stereoVisionMessage);
+      
+      //saving
+      if (saveStereoVisionPointCloud.get())
+      {
+         try
+         {
+            long time = System.currentTimeMillis();
+            File file = new File(savePath + "/stereovision_pointcloud_" + savingIndex + ".txt");
+            file.setLastModified(time);
+            FileWriter fileWriter = new FileWriter(file);
+            StringBuilder builder = new StringBuilder("");
+            for (int i = 0; i < numberOfPoints; i++)
+            {
+               Point3D scanPoint = pointCloud[i];
+               builder.append(i + "\t" + scanPoint.getX() + "\t" + scanPoint.getY() + "\t" + scanPoint.getZ() + "\t" + colors[i].getRGB() + "\n");
+            }
+            fileWriter.write(builder.toString());
+            
+            fileWriter.close();
+            savingIndex++;
+         }
+         catch (Exception ex)
+         {
+            saveStereoVisionPointCloud.set(false);
+            ex.printStackTrace();
+         }
+      }
    }
 }

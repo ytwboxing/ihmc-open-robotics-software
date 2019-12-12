@@ -462,6 +462,5 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
             System.out.println(commandToStopSavingImage + " pressed");
          }
       }
-      
    }
 }
