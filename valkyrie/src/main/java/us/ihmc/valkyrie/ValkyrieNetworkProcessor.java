@@ -11,10 +11,11 @@ import us.ihmc.avatar.networkProcessor.DRCNetworkModuleParameters;
 import us.ihmc.avatar.networkProcessor.DRCNetworkProcessor;
 import us.ihmc.communication.configuration.NetworkParameters;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
+import us.ihmc.valkyrie.configuration.ValkyrieRobotVersion;
 
 public class ValkyrieNetworkProcessor
 {
-   private static final DRCRobotModel model = new ValkyrieRobotModel(RobotTarget.REAL_ROBOT);
+   private static final DRCRobotModel model = new ValkyrieRobotModel(RobotTarget.REAL_ROBOT, ValkyrieRobotVersion.ARM_MASS_SIM);
    public static final boolean launchFootstepPlannerModule = true;
    
    public static void main(String[] args) throws URISyntaxException, JSAPException
