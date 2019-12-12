@@ -22,15 +22,15 @@ public class ValkyrieNetworkProcessor
    {
       DRCNetworkModuleParameters networkModuleParams = new DRCNetworkModuleParameters();
       
-      networkModuleParams.enableRobotEnvironmentAwerenessModule(false);
-      networkModuleParams.enableKinematicsToolbox(true);
+//      networkModuleParams.enableRobotEnvironmentAwerenessModule(false);
+//      networkModuleParams.enableKinematicsToolbox(true);
       networkModuleParams.enableKinematicsStreamingToolbox(true, ValkyrieKinematicsStreamingToolboxModule.class);
       networkModuleParams.enableKinematicsPlanningToolbox(true);
-      networkModuleParams.enableFootstepPlanningToolbox(launchFootstepPlannerModule);
-      networkModuleParams.enableFootstepPlanningToolboxVisualizer(false);
-      networkModuleParams.enableBipedalSupportPlanarRegionPublisher(true);
-      networkModuleParams.enableWalkingPreviewToolbox(true);
-      networkModuleParams.enableAutoREAStateUpdater(true);
+//      networkModuleParams.enableFootstepPlanningToolbox(launchFootstepPlannerModule);
+//      networkModuleParams.enableFootstepPlanningToolboxVisualizer(false);
+//      networkModuleParams.enableBipedalSupportPlanarRegionPublisher(true);
+//      networkModuleParams.enableWalkingPreviewToolbox(true);
+//      networkModuleParams.enableAutoREAStateUpdater(true);
 
 //      uncomment these for the sensors
       URI rosuri = NetworkParameters.getROSURI();
