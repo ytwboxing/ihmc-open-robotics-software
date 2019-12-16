@@ -36,7 +36,7 @@ public class AtlasSensorSuiteManager implements DRCSensorSuiteManager
    private final Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "ihmc_atlas_sensor_suite_node");
 
    private final LidarScanPublisher lidarScanPublisher;
-   private final StereoVisionPointCloudPublisher stereoVisionPointCloudPublisher;
+//   private final StereoVisionPointCloudPublisher stereoVisionPointCloudPublisher;
 
    private final RobotROSClockCalculator rosClockCalculator;
    private final HumanoidRobotSensorInformation sensorInformation;
@@ -62,8 +62,8 @@ public class AtlasSensorSuiteManager implements DRCSensorSuiteManager
       lidarScanPublisher.setROSClockCalculator(rosClockCalculator);
       lidarScanPublisher.setCollisionBoxProvider(collisionBoxProvider);
 
-      stereoVisionPointCloudPublisher = new StereoVisionPointCloudPublisher(modelFactory, ros2Node, rcdTopicName);
-      stereoVisionPointCloudPublisher.setROSClockCalculator(rosClockCalculator);
+//      stereoVisionPointCloudPublisher = new StereoVisionPointCloudPublisher(modelFactory, ros2Node, rcdTopicName);
+//      stereoVisionPointCloudPublisher.setROSClockCalculator(rosClockCalculator);
 
    }
 
@@ -102,10 +102,10 @@ public class AtlasSensorSuiteManager implements DRCSensorSuiteManager
       lidarScanPublisher.receiveLidarFromROSAsPointCloud2WithSource(multisenseLidarParameters.getRosTopic(), rosMainNode);
       lidarScanPublisher.setScanFrameToWorldFrame();
 
-      stereoVisionPointCloudPublisher.receiveStereoPointCloudFromROS(multisenseStereoParameters.getRosTopic(), rosMainNode);
-      stereoVisionPointCloudPublisher.setFilterThreshold(AtlasSensorInformation.linearVelocityThreshold,
-                                                         AtlasSensorInformation.angularVelocityThreshold);
-      stereoVisionPointCloudPublisher.enableFilter(true);
+//      stereoVisionPointCloudPublisher.receiveStereoPointCloudFromROS(multisenseStereoParameters.getRosTopic(), rosMainNode);
+//      stereoVisionPointCloudPublisher.setFilterThreshold(AtlasSensorInformation.linearVelocityThreshold,
+//                                                         AtlasSensorInformation.angularVelocityThreshold);
+//      stereoVisionPointCloudPublisher.enableFilter(true);
 
       MultiSenseSensorManager multiSenseSensorManager = new MultiSenseSensorManager(modelFactory, robotConfigurationDataBuffer, rosMainNode, ros2Node,
                                                                                     rosClockCalculator, multisenseLeftEyeCameraParameters,
@@ -123,7 +123,7 @@ public class AtlasSensorSuiteManager implements DRCSensorSuiteManager
       leftFishEyeCameraReceiver.start();
       rightFishEyeCameraReceiver.start();
       lidarScanPublisher.start();
-      stereoVisionPointCloudPublisher.start();
+//      stereoVisionPointCloudPublisher.start();
 
       rosClockCalculator.setROSMainNode(rosMainNode);
 
