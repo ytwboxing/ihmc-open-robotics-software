@@ -53,6 +53,9 @@ public class DRCPoseCommunicator implements RawOutputWriter
 
    private final IHMCRealtimeROS2Publisher<RobotConfigurationData> robotConfigurationDataPublisher;
 
+   private static final int PUBLISH_ONE_IN_N = 100;
+   private int count = 0;
+
    public DRCPoseCommunicator(FullRobotModel estimatorModel, JointConfigurationGatherer jointConfigurationGathererAndProducer,
                               MessageTopicNameGenerator publisherTopicNameGenerator, RealtimeRos2Node realtimeRos2Node,
                               SensorTimestampHolder sensorTimestampHolder, SensorRawOutputMapReadOnly sensorRawOutputMapReadOnly,
@@ -184,6 +187,14 @@ public class DRCPoseCommunicator implements RawOutputWriter
          robotConfigurationData.setLastReceivedPacketRobotTimestamp(-1);
       }
 
-      robotConfigurationDataPublisher.publish(robotConfigurationData);
+      if(count >= PUBLISH_ONE_IN_N)
+      {
+         robotConfigurationDataPublisher.publish(robotConfigurationData);
+         count = 0;
+      }
+      else
+      {
+         count++;
+      }
    }
 }
