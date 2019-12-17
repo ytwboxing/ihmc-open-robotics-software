@@ -16,6 +16,7 @@ import controller_msgs.msg.dds.SimulatedLidarScanPacket;
 import gnu.trove.list.array.TFloatArrayList;
 import scan_to_cloud.PointCloud2WithSource;
 import sensor_msgs.PointCloud2;
+import sensor_msgs.PointField;
 import us.ihmc.avatar.ros.RobotROSClockCalculator;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.IHMCROS2Publisher;
@@ -71,6 +72,8 @@ public class LidarScanPublisher
 
    private final IHMCROS2Publisher<LidarScanMessage> lidarScanPublisher;
    private final IHMCRealtimeROS2Publisher<LidarScanMessage> lidarScanRealtimePublisher;
+   private final IHMCROS2Publisher<sensor_msgs.msg.dds.PointCloud2> pointCloud2Publisher;
+   private final IHMCRealtimeROS2Publisher<sensor_msgs.msg.dds.PointCloud2> pointCloud2RealtimePublisher;
 
    private double shadowAngleThreshold = DEFAULT_SHADOW_ANGLE_THRESHOLD;
 
@@ -110,6 +113,8 @@ public class LidarScanPublisher
                                               s -> robotConfigurationDataBuffer.receivedPacket(s.takeNextData()));
          lidarScanPublisher = ROS2Tools.createPublisher(ros2Node, LidarScanMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
          lidarScanRealtimePublisher = null;
+         pointCloud2Publisher = ROS2Tools.createPublisher(ros2Node, sensor_msgs.msg.dds.PointCloud2.class, "/ihmc/multisense_lidar");
+         pointCloud2RealtimePublisher = null;
       }
       else
       {
@@ -117,7 +122,10 @@ public class LidarScanPublisher
                                               s -> robotConfigurationDataBuffer.receivedPacket(s.takeNextData()));
          lidarScanPublisher = null;
          lidarScanRealtimePublisher = ROS2Tools.createPublisher(realtimeRos2Node, LidarScanMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
+         pointCloud2RealtimePublisher = ROS2Tools.createPublisher(realtimeRos2Node, sensor_msgs.msg.dds.PointCloud2.class, "/ihmc/multisense_lidar");
+         pointCloud2Publisher = null;
       }
+
    }
 
    public void start()
@@ -223,6 +231,37 @@ public class LidarScanPublisher
             UnpackedPointCloud pointCloudData = RosPointCloudReceiver.unpackPointsAndIntensities(cloud);
             Point3D[] scanPoints = pointCloudData.getPoints();
             long timestamp = cloud.getHeader().getStamp().totalNsecs();
+
+            sensor_msgs.msg.dds.PointCloud2 pointCloud2 = new sensor_msgs.msg.dds.PointCloud2();
+            pointCloud2.getHeader().setFrameId(cloud.getHeader().getFrameId());
+            pointCloud2.setHeight(cloud.getHeight());
+            pointCloud2.setWidth(cloud.getWidth());
+            for (PointField field : cloud.getFields())
+            {
+               sensor_msgs.msg.dds.PointField pointField = new sensor_msgs.msg.dds.PointField();
+               pointField.setName(field.getName());
+               pointField.setOffset(field.getOffset());
+               pointField.setDatatype(field.getDatatype());
+               pointField.setCount(field.getCount());
+               pointCloud2.getFields().add(pointField);
+            }
+            pointCloud2.setIsBigendian(cloud.getIsBigendian());
+            pointCloud2.setPointStep(cloud.getPointStep());
+            pointCloud2.setRowStep(cloud.getRowStep());
+            for (byte b : cloud.getData().array())
+            {
+               pointCloud2.getData().add(b);
+            }
+            pointCloud2.setIsDense(cloud.getIsDense());
+
+            if (pointCloud2Publisher == null)
+            {
+               pointCloud2RealtimePublisher.publish(pointCloud2);
+            }
+            else
+            {
+               pointCloud2Publisher.publish(pointCloud2);
+            }
 
             scanDataToPublish.set(new ScanData(timestamp, scanPoints));
          }

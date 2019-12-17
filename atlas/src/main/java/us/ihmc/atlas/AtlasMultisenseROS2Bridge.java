@@ -6,6 +6,7 @@ import sensor_msgs.msg.dds.PointCloud2;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.IHMCROS2Publisher;
 import us.ihmc.communication.ROS2Tools;
+import us.ihmc.log.LogTools;
 import us.ihmc.ros2.Ros2Node;
 import us.ihmc.utilities.ros.RosMainNode;
 import us.ihmc.utilities.ros.subscriber.AbstractRosTopicSubscriber;
@@ -72,6 +73,7 @@ public class AtlasMultisenseROS2Bridge
             }
             pointCloud2.setIsDense(ros1PointCloud2.getIsDense());
 
+            LogTools.info("Publishing {} points", pointCloud2.width_);
             pointCloud2Publisher.publish(pointCloud2);
          }
       });
@@ -79,10 +81,12 @@ public class AtlasMultisenseROS2Bridge
       rosMainNode.execute();
 
       ThreadTools.join();
+
+      ThreadTools.sleepForever();
    }
 
    public static void main(String[] args)
    {
-
+      new AtlasMultisenseROS2Bridge();
    }
 }
