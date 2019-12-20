@@ -20,14 +20,15 @@ import controller_msgs.msg.dds.LidarScanMessage;
 import controller_msgs.msg.dds.PlanarRegionsListMessage;
 import controller_msgs.msg.dds.REASensorDataFilterParametersMessage;
 import controller_msgs.msg.dds.REAStateRequestMessage;
-import controller_msgs.msg.dds.RequestPlanarRegionsListMessage;
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import std_msgs.msg.dds.Float64;
 import us.ihmc.communication.ROS2Tools;
 import us.ihmc.communication.packets.PlanarRegionMessageConverter;
 import us.ihmc.communication.packets.PlanarRegionsRequestType;
 import us.ihmc.communication.util.NetworkPorts;
-import us.ihmc.euclid.geometry.LineSegment3D;
+import us.ihmc.euclid.matrix.RotationScaleMatrix;
+import us.ihmc.euclid.transform.AffineTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.jOctoMap.ocTree.NormalOcTree;
 import us.ihmc.jOctoMap.tools.JOctoMapTools;
@@ -155,16 +156,17 @@ public class LIDARBasedREAModule
       boundingBox.minX = -1.0f;
       boundingBox.maxY = 0.1f;
       boundingBox.minY = -1.0f;
-      boundingBox.maxZ = 4.5f;
+      boundingBox.maxZ = 3.0f;
       boundingBox.minZ = 0.0f;
-      */      
+      */   
+      
       //left
-      boundingBox.maxX = 0.0f;
+      boundingBox.maxX = 0.01f;
       boundingBox.minX = -1.0f;
-      boundingBox.maxY = 1.0f;
-      boundingBox.minY = -0.1f;
-      boundingBox.maxZ = 10.5f;
-      boundingBox.minZ = 0.0f;      
+      boundingBox.maxY = -0.1f;
+      boundingBox.minY = 1.0f;
+      boundingBox.maxZ = 3.0f;
+      boundingBox.minZ = 0.0f;
       reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox);  
 
       reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
@@ -181,7 +183,7 @@ public class LIDARBasedREAModule
    }
    
    private double DISTANCE_CAMERA_GROUND = 0.635;
-   private int CAMERA_POSITION = 2;
+   private int CAMERA_POSITION = 1;
    private void handleExoKneeHeight(Subscriber<Float64> subscriber) {
       Double value = subscriber.takeNextData().data_;
       if(value == 0.0)
@@ -195,32 +197,35 @@ public class LIDARBasedREAModule
       switch (CAMERA_POSITION)
       {
          case 1:
-            DISTANCE_CAMERA_GROUND = value + Math.sin((THIGH_ANGLE - 0.506)) * 0.12; //0.506 rad (29.0°) and 0.12 meters are measurements from exo
+            DISTANCE_CAMERA_GROUND = value + Math.sin(THIGH_ANGLE - 0.69001592) * 0.0943; //0.69001592 rad (39.535°) and 0.0943 meters are measurements from exo
             break;
          case 2:
-            DISTANCE_CAMERA_GROUND = value + Math.sin((THIGH_ANGLE - 0.358)) * 0.094; //0.358 rad (20.5°) and 0.094 meters are measurements from exo
+            DISTANCE_CAMERA_GROUND = value + Math.sin(THIGH_ANGLE - 0.265586752) * 0.0631; //0.265586752 rad (15.217°) and 0.0631 meters are measurements from exo
             break;
          default:
             break;
       }
    } 
    
-   private double THIGH_ANGLE = 90.0;
+   private double THIGH_ANGLE = 1.5708;
    private double IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = 90.0;
+   private double IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = 0.0;
    private void handleExoThighAngle(Subscriber<Float64> subscriber) {
       Double value = subscriber.takeNextData().data_;
       if(value == 0.0 || value == 500.0)
          return;
       
-      THIGH_ANGLE = value;  
+      THIGH_ANGLE = value;
       
       switch (CAMERA_POSITION)
       {
          case 1:
-            IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and step 
+            IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and stair 
+            IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
             break;
          case 2:
-            IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.733038) - (THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.733038 rad (42°)            
+            IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.698132) - (THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.698132 rad (40°) 
+            IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
             break;
          default:
             break;
@@ -235,9 +240,33 @@ public class LIDARBasedREAModule
       mainUpdater.handleLidarScanMessage(message);
    }
 
+   boolean switchingThingy = true;
    private void dispatchStereoVisionPointCloudMessage(Subscriber<StereoVisionPointCloudMessage> subscriber)
    {
-      StereoVisionPointCloudMessage message = subscriber.takeNextData();
+      StereoVisionPointCloudMessage message = subscriber.takeNextData();   
+      
+      /*
+      if(switchingThingy) {
+         switchingThingy = false;
+         RotationScaleMatrix rotation = new RotationScaleMatrix();
+         rotation.setEuler(0.0, -IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE*(Math.PI/180), 0.0); 
+         Point3D translation = new Point3D(0.0, 0.0, 0.0);
+         AffineTransform transform = new AffineTransform(rotation, translation);         
+         
+         Float floatIGuess = message.getPointCloud();
+         for(int i = 0; i < floatIGuess.size(); i+=3) {
+            Point3D point = new Point3D(floatIGuess.get(i), floatIGuess.get(i+1), floatIGuess.get(i+2));
+            point.applyTransform(transform);
+            floatIGuess.set(i, point.getX32());
+            floatIGuess.set(i+1, point.getY32());
+            floatIGuess.set(i+2, point.getZ32());
+         }         
+      }
+      else {
+         switchingThingy = true;
+      }
+      */
+      
       moduleStateReporter.registerStereoVisionPointCloudMessage(message);
       stereoVisionBufferUpdater.handleStereoVisionPointCloudMessage(message);
       mainUpdater.handleStereoVisionPointCloudMessage(message);
@@ -450,7 +479,11 @@ public class LIDARBasedREAModule
             
       //variable
       double distance = DEFAULT_DISTANCE_VALUE;
-
+      
+      RotationScaleMatrix rotation = null;
+      Point3D translation = null;
+      AffineTransform transform = null; 
+      
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
          Vector3D normalI = planarRegionI.getNormal();
@@ -458,17 +491,30 @@ public class LIDARBasedREAModule
          if(angleToCamera < IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - ANGLE_CAMERA_PLANE_TOLERANCE || angleToCamera > IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE + ANGLE_CAMERA_PLANE_TOLERANCE)
             continue;
 
-         double minX = planarRegionI.getBoundingBox3dInWorld().getMinX();
-         double minZ = planarRegionI.getBoundingBox3dInWorld().getMinZ();
+         double angleToGround = Math.acos(normalI.getX())*(180/Math.PI); //simplified for ground vector (1, 0, 0)
+         if(angleToGround < Math.abs(IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE) - ANGLE_CAMERA_PLANE_TOLERANCE || angleToGround > Math.abs(IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE) + ANGLE_CAMERA_PLANE_TOLERANCE)
+            continue;
          
-         if(minZ > DISTANCE_CAMERA_GROUND) {
-            double expectedMinX = Math.sqrt(minZ*minZ - DISTANCE_CAMERA_GROUND*DISTANCE_CAMERA_GROUND) * -1.0;
-            if(Math.abs(expectedMinX - minX) > MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE)
-               continue;            
+         if(rotation == null) {
+            rotation = new RotationScaleMatrix();
+            rotation.setEuler(0.0, -IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE*(Math.PI/180), 0.0);
+            translation = new Point3D(0.0, 0.0, 0.0);
+            transform = new AffineTransform(rotation, translation); 
          }
-
-         if(distance > minZ)
-            distance = minZ; 
+         
+         Point3D minPoint = (Point3D) planarRegionI.getBoundingBox3dInWorld().getMinPoint();
+         if(planarRegionI.getNormal().getZ() > 0) 
+            minPoint.setX(planarRegionI.getBoundingBox3dInWorld().getMaxPoint().getX());
+         minPoint.applyTransform(transform);
+         
+         double pointToGround = minPoint.getX() * -1.0; 
+         if(pointToGround > DISTANCE_CAMERA_GROUND - MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE && pointToGround < DISTANCE_CAMERA_GROUND + MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE)
+            continue;
+         
+         if(distance > minPoint.getZ())
+            distance =  minPoint.getZ();
+         
+         double stairHeight = DISTANCE_CAMERA_GROUND - pointToGround;
       }     
       
       return distance;        

@@ -18,6 +18,9 @@ import std_msgs.msg.dds.Float64;
 import us.ihmc.communication.IHMCROS2Publisher;
 import us.ihmc.communication.ROS2Tools;
 import us.ihmc.communication.util.NetworkPorts;
+import us.ihmc.euclid.matrix.RotationScaleMatrix;
+import us.ihmc.euclid.transform.AffineTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.jOctoMap.ocTree.NormalOcTree;
 import us.ihmc.messager.Messager;
@@ -103,14 +106,15 @@ public class ObstacleDisplayer
    private static boolean PRINT_SENDER = false;
    private static double MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = 0.05;   
    private static double DEFAULT_DISTANCE_CAMERA_GROUND = 0.635;
-   private static double DEFAULT_THIGH_ANGLE = 90.0;
+   private static double DEFAULT_THIGH_ANGLE = 1.5708;
    private static double DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = 90.0;
    private static String ALGORITHM_SELECTOR = "stairDistance2"; //name of function      
    private static boolean DISTANCE_IN_FEET = false;   
-   private static int CAMERA_POSITION = 2; //1 - parallel with tight, 2 - pointing down 42°
+   private static int CAMERA_POSITION = 2; //1 - parallel with thight, 2 - pointing down 42°
    private static int EXO_DATA_MINIMUM_TIME_GAP = 10;
    private static boolean PUBLISH_EXO = false;
    private static int DATASET_NUMBER = 1;
+   private static double DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = 0.0;
    
    private static double DISTANCE_LEFT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
    private static double DISTANCE_RIGHT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
@@ -118,6 +122,8 @@ public class ObstacleDisplayer
    private static double RIGHT_THIGH_ANGLE = DEFAULT_THIGH_ANGLE;
    private static double LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE;
    private static double RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE;
+   private static double LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE;
+   private static double RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE;   
    
    private static final String MARK_MAX_NUMBER_OF_POINTS = "MAX_NUMBER_OF_POINTS"; 
    private static final String MARK_THREAD_PERIOD_MILLISECONDS = "THREAD_PERIOD_MILLISECONDS";
@@ -145,6 +151,7 @@ public class ObstacleDisplayer
    private static final String MARK_EXO_DATA_MINIMUM_TIME_GAP = "EXO_DATA_MINIMUM_TIME_GAP";
    private static final String MARK_PUBLISH_EXO = "PUBLISH_EXO";
    private static final String MARK_DATASET_NUMBER = "DATASET_NUMBER";
+   private static final String MARK_DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = "DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE";
    
    //functions
    public static void main(String[] args)
@@ -394,6 +401,9 @@ public class ObstacleDisplayer
                case MARK_DATASET_NUMBER:
                   DATASET_NUMBER = Integer.valueOf(bReader.readLine());
                   break;
+               case MARK_DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE:
+                  DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = Double.valueOf(bReader.readLine());
+                  break;
                default:
                   break;
             }
@@ -408,6 +418,8 @@ public class ObstacleDisplayer
          RIGHT_THIGH_ANGLE = DEFAULT_THIGH_ANGLE;
          LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE;
          RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE;
+         LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE;
+         RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE; 
       }      
    }
 
@@ -465,10 +477,10 @@ public class ObstacleDisplayer
       switch (CAMERA_POSITION)
       {
          case 1:
-            DISTANCE_LEFT_CAMERA_GROUND = value + Math.sin(LEFT_THIGH_ANGLE - 0.506) * 0.12; //0.506 rad (29.0°) and 0.12 meters are measurements from exo
+            DISTANCE_LEFT_CAMERA_GROUND = value + Math.sin(LEFT_THIGH_ANGLE - 0.69001592) * 0.0943; //0.69001592 rad (39.535°) and 0.0943 meters are measurements from exo
             break;
          case 2:
-            DISTANCE_LEFT_CAMERA_GROUND = value + Math.sin(LEFT_THIGH_ANGLE - 0.358) * 0.094; //0.358 rad (20.5°) and 0.094 meters are measurements from exo
+            DISTANCE_LEFT_CAMERA_GROUND = value + Math.sin(LEFT_THIGH_ANGLE - 0.265586752) * 0.0631; //0.265586752 rad (15.217°) and 0.0631 meters are measurements from exo
             break;
          default:
             break;
@@ -515,10 +527,10 @@ public class ObstacleDisplayer
       switch (CAMERA_POSITION)
       {
          case 1:
-            DISTANCE_RIGHT_CAMERA_GROUND = value + Math.sin(RIGHT_THIGH_ANGLE - 0.506) * 0.12; //0.506 rad (29.0°) and 0.12 meters are measurements from exo
+            DISTANCE_RIGHT_CAMERA_GROUND = value + Math.sin(RIGHT_THIGH_ANGLE - 0.69001592) * 0.0943; //0.69001592 rad (39.535°) and 0.0943 meters are measurements from exo
             break;
          case 2:
-            DISTANCE_RIGHT_CAMERA_GROUND = value + Math.sin(RIGHT_THIGH_ANGLE - 0.358) * 0.094; //0.358 rad (20.5°) and 0.094 meters are measurements from exo
+            DISTANCE_RIGHT_CAMERA_GROUND = value + Math.sin(RIGHT_THIGH_ANGLE - 0.265586752) * 0.0631; //0.265586752 rad (15.217°) and 0.0631 meters are measurements from exo
             break;
          default:
             break;
@@ -565,10 +577,12 @@ public class ObstacleDisplayer
       switch (CAMERA_POSITION)
       {
          case 1:
-            LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (LEFT_THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and step 
+            LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (LEFT_THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and stair 
+            LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
             break;
          case 2:
-            LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.733038) - (LEFT_THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.733038 rad (42°)            
+            LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.698132) - (LEFT_THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.698132 rad (40°)          
+            LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
             break;
          default:
             break;
@@ -618,9 +632,11 @@ public class ObstacleDisplayer
       {
          case 1:
             RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (RIGHT_THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and step 
+            RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
             break;
          case 2:
-            RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.733038) - (RIGHT_THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.733038 rad (42°)
+            RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.698132) - (LEFT_THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.698132 rad (40°)
+            RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
             break;
          default:
             break;
@@ -665,8 +681,8 @@ public class ObstacleDisplayer
          //detection part
          switch(ALGORITHM_SELECTOR) {
             case "stairDistance2": 
-               distanceLeft = stairDistance2(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE);
-               distanceRight = stairDistance2(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE);
+               distanceLeft = stairDistance2(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
+               distanceRight = stairDistance2(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
                break;
             case "stairDistance": 
                distanceLeft = stairDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
@@ -768,7 +784,7 @@ public class ObstacleDisplayer
     * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
     * different approach
     */
-   private double stairDistance2(PlanarRegionsList planarRegionsList, double distanceCameraGround, double idealAngleBetweenCameraAndPlane)
+   private double stairDistance2(PlanarRegionsList planarRegionsList, double distanceCameraGround, double idealAngleBetweenCameraAndPlane, double idealAngleBetweenGroundAndPlane)
    {  
       if(planarRegionsList.getNumberOfPlanarRegions() == 0 || distanceCameraGround == 500.0) // 500 means leg in swing
          return DEFAULT_DISTANCE_VALUE;      
@@ -776,6 +792,10 @@ public class ObstacleDisplayer
       //variable
       double distance = DEFAULT_DISTANCE_VALUE;
 
+      RotationScaleMatrix rotation = null;
+      Point3D translation = null;
+      AffineTransform transform = null; 
+      
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
          Vector3D normalI = planarRegionI.getNormal();
@@ -783,20 +803,33 @@ public class ObstacleDisplayer
          if(angleToCamera < idealAngleBetweenCameraAndPlane - ANGLE_CAMERA_PLANE_TOLERANCE || angleToCamera > idealAngleBetweenCameraAndPlane + ANGLE_CAMERA_PLANE_TOLERANCE)
             continue;
 
-         double minX = planarRegionI.getBoundingBox3dInWorld().getMinX();
-         double minZ = planarRegionI.getBoundingBox3dInWorld().getMinZ();
+         double angleToGround = Math.acos(normalI.getX())*(180/Math.PI); //simplified for ground vector (1, 0, 0)
+         if(angleToGround < Math.abs(idealAngleBetweenGroundAndPlane) - ANGLE_CAMERA_PLANE_TOLERANCE || angleToGround > Math.abs(idealAngleBetweenGroundAndPlane) + ANGLE_CAMERA_PLANE_TOLERANCE)
+            continue;
          
-         if(minZ > distanceCameraGround) {
-            double expectedMinX = Math.sqrt(minZ*minZ - distanceCameraGround*distanceCameraGround) * -1.0;
-            if(Math.abs(expectedMinX - minX) > MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE)
-               continue;            
+         if(rotation == null) {
+            rotation = new RotationScaleMatrix();
+            rotation.setEuler(0.0, -idealAngleBetweenGroundAndPlane*(Math.PI/180), 0.0);
+            translation = new Point3D(0.0, 0.0, 0.0);
+            transform = new AffineTransform(rotation, translation); 
          }
-
-         if(distance > minZ)
-            distance = minZ; 
+         
+         Point3D minPoint = (Point3D) planarRegionI.getBoundingBox3dInWorld().getMinPoint();
+         if(planarRegionI.getNormal().getZ() > 0) 
+            minPoint.setX(planarRegionI.getBoundingBox3dInWorld().getMaxPoint().getX());
+         minPoint.applyTransform(transform);
+         
+         double pointToGround = minPoint.getX() * -1.0; 
+         if(pointToGround > distanceCameraGround - MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE && pointToGround < distanceCameraGround + MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE)
+            continue;
+         
+         if(distance > minPoint.getZ())
+            distance =  minPoint.getZ();
+         
+         double stairHeight = distanceCameraGround - pointToGround;
       }
       
-      return distance;  
+      return distance;
    }
    
    /*

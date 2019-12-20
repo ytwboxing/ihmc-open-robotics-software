@@ -232,21 +232,73 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
    
    public static void main(String[] args) throws URISyntaxException
    {
-      /*
+      
       //self start      
-      URI masterURI = new URI("http://192.168.0.12:11311");
-      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "1:\t", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
+      URI masterURI = new URI("http://10.7.4.52:11311"); //"http://192.168.0.12:11311"
+      //new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "1:\t", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
       new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "2:", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
-      */
+      
+      
       /*
       //one particular point cloud
-      File f = new File("DATASETS/2/RPC/points (53).txt");
+      String dataset = "3 P1"; //  "1 P2"
+      String LR = "L"; //L
+      String number = "20"; // 410 200
+      File f = new File("DATASETS/" + dataset + "/" + LR + "PC/points (" + number + ").txt"); 
       Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNode");
       IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
       StereoVisionPointCloudMessage m = StereoVisionPointCloudDataLoader.getMessageFromFile(f); 
+      long publishedTime = f.lastModified() - 21600000L;
+
+      BufferedReader reader;
+      Long time;
+      double height = 0.0;
+      double angle = 0.0;
+      Float64 heightF;
+      Float64 angleF;
+      String line;
+      try
+      {        
+         reader = new BufferedReader(new FileReader(new File("DATASETS/" + dataset + "/EXO/" + LR + "KneeHeight.txt"))); 
+         while(true) {
+            line = reader.readLine();
+            time = Long.valueOf(line);
+            if(time > publishedTime) {
+               if(height == 0.0)
+                  height = Double.valueOf(reader.readLine());                   
+               break;
+            }
+            height = Double.valueOf(reader.readLine());       
+         }  
+         heightF = new Float64();
+         heightF.data_ = height;
+
+         reader = new BufferedReader(new FileReader(new File("DATASETS/" + dataset + "/EXO/" + LR + "ThighAngle.txt"))); 
+         while(true) {
+            time = Long.valueOf(reader.readLine());
+            if(time > publishedTime) {
+               if(angle == 0.0)
+                  angle = Double.valueOf(reader.readLine());  
+               break;
+            }
+            angle = Double.valueOf(reader.readLine());       
+         } 
+         
+         angleF = new Float64();
+         angleF.data_ = angle;         
+      }
+      catch (Exception ex)
+      {
+         ex.printStackTrace();
+         return;
+      }
+      IHMCROS2Publisher<Float64> publisherHeight = ROS2Tools.createPublisher(ros2Node, Float64.class, "mina_v2/knee_height");
+      IHMCROS2Publisher<Float64> publisherAngle = ROS2Tools.createPublisher(ros2Node, Float64.class, "mina_v2/thigh_angle");
+      
       while(true) {
          stereoVisionPublisher.publish(m);
-         
+         publisherHeight.publish(heightF);
+         publisherAngle.publish(angleF);
          try
          {
             Thread.sleep(2000);
@@ -256,8 +308,9 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
             e.printStackTrace();
          }         
       }
-      */      
+      */
 
+      /*
       //whole dataset
       final String setNumber = "1";
       final String leftRight = "R";
@@ -269,6 +322,7 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
       //ExoPublisherThread(path + "EXO/"+ leftRight +"KneeHeight.txt", artificialDelay, initialLastModified, "mina_v2/knee_height");
       //ExoPublisherThread(path + "EXO/"+ leftRight +"ThighAngle.txt", artificialDelay, initialLastModified, "mina_v2/thigh_angle");
       PointCloudPublisherThread(path + leftRight, artificialDelay, initialLastModified);
+      */
    }
 
    //publish whole data set of point clouds  
@@ -282,6 +336,7 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
             long myDelay = System.currentTimeMillis();
             long sleepTime;
             long lastModified = initialLastModified;
+            
             Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNodeeeee");
             IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
            
@@ -332,37 +387,39 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
          public void run()
          {
             try { 
-               RealtimeRos2Node ros2Node = ROS2Tools.createRealtimeRos2Node(PubSubImplementation.FAST_RTPS, "ExoPublisherNode");
-               IHMCRealtimeROS2Publisher<Float64> publisher = ROS2Tools.createPublisher(ros2Node, Float64.class, topic);
-               ros2Node.spin();
-                     
                long myDelay = System.currentTimeMillis();
                File file = new File(path);
-               BufferedReader reader = new BufferedReader(new FileReader(file));         
-               String line = reader.readLine();
-               long time1 = 0;
-               long time2 = initialLastModified;
+               BufferedReader reader = null;         
+               String line = null;
+               long time = 0;
+               long previousTime = initialLastModified;
+               
+               Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "ExoPublisherNode");
+               IHMCROS2Publisher<Float64> publisher = ROS2Tools.createPublisher(ros2Node, Float64.class, topic);
+                     
                while(true) {
                   if(line == null || line.isEmpty()) {
+                     //break;
+                     //System.out.println("again");
                      reader.close();
                      reader = new BufferedReader(new FileReader(file));
                      line = reader.readLine();               
-                     time2 = initialLastModified;
+                     previousTime = initialLastModified;
                   }
                   
-                  time1 = Long.valueOf(line);
+                  time = Long.valueOf(line);
                   Float64 value = new Float64();
                   value.data_ = Double.valueOf(reader.readLine());
                   
-                  long time = System.currentTimeMillis();
-                  long waitTime = (long)(((time1 - time2) * artificialDelay) - (time - myDelay));
+                  long currentTime = System.currentTimeMillis();
+                  long waitTime = (long)(((time - previousTime) * artificialDelay) - (currentTime - myDelay));
                   if(waitTime > 0)
                      Thread.sleep(waitTime);
                   publisher.publish(value);
                   //System.out.println(topic + ": \t" + String.valueOf(time1));
                   
                   myDelay = System.currentTimeMillis();                  
-                  time2 = time1;            
+                  previousTime = time;            
                   line = reader.readLine();
                }                 
             }
