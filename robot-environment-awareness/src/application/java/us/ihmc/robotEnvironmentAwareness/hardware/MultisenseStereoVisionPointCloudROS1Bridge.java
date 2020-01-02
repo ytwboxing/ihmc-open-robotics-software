@@ -232,18 +232,18 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
    
    public static void main(String[] args) throws URISyntaxException
    {
-      
+      /*
       //self start      
       URI masterURI = new URI("http://10.7.4.52:11311"); //"http://192.168.0.12:11311"
-      //new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "1:\t", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
-      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "2:", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
+      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "1:\t", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
+      //new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "2:", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
+      */
       
       
-      /*
       //one particular point cloud
       String dataset = "3 P1"; //  "1 P2"
       String LR = "L"; //L
-      String number = "20"; // 410 200
+      String number = "200"; // 410 200
       File f = new File("DATASETS/" + dataset + "/" + LR + "PC/points (" + number + ").txt"); 
       Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNode");
       IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
@@ -308,7 +308,7 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
             e.printStackTrace();
          }         
       }
-      */
+      
 
       /*
       //whole dataset

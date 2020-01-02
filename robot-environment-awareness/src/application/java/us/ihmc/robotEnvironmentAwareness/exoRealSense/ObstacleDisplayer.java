@@ -96,7 +96,7 @@ public class ObstacleDisplayer
    private static float MINX = -1.0f;
    private static float MAXY = 1.0f;
    private static float MINY = -0.1f;
-   private static float MAXZ = 1.5f;
+   private static float MAXZ = 2.0f;
    private static float MINZ = 0.0f;   
    private static String PLANAR_REGIONS_SEGMENTATION_PARAMETERS = "search radius: 0.05, max distance from plane: 0.05, maxAngleFromPlane: 0.17453292519943295, minNormalQuality: 0.005, min region size: 50, max standard deviation: 0.015, min volumic density: 100000.0";
    private static double ANGLE_CAMERA_PLANE_TOLERANCE = 10.0;
@@ -578,11 +578,11 @@ public class ObstacleDisplayer
       {
          case 1:
             LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (LEFT_THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and stair 
-            LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
+            LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
             break;
          case 2:
             LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.698132) - (LEFT_THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.698132 rad (40°)          
-            LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
+            LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
             break;
          default:
             break;
@@ -632,11 +632,11 @@ public class ObstacleDisplayer
       {
          case 1:
             RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (RIGHT_THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and step 
-            RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
+            RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
             break;
          case 2:
             RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.698132) - (LEFT_THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.698132 rad (40°)
-            RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
+            RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
             break;
          default:
             break;
@@ -680,6 +680,10 @@ public class ObstacleDisplayer
 
          //detection part
          switch(ALGORITHM_SELECTOR) {
+            case "stairDistance3": 
+               distanceLeft = stairDistance3(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
+               distanceRight = stairDistance3(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
+               break;
             case "stairDistance2": 
                distanceLeft = stairDistance2(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
                distanceRight = stairDistance2(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
@@ -830,8 +834,59 @@ public class ObstacleDisplayer
       }
       
       return distance;
-   }
-   
+   }   
+
+   /*
+    * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
+    * also different approach
+    */
+   private double stairDistance3(PlanarRegionsList planarRegionsList, double distanceCameraGround, double idealAngleBetweenCameraAndPlane, double idealAngleBetweenGroundAndPlane)
+   {  
+      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || distanceCameraGround == 500.0) // 500 means leg in swing
+         return DEFAULT_DISTANCE_VALUE;      
+            
+      //variable
+      double distance = DEFAULT_DISTANCE_VALUE;           
+      
+      for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
+         PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
+         Vector3D normalI = planarRegionI.getNormal(); 
+         Point3D max = (Point3D) planarRegionI.getBoundingBox3dInWorld().getMaxPoint();
+         Point3D min = (Point3D) planarRegionI.getBoundingBox3dInWorld().getMinPoint();
+         
+         //to consider planes to be stair of floor, they must have particular angels
+         double lenghtOfSimplifiedVector = Math.sqrt(normalI.getX()*normalI.getX() + normalI.getZ()*normalI.getZ()); //ignoring Y axis
+         double angleToCamera = Math.acos(normalI.getZ() / lenghtOfSimplifiedVector) *(180/Math.PI); //simplified for cemara vector (0, 0, 1)
+         if(angleToCamera < idealAngleBetweenCameraAndPlane - ANGLE_CAMERA_PLANE_TOLERANCE || angleToCamera > idealAngleBetweenCameraAndPlane + ANGLE_CAMERA_PLANE_TOLERANCE)
+            continue;
+         double angleToGround = Math.acos(normalI.getX() / lenghtOfSimplifiedVector) *(180/Math.PI); //simplified for ground vector (1, 0, 0)
+         if(angleToGround < Math.abs(idealAngleBetweenGroundAndPlane) - ANGLE_CAMERA_PLANE_TOLERANCE || angleToGround > Math.abs(idealAngleBetweenGroundAndPlane) + ANGLE_CAMERA_PLANE_TOLERANCE)
+            continue;
+
+         //rotating points before distinguishing between stair and floor
+         RotationScaleMatrix rotation = new RotationScaleMatrix();
+         rotation.setEuler(0.0, -idealAngleBetweenGroundAndPlane *(Math.PI/180), 0.0); //2
+         Point3D translation = new Point3D(0.0, 0.0, 0.0);
+         AffineTransform transform = new AffineTransform(rotation, translation); 
+
+         max.applyTransform(transform);
+         min.applyTransform(transform);
+         normalI.applyTransform(transform);        
+         
+         //distinguishing between floor and stair 
+         double pointToGround = (min.getX() + max.getX()) / -2.0; // average + inverting sign
+         //System.out.println(pointToGround);
+         if(pointToGround > distanceCameraGround - MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE && pointToGround < distanceCameraGround + MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE)
+            continue;         
+         
+         if(distance > min.getZ())
+            distance =  min.getZ();
+         
+         double stairHeight = distanceCameraGround - pointToGround;
+      }     
+      
+      return distance;        
+   }   
    /*
     * returns DEFAULT_DISTANCE_VALUE if there is no obstacle otherwise return distance to obstacle
     */

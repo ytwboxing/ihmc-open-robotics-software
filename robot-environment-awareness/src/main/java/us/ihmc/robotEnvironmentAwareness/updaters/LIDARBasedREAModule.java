@@ -14,12 +14,15 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.bytedeco.opencv.opencv_core.Mat;
+
 import com.google.common.util.concurrent.AtomicDouble;
 
 import controller_msgs.msg.dds.LidarScanMessage;
 import controller_msgs.msg.dds.PlanarRegionsListMessage;
 import controller_msgs.msg.dds.REASensorDataFilterParametersMessage;
 import controller_msgs.msg.dds.REAStateRequestMessage;
+import controller_msgs.msg.dds.RequestPlanarRegionsListMessage;
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import std_msgs.msg.dds.Float64;
 import us.ihmc.communication.ROS2Tools;
@@ -156,17 +159,20 @@ public class LIDARBasedREAModule
       boundingBox.minX = -1.0f;
       boundingBox.maxY = 0.1f;
       boundingBox.minY = -1.0f;
-      boundingBox.maxZ = 3.0f;
+      boundingBox.maxZ = 2.0f;
       boundingBox.minZ = 0.0f;
       */   
+      
       
       //left
       boundingBox.maxX = 0.01f;
       boundingBox.minX = -1.0f;
-      boundingBox.maxY = -0.1f;
-      boundingBox.minY = 1.0f;
-      boundingBox.maxZ = 3.0f;
+      boundingBox.maxY = 1.0f;
+      boundingBox.minY = -0.1f;
+      boundingBox.maxZ = 2.0f;
       boundingBox.minZ = 0.0f;
+      
+      
       reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox);  
 
       reaMessager.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
@@ -221,11 +227,11 @@ public class LIDARBasedREAModule
       {
          case 1:
             IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and stair 
-            IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
+            IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
             break;
          case 2:
             IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.698132) - (THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.698132 rad (40°) 
-            IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90;
+            IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
             break;
          default:
             break;
@@ -247,13 +253,13 @@ public class LIDARBasedREAModule
       
       /*
       if(switchingThingy) {
-         switchingThingy = false;
+         //switchingThingy = false;
          RotationScaleMatrix rotation = new RotationScaleMatrix();
-         rotation.setEuler(0.0, -IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE*(Math.PI/180), 0.0); 
+         rotation.setEuler(0.0, -6.287552158727884*(Math.PI/180), -2.643502424091119*(Math.PI/180)); 
          Point3D translation = new Point3D(0.0, 0.0, 0.0);
          AffineTransform transform = new AffineTransform(rotation, translation);         
          
-         Float floatIGuess = message.getPointCloud();
+         us.ihmc.idl.IDLSequence.Float floatIGuess = message.getPointCloud();
          for(int i = 0; i < floatIGuess.size(); i+=3) {
             Point3D point = new Point3D(floatIGuess.get(i), floatIGuess.get(i+1), floatIGuess.get(i+2));
             point.applyTransform(transform);
@@ -365,10 +371,10 @@ public class LIDARBasedREAModule
             timeReporter.run(() -> planarRegionFeatureUpdater.update(mainOctree), planarRegionsTimeReport);
             timeReporter.run(() -> moduleStateReporter.reportPlanarRegionsState(planarRegionFeatureUpdater), reportPlanarRegionsStateTimeReport);
 
-            double stairDistance = stairDistance2(planarRegionFeatureUpdater.getPlanarRegionsList());
-            if(stairDistance != DEFAULT_DISTANCE_VALUE)
+            double stairDistance = stairDistance3(planarRegionFeatureUpdater.getPlanarRegionsList());
+            /*if(stairDistance != DEFAULT_DISTANCE_VALUE)
                System.out.println(stairDistance);
-               
+               */
             /*
             double distance = obstacleDistance(planarRegionFeatureUpdater.getPlanarRegionsList());
             if(distance != DEFAULT_DISTANCE_VALUE)
@@ -468,6 +474,58 @@ public class LIDARBasedREAModule
    
    private static double ANGLE_CAMERA_PLANE_TOLERANCE = 10.0;
    private static double MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = 0.05;  
+   
+   /*
+    * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
+    * also different approach
+    */
+   private double stairDistance3(PlanarRegionsList planarRegionsList)
+   {  
+      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || DISTANCE_CAMERA_GROUND == 500.0) // 500 means leg in swing
+         return DEFAULT_DISTANCE_VALUE;      
+            
+      //variable
+      double distance = DEFAULT_DISTANCE_VALUE;           
+      
+      for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
+         PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
+         Vector3D normalI = planarRegionI.getNormal(); 
+         Point3D max = (Point3D) planarRegionI.getBoundingBox3dInWorld().getMaxPoint();
+         Point3D min = (Point3D) planarRegionI.getBoundingBox3dInWorld().getMinPoint();
+         
+         //to consider planes to be stair of floor, they must have particular angels
+         double lenghtOfSimplifiedVector = Math.sqrt(normalI.getX()*normalI.getX() + normalI.getZ()*normalI.getZ()); //ignoring Y axis
+         double angleToCamera = Math.acos(normalI.getZ() / lenghtOfSimplifiedVector) *(180/Math.PI); //simplified for cemara vector (0, 0, 1)
+         if(angleToCamera < IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - ANGLE_CAMERA_PLANE_TOLERANCE || angleToCamera > IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE + ANGLE_CAMERA_PLANE_TOLERANCE)
+            continue;
+         double angleToGround = Math.acos(normalI.getX() / lenghtOfSimplifiedVector) *(180/Math.PI); //simplified for ground vector (1, 0, 0)
+         if(angleToGround < Math.abs(IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE) - ANGLE_CAMERA_PLANE_TOLERANCE || angleToGround > Math.abs(IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE) + ANGLE_CAMERA_PLANE_TOLERANCE)
+            continue;
+
+         //rotating points before distinguishing between stair and floor
+         RotationScaleMatrix rotation = new RotationScaleMatrix();
+         rotation.setEuler(0.0, -IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE *(Math.PI/180), 0.0); //2
+         Point3D translation = new Point3D(0.0, 0.0, 0.0);
+         AffineTransform transform = new AffineTransform(rotation, translation); 
+
+         max.applyTransform(transform);
+         min.applyTransform(transform);
+         normalI.applyTransform(transform);        
+         
+         //distinguishing between floor and stair 
+         double pointToGround = (min.getX() + max.getX()) / -2.0; // average + inverting sign
+         //System.out.println(pointToGround);
+         if(pointToGround > DISTANCE_CAMERA_GROUND - MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE && pointToGround < DISTANCE_CAMERA_GROUND + MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE)
+            continue;         
+         
+         if(distance > min.getZ())
+            distance =  min.getZ();
+         
+         double stairHeight = DISTANCE_CAMERA_GROUND - pointToGround;
+      }     
+      
+      return distance;        
+   }
    /*
     * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
     * different approach
@@ -497,7 +555,7 @@ public class LIDARBasedREAModule
          
          if(rotation == null) {
             rotation = new RotationScaleMatrix();
-            rotation.setEuler(0.0, -IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE*(Math.PI/180), 0.0);
+            rotation.setEuler(0.0, angleToGround*(Math.PI/180), 0.0); //-IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE 
             translation = new Point3D(0.0, 0.0, 0.0);
             transform = new AffineTransform(rotation, translation); 
          }
