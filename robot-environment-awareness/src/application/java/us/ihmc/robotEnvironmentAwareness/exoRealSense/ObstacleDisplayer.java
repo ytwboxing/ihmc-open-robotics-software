@@ -1,6 +1,5 @@
 package us.ihmc.robotEnvironmentAwareness.exoRealSense;
 
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -105,7 +104,7 @@ public class ObstacleDisplayer
    private static long TIME_BEFORE_NO_DISTANCE_REPORT = 2000;
    private static boolean PRINT_SENDER = false;
    private static double MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = 0.05;   
-   private static double DEFAULT_DISTANCE_CAMERA_GROUND = 0.635;
+   private static double DEFAULT_DISTANCE_CAMERA_GROUND = 0.625;
    private static double DEFAULT_THIGH_ANGLE = 1.5708;
    private static double DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = 90.0;
    private static String ALGORITHM_SELECTOR = "stairDistance2"; //name of function      

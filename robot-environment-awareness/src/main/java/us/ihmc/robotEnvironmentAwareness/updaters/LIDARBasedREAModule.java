@@ -122,11 +122,11 @@ public class LIDARBasedREAModule
       
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "mina_v2/knee_height"
+                                           , "mina_v2/knee_height" // /left
                                            , this::handleExoKneeHeight);
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "mina_v2/thigh_angle"
+                                           , "mina_v2/thigh_angle" // /right
                                            , this::handleExoThighAngle);
 
       FilePropertyHelper filePropertyHelper = new FilePropertyHelper(configurationFile);
@@ -188,7 +188,7 @@ public class LIDARBasedREAModule
       reaMessager.submitMessage(REAModuleAPI.RequestEntireModuleState, true);
    }
    
-   private double DISTANCE_CAMERA_GROUND = 0.635;
+   private double DISTANCE_CAMERA_GROUND = 0.625;
    private int CAMERA_POSITION = 1;
    private void handleExoKneeHeight(Subscriber<Float64> subscriber) {
       Double value = subscriber.takeNextData().data_;
@@ -504,7 +504,7 @@ public class LIDARBasedREAModule
 
          //rotating points before distinguishing between stair and floor
          RotationScaleMatrix rotation = new RotationScaleMatrix();
-         rotation.setEuler(0.0, -IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE *(Math.PI/180), 0.0); //2
+         rotation.setEuler(0.0, -IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE *(Math.PI/180), 0.0);
          Point3D translation = new Point3D(0.0, 0.0, 0.0);
          AffineTransform transform = new AffineTransform(rotation, translation); 
 
@@ -523,7 +523,8 @@ public class LIDARBasedREAModule
          
          double stairHeight = DISTANCE_CAMERA_GROUND - pointToGround;
       }     
-      
+
+      //System.out.println("----------------------------");
       return distance;        
    }
    /*

@@ -63,7 +63,7 @@ public class RealSenseBridgeRos2 extends AbstractRosTopicSubscriber<PointCloud2>
    //functions
    @Override
    public void onNewMessage(PointCloud2 cloudHolder)
-   {
+   {      
       //getting message
       pointCloudData = RosPointCloudSubscriber.unpackPointsAndIntensities(cloudHolder);
       pointCloud = pointCloudData.getPoints();
@@ -108,9 +108,8 @@ public class RealSenseBridgeRos2 extends AbstractRosTopicSubscriber<PointCloud2>
       {
          try
          {
-            long time = System.currentTimeMillis();
             File file = new File(savePath + "/stereovision_pointcloud_" + savingIndex + ".txt");
-            file.setLastModified(time);
+            file.setLastModified(timestamp);
             FileWriter fileWriter = new FileWriter(file);
             StringBuilder builder = new StringBuilder("");
             for (int i = 0; i < numberOfPoints; i++)

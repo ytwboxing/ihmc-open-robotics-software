@@ -134,8 +134,8 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
          numberOfPoints--;
       }
 
+      long timestamp = cloudHolder.getHeader().getStamp().totalNsecs();
       if(selfStart) {
-         long timestamp = cloudHolder.getHeader().getStamp().totalNsecs();
          float[] pointCloudBuffer = new float[3 * numberOfPoints];
          int[] colorsInteger = new int[numberOfPoints];
 
@@ -160,7 +160,9 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
          FileWriter fileWriter;
          try
          {
-            fileWriter = new FileWriter(savePath + "/stereovision_pointcloud_" + savingIndex + ".txt");
+            File f = new File(savePath + "/stereovision_pointcloud_" + savingIndex + ".txt");
+            f.setLastModified(timestamp);
+            fileWriter = new FileWriter(f);            
             StringBuilder builder = new StringBuilder("");
             for (int i = 0; i < numberOfPoints; i++)
             {
@@ -231,24 +233,26 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
    }
    
    public static void main(String[] args) throws URISyntaxException
-   {
+   {      
       /*
       //self start      
-      URI masterURI = new URI("http://10.7.4.52:11311"); //"http://192.168.0.12:11311"
-      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "1:\t", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
-      //new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "2:", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
+      URI masterURI = new URI("http://11.7.4.52:11311"); //"http://192.168.0.12:11311"
+      String dataSetNumber = "10";
+      
+      String path = "DATASETS/" + dataSetNumber;
+      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", path + "LPC", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
+      //new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", path + "RPC", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
       */
-      
-      
+      /*
       //one particular point cloud
       String dataset = "3 P1"; //  "1 P2"
       String LR = "L"; //L
-      String number = "200"; // 410 200
+      String number = "30"; // 410 200
       File f = new File("DATASETS/" + dataset + "/" + LR + "PC/points (" + number + ").txt"); 
       Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNode");
       IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
       StereoVisionPointCloudMessage m = StereoVisionPointCloudDataLoader.getMessageFromFile(f); 
-      long publishedTime = f.lastModified() - 21600000L;
+      long publishedTime = f.lastModified() - 21600000L; //for some reason when I was creating datasets, the time was shifted by 6 hours
 
       BufferedReader reader;
       Long time;
@@ -308,19 +312,18 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
             e.printStackTrace();
          }         
       }
-      
-
+      */
       /*
       //whole dataset
-      final String setNumber = "1";
-      final String leftRight = "R";
+      final String setNumber = "3 P1";
+      final String leftRight = "L";
       final double artificialDelay = 1.0;
       
       final String path = "DATASETS/" + setNumber + "/";
       long initialLastModified = new File(path + leftRight + "PC/points (1).txt").lastModified() - 3000;
                                  
-      //ExoPublisherThread(path + "EXO/"+ leftRight +"KneeHeight.txt", artificialDelay, initialLastModified, "mina_v2/knee_height");
-      //ExoPublisherThread(path + "EXO/"+ leftRight +"ThighAngle.txt", artificialDelay, initialLastModified, "mina_v2/thigh_angle");
+      ExoPublisherThread(path + "EXO/"+ leftRight +"KneeHeight.txt", artificialDelay, initialLastModified, "mina_v2/knee_height");
+      ExoPublisherThread(path + "EXO/"+ leftRight +"ThighAngle.txt", artificialDelay, initialLastModified, "mina_v2/thigh_angle");
       PointCloudPublisherThread(path + leftRight, artificialDelay, initialLastModified);
       */
    }
@@ -401,7 +404,8 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
                   if(line == null || line.isEmpty()) {
                      //break;
                      //System.out.println("again");
-                     reader.close();
+                     if(reader != null)                        
+                        reader.close();
                      reader = new BufferedReader(new FileReader(file));
                      line = reader.readLine();               
                      previousTime = initialLastModified;
