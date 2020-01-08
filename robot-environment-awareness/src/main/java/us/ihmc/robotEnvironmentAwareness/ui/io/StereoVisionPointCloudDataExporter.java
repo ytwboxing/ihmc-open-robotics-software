@@ -21,7 +21,7 @@ import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools.ExceptionHan
 
 public class StereoVisionPointCloudDataExporter
 {
-   private static final long recodingFrequency = 500;
+   private static final long recodingFrequency = 250;
 
    public static final String POINT_CLOUD_FILE_NAME_HEADER = "stereo";
    public static final String SENSOR_POSE_FILE_NAME_HEADER = "pose";
@@ -37,7 +37,7 @@ public class StereoVisionPointCloudDataExporter
 
    public StereoVisionPointCloudDataExporter(REAUIMessager uiMessager)
    {
-      stereovisionPointCloudMessage = uiMessager.createInput(REAModuleAPI.StereoVisionPointCloudState);
+      stereovisionPointCloudMessage = uiMessager.createInput(REAModuleAPI.DepthPointCloudState);
       dataDirectoryPath = uiMessager.createInput(REAModuleAPI.UIStereoDataExporterDirectory, new File("Data/").getAbsolutePath());
 
       enableRecording = uiMessager.createInput(REAModuleAPI.UIStereoDataExportRequest, false);
