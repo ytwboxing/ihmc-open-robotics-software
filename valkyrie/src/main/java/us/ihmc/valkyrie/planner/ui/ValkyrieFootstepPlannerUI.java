@@ -1,5 +1,7 @@
 package us.ihmc.valkyrie.planner.ui;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import controller_msgs.msg.dds.*;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -40,8 +42,6 @@ import us.ihmc.valkyrie.planner.ValkyrieAStarFootstepPlanner;
 import us.ihmc.valkyrie.planner.ValkyrieAStarFootstepPlanner.Status;
 import us.ihmc.valkyrie.planner.log.ValkyriePlannerLogLoader.ValkyriePlannerLog;
 import us.ihmc.valkyrieRosControl.ValkyrieRosControlController;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ValkyrieFootstepPlannerUI extends Application
 {
@@ -329,10 +329,5 @@ public class ValkyrieFootstepPlannerUI extends Application
          e.printStackTrace();
          throw new RuntimeException("Unable to start message");
       }
-   }
-
-   public static void main(String[] args)
-   {
-      launch(args);
    }
 }
