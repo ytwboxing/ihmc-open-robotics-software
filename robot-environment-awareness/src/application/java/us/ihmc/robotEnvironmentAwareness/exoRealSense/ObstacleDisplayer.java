@@ -6,11 +6,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import std_msgs.msg.dds.Float64;
@@ -31,8 +31,6 @@ import us.ihmc.robotEnvironmentAwareness.communication.REAModuleAPI;
 import us.ihmc.robotEnvironmentAwareness.communication.packets.BoundingBoxParametersMessage;
 import us.ihmc.robotEnvironmentAwareness.io.FilePropertyHelper;
 import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionSegmentationParameters;
-import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools;
-import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools.ExceptionHandling;
 import us.ihmc.robotEnvironmentAwareness.ui.graphicsBuilders.OcTreeMeshBuilder.DisplayType;
 import us.ihmc.robotEnvironmentAwareness.updaters.REAOcTreeBuffer;
 import us.ihmc.robotEnvironmentAwareness.updaters.REAOcTreeUpdater;
@@ -48,8 +46,6 @@ public class ObstacleDisplayer
 {   
    //variables
    private static Ros2Node ros2Node;
-   private static RealSenseBridgeRos2 leftBridge;
-   private static RealSenseBridgeRos2 rightBridge;
    private static UDPDataSender sender;
    
    private IHMCROS2Publisher<Float64> ExoLeftKneeHeightPublisher;
@@ -63,7 +59,8 @@ public class ObstacleDisplayer
    private BufferedWriter rightThighAngleWriter; 
    
    protected static final boolean DEBUG = true;
-   private final double DEFAULT_DISTANCE_VALUE = 999.0;
+   private final static double DEFAULT_VALUE = 500.0;  // 500 means leg in swing
+   private final static double RIGHT_ANGLE_RAD = 1.5707963267948966192313216916398;
    private static boolean CREATE_DATASET = false;
    
    private final REAOcTreeBuffer stereoVisionBufferUpdaterLeft;
@@ -74,8 +71,6 @@ public class ObstacleDisplayer
    private final REAOcTreeUpdater mainUpdaterRight; 
    private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdaterRight;
 
-   private ScheduledExecutorService executorService = ExecutorServiceTools.newScheduledThreadPool(2, getClass(), ExceptionHandling.CATCH_AND_REPORT);
-   private ScheduledFuture<?> scheduled;
    private final Messager reaMessager1;  
    private final Messager reaMessager2;  
    
@@ -87,9 +82,7 @@ public class ObstacleDisplayer
    private boolean recievingRightThighAngle = false;   
    
    //config parametrs
-   private static int MAX_NUMBER_OF_POINTS = 20000;
-   private static int THREAD_PERIOD_MILLISECONDS = 200;
-   private static int BUFFER_THREAD_PERIOD_MILLISECONDS = 10;
+   private static int MAX_NUMBER_OF_POINTS = 300000;
    private static double DEFAULT_OCTREE_RESOLUTION = 0.02;
    private static float MAXX = 0.0f;
    private static float MINX = -1.0f;
@@ -105,15 +98,17 @@ public class ObstacleDisplayer
    private static boolean PRINT_SENDER = false;
    private static double MIN_X_EXPECTED_X_DIFFERENCE_TOLERANCE = 0.05;   
    private static double DEFAULT_DISTANCE_CAMERA_GROUND = 0.625;
-   private static double DEFAULT_THIGH_ANGLE = 1.5708;
+   private static double DEFAULT_THIGH_ANGLE = RIGHT_ANGLE_RAD;
    private static double DEFAULT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = 90.0;
-   private static String ALGORITHM_SELECTOR = "stairDistance2"; //name of function      
+   private static String ALGORITHM_SELECTOR = "stairDistance3"; //name of function      
    private static boolean DISTANCE_IN_FEET = false;   
    private static int CAMERA_POSITION = 2; //1 - parallel with thight, 2 - pointing down 42°
-   private static int EXO_DATA_MINIMUM_TIME_GAP = 10;
    private static boolean PUBLISH_EXO = false;
    private static int DATASET_NUMBER = 1;
    private static double DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = 0.0;
+   private static int CYCKE_COUNTER_THRESHOLD = 100;
+   private static boolean PRINT_FINDER = false;
+   private static boolean COPY_ON_WRITE_ARRAYS = true;
    
    private static double DISTANCE_LEFT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
    private static double DISTANCE_RIGHT_CAMERA_GROUND = DEFAULT_DISTANCE_CAMERA_GROUND;
@@ -125,8 +120,6 @@ public class ObstacleDisplayer
    private static double RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE;   
    
    private static final String MARK_MAX_NUMBER_OF_POINTS = "MAX_NUMBER_OF_POINTS"; 
-   private static final String MARK_THREAD_PERIOD_MILLISECONDS = "THREAD_PERIOD_MILLISECONDS";
-   private static final String MARK_BUFFER_THREAD_PERIOD_MILLISECONDS = "BUFFER_THREAD_PERIOD_MILLISECONDS";   
    private static final String MARK_DEFAULT_OCTREE_RESOLUTION = "DEFAULT_OCTREE_RESOLUTION";
    private static final String MARK_MAXX = "MAXX";
    private static final String MARK_MINX = "MINX";
@@ -147,10 +140,12 @@ public class ObstacleDisplayer
    private static final String MARK_ALGORITHM_SELECTOR = "ALGORITHM_SELECTOR";   
    private static final String MARK_DISTANCE_IN_FEET = "DISTANCE_IN_FEET";   
    private static final String MARK_CAMERA_POSITION = "CAMERA_POSITION"; 
-   private static final String MARK_EXO_DATA_MINIMUM_TIME_GAP = "EXO_DATA_MINIMUM_TIME_GAP";
    private static final String MARK_PUBLISH_EXO = "PUBLISH_EXO";
    private static final String MARK_DATASET_NUMBER = "DATASET_NUMBER";
    private static final String MARK_DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = "DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE";
+   private static final String MARK_CYCKE_COUNTER_THRESHOLD = "CYCKE_COUNTER_THRESHOLD";
+   private static final String MARK_PRINT_FINDER = "PRINT_FINDER";
+   private static final String MARK_COPY_ON_WRITE_ARRAYS = "COPY_ON_WRITE_ARRAYS";
    
    //functions
    public static void main(String[] args)
@@ -161,27 +156,25 @@ public class ObstacleDisplayer
          ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
 
          //connect to cameras
-         leftBridge = new RealSenseBridgeRos2("http://localhost:11311" // "http://192.168.0.12:11311" //   
+         new RealSenseBridgeRos2("http://10.7.4.52:11311"  // "http://localhost:11311"
                                  , "/cam_1/depth/color/points"
                                  , ros2Node
                                  , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Left"
-                                 , MAX_NUMBER_OF_POINTS
-                                 , "DATASETS/" + DATASET_NUMBER + "/LPC");   
+                                 , MAX_NUMBER_OF_POINTS);   
          
-         rightBridge = new RealSenseBridgeRos2("http://localhost:11311" // "http://192.168.0.12:11311" // 
+         new RealSenseBridgeRos2("http://10.7.4.52:11311"  //"http://localhost:11311" 
                                  , "/cam_2/depth/color/points"
                                  , ros2Node
                                  , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
-                                 , MAX_NUMBER_OF_POINTS
-                                 , "DATASETS/" + DATASET_NUMBER + "/RPC"); 
+                                 , MAX_NUMBER_OF_POINTS); 
          
          //main module
          ObstacleDisplayer module = ObstacleDisplayer.createIntraprocessModule();
          
          //sender to hololens
-         sender = new UDPDataSender("192.168.0.13", 6669, PRINT_SENDER);
+         //todo JOBY uncomment
+         //sender = new UDPDataSender("192.168.0.13", 6669, PRINT_SENDER);
          
-         module.start();  
          System.out.println("init complete");
          Scanner commandScanner = new Scanner(System.in);
          while (true)
@@ -190,15 +183,11 @@ public class ObstacleDisplayer
 
             if (command.contains("s"))
             {               
-               leftBridge.saveStereoVisionPointCloud.set(true);
-               rightBridge.saveStereoVisionPointCloud.set(true);
                CREATE_DATASET = true;
                System.out.println("s pressed");
             }
             else if (command.contains("d"))
             {
-               leftBridge.saveStereoVisionPointCloud.set(false);
-               rightBridge.saveStereoVisionPointCloud.set(false);
                CREATE_DATASET = false;
                System.out.println("d pressed");
             }
@@ -237,19 +226,19 @@ public class ObstacleDisplayer
                                            , this::dispatchStereoVisionPointCloudMessageRight);      
       
       ROS2Tools.createCallbackSubscription(ros2Node
-                                           , Float64.class
+                                           , std_msgs.msg.dds.String.class
                                            , "mina_v2/knee_height/left"
                                            , this::handleExoLeftKneeHeight);
       ROS2Tools.createCallbackSubscription(ros2Node
-                                           , Float64.class
+                                           , std_msgs.msg.dds.String.class
                                            , "mina_v2/knee_height/right"
                                            , this::handleExoRightKneeHeight);
       ROS2Tools.createCallbackSubscription(ros2Node
-                                           , Float64.class
+                                           , std_msgs.msg.dds.String.class
                                            , "mina_v2/thigh_angle/left"
                                            , this::handleExoLeftThighAngle);
       ROS2Tools.createCallbackSubscription(ros2Node
-                                           , Float64.class
+                                           , std_msgs.msg.dds.String.class
                                            , "mina_v2/thigh_angle/right"
                                            , this::handleExoRightThighAngle);
 
@@ -325,12 +314,6 @@ public class ObstacleDisplayer
                case MARK_MAX_NUMBER_OF_POINTS:
                   MAX_NUMBER_OF_POINTS = Integer.valueOf(bReader.readLine());
                   break;                  
-               case MARK_THREAD_PERIOD_MILLISECONDS:
-                  THREAD_PERIOD_MILLISECONDS = Integer.valueOf(bReader.readLine());                     
-                  break;                  
-               case MARK_BUFFER_THREAD_PERIOD_MILLISECONDS:
-                  BUFFER_THREAD_PERIOD_MILLISECONDS = Integer.valueOf(bReader.readLine());  
-                  break;                  
                case MARK_DEFAULT_OCTREE_RESOLUTION:
                   DEFAULT_OCTREE_RESOLUTION = Double.valueOf(bReader.readLine());                       
                   break;                  
@@ -391,9 +374,6 @@ public class ObstacleDisplayer
                case MARK_CAMERA_POSITION:
                   CAMERA_POSITION = Integer.valueOf(bReader.readLine());
                   break;
-               case MARK_EXO_DATA_MINIMUM_TIME_GAP:
-                  EXO_DATA_MINIMUM_TIME_GAP = Integer.valueOf(bReader.readLine());
-                  break;
                case MARK_PUBLISH_EXO:
                   PUBLISH_EXO = Boolean.valueOf(bReader.readLine());
                   break;
@@ -402,6 +382,15 @@ public class ObstacleDisplayer
                   break;
                case MARK_DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE:
                   DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = Double.valueOf(bReader.readLine());
+                  break;
+               case MARK_CYCKE_COUNTER_THRESHOLD:
+                  CYCKE_COUNTER_THRESHOLD = Integer.valueOf(bReader.readLine());
+                  break;
+               case MARK_PRINT_FINDER:
+                  PRINT_FINDER = Boolean.valueOf(bReader.readLine());
+                  break;
+               case MARK_COPY_ON_WRITE_ARRAYS:
+                  COPY_ON_WRITE_ARRAYS = Boolean.valueOf(bReader.readLine());
                   break;
                default:
                   break;
@@ -422,306 +411,384 @@ public class ObstacleDisplayer
       }      
    }
 
+   NormalOcTree bufferOctreeLeft = new NormalOcTree(DEFAULT_OCTREE_RESOLUTION);
    private void dispatchStereoVisionPointCloudMessageLeft(Subscriber<StereoVisionPointCloudMessage> subscriber)
    {
       StereoVisionPointCloudMessage message = subscriber.takeNextData();
       stereoVisionBufferUpdaterLeft.handleStereoVisionPointCloudMessage(message);      
       mainUpdaterLeft.handleStereoVisionPointCloudMessage(message);
+      
+      stereoVisionBufferUpdaterLeft.runMethod(bufferOctreeLeft);      
+      mainUpdateLeft(message.getTimestamp(), message);
    }
 
+   NormalOcTree bufferOctreeRight = new NormalOcTree(DEFAULT_OCTREE_RESOLUTION);
    private void dispatchStereoVisionPointCloudMessageRight(Subscriber<StereoVisionPointCloudMessage> subscriber)
    {
       StereoVisionPointCloudMessage message = subscriber.takeNextData();
       stereoVisionBufferUpdaterRight.handleStereoVisionPointCloudMessage(message);      
       mainUpdaterRight.handleStereoVisionPointCloudMessage(message);
-   }
-   
-   long lastExoLeftKneeHeight = System.currentTimeMillis();
-   private void handleExoLeftKneeHeight(Subscriber<Float64> subscriber) {
-      long time = System.currentTimeMillis();
-      if(time - lastExoLeftKneeHeight < EXO_DATA_MINIMUM_TIME_GAP)
-         return;
- 
-      lastExoLeftKneeHeight = time;
       
-      Float64 f = subscriber.takeNextData();
-      Double value = f.data_;
-      if(value == 0.0)
-         return;
+      stereoVisionBufferUpdaterRight.runMethod(bufferOctreeRight);
+      mainUpdateRight(message.getTimestamp(), message);
+   }
+
+   List<Float64> exoLeftKneeHeightList = COPY_ON_WRITE_ARRAYS ? new ArrayList<Float64>() : new CopyOnWriteArrayList<Float64>();     
+   private void handleExoLeftKneeHeight(Subscriber<std_msgs.msg.dds.String> subscriber) {
+      std_msgs.msg.dds.String s = subscriber.takeNextData();
+      String[] values = s.data_.toString().split(";");
+      Float64 f = new Float64();
+      f.setUniqueId(Long.valueOf(values[0]));
+      f.setData(Double.valueOf(values[1]));      
+      
+      exoLeftKneeHeightList.add(f);   
 
       if(PUBLISH_EXO)
          ExoLeftKneeHeightPublisher.publish(new Float64(f));
-      if(CREATE_DATASET) {
-         try
-         {
-            leftKneeHeightWriter.write(String.valueOf(System.currentTimeMillis()) + "\n" + String.valueOf(value) + "\n");    
-            leftKneeHeightWriter.flush();
-         }
-         catch (Exception ex)
-         {
-            CREATE_DATASET = false;
-            ex.printStackTrace();
-         } 
-      }
       
       if(recievingLeftKneeHeight == false) {
          recievingLeftKneeHeight = true;
          System.out.println("recieving Left Knee Height");
       }
-      if(value == 500.0) {
-         DISTANCE_LEFT_CAMERA_GROUND = 500.0;
-         return;
-      }
-      
-      switch (CAMERA_POSITION)
-      {
-         case 1:
-            DISTANCE_LEFT_CAMERA_GROUND = value + Math.sin(LEFT_THIGH_ANGLE - 0.69001592) * 0.0943; //0.69001592 rad (39.535°) and 0.0943 meters are measurements from exo
-            break;
-         case 2:
-            DISTANCE_LEFT_CAMERA_GROUND = value + Math.sin(LEFT_THIGH_ANGLE - 0.265586752) * 0.0631; //0.265586752 rad (15.217°) and 0.0631 meters are measurements from exo
-            break;
-         default:
-            break;
-      }
    } 
-   
-   long lastExoRightKneeHeight = lastExoLeftKneeHeight;
-   private void handleExoRightKneeHeight(Subscriber<Float64> subscriber) {
-      long time = System.currentTimeMillis();
-      if(time - lastExoRightKneeHeight < EXO_DATA_MINIMUM_TIME_GAP)
-         return;
- 
-      lastExoRightKneeHeight = time;
+
+   List<Float64> exoRightKneeHeightList = COPY_ON_WRITE_ARRAYS ? new ArrayList<Float64>() : new CopyOnWriteArrayList<Float64>();   
+   private void handleExoRightKneeHeight(Subscriber<std_msgs.msg.dds.String> subscriber) {
+      std_msgs.msg.dds.String s = subscriber.takeNextData();
+      String[] values = s.data_.toString().split(";");
+      Float64 f = new Float64();
+      f.setUniqueId(Long.valueOf(values[0]));
+      f.setData(Double.valueOf(values[1])); 
       
-      Float64 f = subscriber.takeNextData();
-      Double value = f.data_;
-      if(value == 0.0)
-         return;
+      exoRightKneeHeightList.add(f);       
       
       if(PUBLISH_EXO)
          ExoRightKneeHeightPublisher.publish(new Float64(f));
-      if(CREATE_DATASET) {
-         try
-         {
-            rightKneeHeightWriter.write(String.valueOf(System.currentTimeMillis()) + "\n" + String.valueOf(value) + "\n");   
-            rightKneeHeightWriter.flush();
-         }
-         catch (Exception ex)
-         {
-            CREATE_DATASET = false;
-            ex.printStackTrace();
-         } 
-      }
 
       if(recievingRightKneeHeight == false) {
          recievingRightKneeHeight = true;
          System.out.println("recieving Right Knee Height");
-      }
-      if(value == 500.0) {
-         DISTANCE_RIGHT_CAMERA_GROUND = 500.0;
-         return;
       }      
-      
-      switch (CAMERA_POSITION)
-      {
-         case 1:
-            DISTANCE_RIGHT_CAMERA_GROUND = value + Math.sin(RIGHT_THIGH_ANGLE - 0.69001592) * 0.0943; //0.69001592 rad (39.535°) and 0.0943 meters are measurements from exo
-            break;
-         case 2:
-            DISTANCE_RIGHT_CAMERA_GROUND = value + Math.sin(RIGHT_THIGH_ANGLE - 0.265586752) * 0.0631; //0.265586752 rad (15.217°) and 0.0631 meters are measurements from exo
-            break;
-         default:
-            break;
-      }
    }
-   
-   long lastExoLeftThighAngle = lastExoRightKneeHeight;
-   private void handleExoLeftThighAngle(Subscriber<Float64> subscriber) {
-      long time = System.currentTimeMillis();
-      if(time - lastExoLeftThighAngle < EXO_DATA_MINIMUM_TIME_GAP)
-         return;
- 
-      lastExoLeftThighAngle = time;
+
+   List<Float64> exoLeftThighAngleList = COPY_ON_WRITE_ARRAYS ? new ArrayList<Float64>() : new CopyOnWriteArrayList<Float64>();      
+   private void handleExoLeftThighAngle(Subscriber<std_msgs.msg.dds.String> subscriber) {
+      std_msgs.msg.dds.String s = subscriber.takeNextData();
+      String[] values = s.data_.toString().split(";");
+      Float64 f = new Float64();
+      f.setUniqueId(Long.valueOf(values[0]));
+      f.setData(Double.valueOf(values[1])); 
       
-      Float64 f = subscriber.takeNextData();
-      Double value = f.data_;
-      if(value == 0.0)
-         return;
+      exoLeftThighAngleList.add(f);       
       
       if(PUBLISH_EXO)
          ExoLeftThighAnglePublisher.publish(new Float64(f));
-      if(CREATE_DATASET) {
-         try
-         {
-            leftThighAngleWriter.write(String.valueOf(System.currentTimeMillis()) + "\n" + String.valueOf(value) + "\n");  
-            leftThighAngleWriter.flush();
-         }
-         catch (Exception ex)
-         {
-            CREATE_DATASET = false;
-            ex.printStackTrace();
-         } 
-      }
 
       if(recievingLeftThighAngle == false) {
          recievingLeftThighAngle = true;
          System.out.println("recieving Left Thigh Angle");
-      }
-      if(value == 500.0)
-         return;      
-      
-      LEFT_THIGH_ANGLE = value;  
-      
-      switch (CAMERA_POSITION)
-      {
-         case 1:
-            LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (LEFT_THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and stair 
-            LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
-            break;
-         case 2:
-            LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.698132) - (LEFT_THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.698132 rad (40°)          
-            LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
-            break;
-         default:
-            break;
-      }
+      }      
    }
-   
-   long lastExoRightThighAngle = lastExoLeftThighAngle;
-   private void handleExoRightThighAngle(Subscriber<Float64> subscriber) {
-      long time = System.currentTimeMillis();
-      if(time - lastExoRightThighAngle < EXO_DATA_MINIMUM_TIME_GAP)
-         return;
- 
-      lastExoRightThighAngle = time;
+
+   List<Float64> exoRightThighAngleList = COPY_ON_WRITE_ARRAYS ? new ArrayList<Float64>() : new CopyOnWriteArrayList<Float64>();   
+   private void handleExoRightThighAngle(Subscriber<std_msgs.msg.dds.String> subscriber) {
+      std_msgs.msg.dds.String s = subscriber.takeNextData();
+      String[] values = s.getData().toString().split(";");
+      Float64 f = new Float64();
+      f.setUniqueId(Long.valueOf(values[0]));
+      f.setData(Double.valueOf(values[1])); 
       
-      Float64 f = subscriber.takeNextData();
-      Double value = f.data_;
-      if(value == 0.0)
-         return;
+      exoRightThighAngleList.add(f);      
       
       if(PUBLISH_EXO)
          ExoRightThighAnglePublisher.publish(new Float64(f));
-      if(CREATE_DATASET) {
-         try
-         {
-            rightThighAngleWriter.write(String.valueOf(System.currentTimeMillis()) + "\n");    
-            rightThighAngleWriter.write(String.valueOf(value) + "\n");
-            rightThighAngleWriter.flush();
-         }
-         catch (Exception ex)
-         {
-            CREATE_DATASET = false;
-            ex.printStackTrace();
-         } 
-      }
       
-      if(value == 500.0)
-         return;
-
       if(recievingRightThighAngle == false) {
          recievingRightThighAngle = true;
          System.out.println("recieving Right Thigh Angle");
-      }
-      
-      RIGHT_THIGH_ANGLE = value; 
-      
-      switch (CAMERA_POSITION)
-      {
-         case 1:
-            RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (RIGHT_THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and step 
-            RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
-            break;
-         case 2:
-            RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.698132) - (LEFT_THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.698132 rad (40°)
-            RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
-            break;
-         default:
-            break;
-      }
+      }      
    }
-
-   double distanceLeft = DEFAULT_DISTANCE_VALUE;
-   double distanceRight = DEFAULT_DISTANCE_VALUE;
-   int cycleCounter = 0;
-   int runningMessageCounter = 0;
-   long lastValidDistance = System.currentTimeMillis();
-   private void mainUpdate()
-   {          
-      if(cycleCounter == 100) {
-         cycleCounter = 0;
-         System.out.println("running " + runningMessageCounter++);
+   
+   double distanceLeft = DEFAULT_VALUE;
+   int cycleCounterLeft = 0;
+   int runningMessageCounterLeft = 0;
+   int savingIndexLeft = 0;
+   private void mainUpdateLeft(Long pointCloudTimeStamp, StereoVisionPointCloudMessage message)
+   {
+      //time from Up^2 is in nanoseconds -> need to get them in milliseconds
+      pointCloudTimeStamp = Math.round(pointCloudTimeStamp/1000000.0);  
+      
+      //running messages 
+      if(cycleCounterLeft == CYCKE_COUNTER_THRESHOLD) {
+         cycleCounterLeft = 0;
+         System.out.println("running left " + runningMessageCounterLeft++);
       }
-      cycleCounter++;
+      else {
+         cycleCounterLeft++;         
+      }
 
       try
       {
+         //planar region stuff
          NormalOcTree mainOctreeLeft = mainUpdaterLeft.getMainOctree();
-         NormalOcTree mainOctreeRight = mainUpdaterRight.getMainOctree();
-         
+         mainUpdaterLeft.clearOcTree();
+         mainUpdaterLeft.update();
+         planarRegionFeatureUpdaterLeft.update(mainOctreeLeft);
          if(nonEmptyLeftOcTree == false && mainOctreeLeft.size() > 0) {
             nonEmptyLeftOcTree = true;
             System.out.println("left OcTree is not empty");
          }
-         if(nonEmptyRightOcTree == false && mainOctreeRight.size() > 0) {
-            nonEmptyRightOcTree = true;
-            System.out.println("right OcTree is not empty");
+
+         //exo data calculation
+         double kneeHeight = findClosestAndRemoverUnnecessary(exoLeftKneeHeightList, pointCloudTimeStamp);
+         double tightAngle = findClosestAndRemoverUnnecessary(exoLeftThighAngleList, pointCloudTimeStamp); 
+
+         if(tightAngle != DEFAULT_VALUE){
+            LEFT_THIGH_ANGLE = tightAngle;  
+            
+            switch (CAMERA_POSITION)
+            {
+               case 1:
+                  LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (RIGHT_ANGLE_RAD - (LEFT_THIGH_ANGLE - RIGHT_ANGLE_RAD)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and stair 
+                  LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
+                  break;
+               case 2:
+                  LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((RIGHT_ANGLE_RAD + 0.698132) - (LEFT_THIGH_ANGLE - RIGHT_ANGLE_RAD)); // when camera is looking down, where is additional 0.698132 rad (40°)          
+                  LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
+                  break;
+               default:
+                  break;
+            }
+         }         
+         
+         if(kneeHeight == DEFAULT_VALUE) {
+            DISTANCE_LEFT_CAMERA_GROUND = DEFAULT_VALUE;
          }
-
-         mainUpdaterLeft.clearOcTree();
-         mainUpdaterRight.clearOcTree();
-         mainUpdaterLeft.update();
-         mainUpdaterRight.update();
-
-         planarRegionFeatureUpdaterLeft.update(mainOctreeLeft);
-         planarRegionFeatureUpdaterRight.update(mainOctreeRight);
+         else {
+            switch (CAMERA_POSITION)
+            {
+               case 1:
+                  DISTANCE_LEFT_CAMERA_GROUND = kneeHeight + Math.sin(LEFT_THIGH_ANGLE - 0.69001592) * 0.0943; //0.69001592 rad (39.535°) and 0.0943 meters are measurements from exo
+                  break;
+               case 2:
+                  DISTANCE_LEFT_CAMERA_GROUND = kneeHeight + Math.sin(LEFT_THIGH_ANGLE - 0.265586752) * 0.0631; //0.265586752 rad (15.217°) and 0.0631 meters are measurements from exo
+                  break;
+               default:
+                  break;
+            }
+         }
+         
+         //saving
+         if(CREATE_DATASET) {
+            try
+            {
+               leftThighAngleWriter.write(String.valueOf(pointCloudTimeStamp) + "\n" + String.valueOf(tightAngle) + "\n");  
+               leftThighAngleWriter.flush();
+            }
+            catch (Exception ex)
+            {
+               CREATE_DATASET = false;
+               ex.printStackTrace();
+            } 
+            
+            try
+            {
+               leftKneeHeightWriter.write(String.valueOf(pointCloudTimeStamp) + "\n" + String.valueOf(kneeHeight) + "\n");    
+               leftKneeHeightWriter.flush();
+            }
+            catch (Exception ex)
+            {
+               CREATE_DATASET = false;
+               ex.printStackTrace();
+            }  
+            
+            try
+            {
+               us.ihmc.idl.IDLSequence.Float cloud = message.getPointCloud();
+               float[] pointCloud = cloud.toArray();
+               
+               File file = new File("DATASETS/" + DATASET_NUMBER + "/LPC/stereovision_pointcloud_" + savingIndexLeft + ".txt");
+               FileWriter fileWriter = new FileWriter(file);
+               StringBuilder builder = new StringBuilder("");
+               for (int i = 0; i < pointCloud.length/3; i++)
+               {
+                  builder.append(i + "\t" + pointCloud[i*3] + "\t" + pointCloud[i*3+1] + "\t" + pointCloud[i*3+2] + "\t-16777216\n");
+               }
+               fileWriter.write(builder.toString());
+               
+               fileWriter.close();
+               savingIndexLeft++;
+            }
+            catch (Exception ex)
+            {
+               CREATE_DATASET = false;
+               ex.printStackTrace();
+            }
+         }
 
          //detection part
          switch(ALGORITHM_SELECTOR) {
             case "stairDistance3": 
                distanceLeft = stairDistance3(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
-               distanceRight = stairDistance3(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
                break;
             case "stairDistance2": 
                distanceLeft = stairDistance2(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
-               distanceRight = stairDistance2(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
                break;
             case "stairDistance": 
                distanceLeft = stairDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
-               distanceRight = stairDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
                break;
             case "obstacleDistance":  
                distanceLeft = obstacleDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
+               break;
+            default:
+               break;
+         }
+         
+         evaluateAndSend();
+      }
+      catch (Exception ex)
+      {
+         ex.printStackTrace();
+      }
+   }
+
+   double distanceRight = DEFAULT_VALUE;
+   int cycleCounterRight = 0;
+   int runningMessageCounterRight = 0;  
+   int savingIndexRight = 0;
+   private void mainUpdateRight(Long pointCloudTimeStamp, StereoVisionPointCloudMessage message)
+   {  
+      //time from Up^2 is in nanoseconds -> need to get them in milliseconds
+      pointCloudTimeStamp = Math.round(pointCloudTimeStamp/1000000.0);      
+      
+      //running messages      
+      if(cycleCounterRight == CYCKE_COUNTER_THRESHOLD) {
+         cycleCounterRight = 0;
+         System.out.println("running right :" + runningMessageCounterRight++);
+      }
+      else {
+         cycleCounterRight++;         
+      }
+
+      try
+      {
+         //planar region stuff
+         NormalOcTree mainOctreeRight = mainUpdaterRight.getMainOctree();
+         mainUpdaterRight.clearOcTree();
+         mainUpdaterRight.update();
+         planarRegionFeatureUpdaterRight.update(mainOctreeRight);         
+         if(nonEmptyRightOcTree == false && mainOctreeRight.size() > 0) {
+            nonEmptyRightOcTree = true;
+            System.out.println("right OcTree is not empty");
+         }
+         
+         //exo data calculation
+         double kneeHeight = findClosestAndRemoverUnnecessary(exoRightKneeHeightList, pointCloudTimeStamp);
+         double tightAngle = findClosestAndRemoverUnnecessary(exoRightThighAngleList, pointCloudTimeStamp);
+         
+         if(tightAngle != DEFAULT_VALUE) {            
+            RIGHT_THIGH_ANGLE = tightAngle; 
+            
+            switch (CAMERA_POSITION)
+            {
+               case 1:
+                  RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (RIGHT_ANGLE_RAD - (RIGHT_THIGH_ANGLE - RIGHT_ANGLE_RAD)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and step 
+                  RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
+                  break;
+               case 2:
+                  RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((RIGHT_ANGLE_RAD + 0.698132) - (LEFT_THIGH_ANGLE - RIGHT_ANGLE_RAD)); // when camera is looking down, where is additional 0.698132 rad (40°)
+                  RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
+                  break;
+               default:
+                  break;
+            }            
+         }
+         
+         if(kneeHeight == DEFAULT_VALUE) {
+            DISTANCE_RIGHT_CAMERA_GROUND = DEFAULT_VALUE;
+         }      
+         else {
+            switch (CAMERA_POSITION)
+            {
+               case 1:
+                  DISTANCE_RIGHT_CAMERA_GROUND = kneeHeight + Math.sin(RIGHT_THIGH_ANGLE - 0.69001592) * 0.0943; //0.69001592 rad (39.535°) and 0.0943 meters are measurements from exo
+                  break;
+               case 2:
+                  DISTANCE_RIGHT_CAMERA_GROUND = kneeHeight + Math.sin(RIGHT_THIGH_ANGLE - 0.265586752) * 0.0631; //0.265586752 rad (15.217°) and 0.0631 meters are measurements from exo
+                  break;
+               default:
+                  break;
+            }            
+         }
+         
+         //saving
+         if(CREATE_DATASET) {
+            try
+            {
+               rightThighAngleWriter.write(String.valueOf(pointCloudTimeStamp) + "\n" + String.valueOf(tightAngle) + "\n");
+               rightThighAngleWriter.flush();
+            }
+            catch (Exception ex)
+            {
+               CREATE_DATASET = false;
+               ex.printStackTrace();
+            } 
+
+            try
+            {
+               rightKneeHeightWriter.write(String.valueOf(pointCloudTimeStamp) + "\n" + String.valueOf(kneeHeight) + "\n");   
+               rightKneeHeightWriter.flush();
+            }
+            catch (Exception ex)
+            {
+               CREATE_DATASET = false;
+               ex.printStackTrace();
+            } 
+            
+            try
+            {
+               us.ihmc.idl.IDLSequence.Float cloud = message.getPointCloud();
+               float[] pointCloud = cloud.toArray();
+               
+               File file = new File("DATASETS/" + DATASET_NUMBER + "/RPC/stereovision_pointcloud_" + savingIndexRight + ".txt");
+               FileWriter fileWriter = new FileWriter(file);
+               StringBuilder builder = new StringBuilder("");
+               for (int i = 0; i < pointCloud.length/3; i++)
+               {
+                  builder.append(i + "\t" + pointCloud[i*3] + "\t" + pointCloud[i*3+1] + "\t" + pointCloud[i*3+2] + "\t-16777216\n");
+               }
+               fileWriter.write(builder.toString());
+               
+               fileWriter.close();
+               savingIndexRight++;
+            }
+            catch (Exception ex)
+            {
+               CREATE_DATASET = false;
+               ex.printStackTrace();
+            }
+         }
+
+         //detection part
+         switch(ALGORITHM_SELECTOR) {
+            case "stairDistance3": 
+               distanceRight = stairDistance3(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
+               break;
+            case "stairDistance2": 
+               distanceRight = stairDistance2(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
+               break;
+            case "stairDistance": 
+               distanceRight = stairDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
+               break;
+            case "obstacleDistance":  
                distanceRight = obstacleDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
                break;
             default:
                break;
          }
-
-         if(distanceLeft != DEFAULT_DISTANCE_VALUE || distanceRight != DEFAULT_DISTANCE_VALUE) {
-            lastValidDistance = System.currentTimeMillis();  
-            
-            if(distanceLeft > distanceRight) {
-               if(DISTANCE_IN_FEET) {
-                  sender.send("R: " + String.format("%.2f", (distanceRight*3.28084)) + " feet");                      
-               }
-               else {
-                  sender.send("R: " + String.format("%.2f", distanceRight) + " meters");                  
-               }
-            }
-            else {
-               if(DISTANCE_IN_FEET) {
-                  sender.send("L: " + String.format("%.2f", (distanceLeft*3.28084)) + " feet");                    
-               }
-               else {
-                  sender.send("L: " + String.format("%.2f", distanceLeft) + " meters");
-               }
-            }
-         }
-         else if(System.currentTimeMillis() - lastValidDistance > TIME_BEFORE_NO_DISTANCE_REPORT){
-            sender.send("free to go");
-         }
+         
+         //todo JOBY uncomment
+         //evaluateAndSend();
       }
       catch (Exception ex)
       {
@@ -730,16 +797,124 @@ public class ObstacleDisplayer
    }
 
    /*
+    * find closes Float64.uniqueId (timestamp) to pointCloudTimeStamp and return Float64.data_
+    */
+   private double findClosestAndRemoverUnnecessary(List<Float64> list, Long pointCloudTimeStamp)
+   {
+      if(list == null || list.size() == 0)
+         return DEFAULT_VALUE;
+      
+      int index = (int)(list.size()/2.0f);
+      int indexMover = index/2;
+      if(indexMover == 0)
+         indexMover++;
+      
+      while(true) {
+         Float64 f = list.get(index);
+         if(pointCloudTimeStamp < f.getUniqueId()) {
+            if(index == 0) {
+               if(PRINT_FINDER)
+                  System.out.println("i: " + index + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - f.getUniqueId()));               
+               return f.getData();
+            }
+            if(list.get(index-1).getUniqueId() < pointCloudTimeStamp) {
+               if(Math.abs(list.get(index-1).getUniqueId() - pointCloudTimeStamp) > Math.abs(f.getUniqueId() - pointCloudTimeStamp)) {
+                  if(PRINT_FINDER)
+                     System.out.println("i: " + index + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - f.getUniqueId()));
+                  oldDataRemove(list, index-1);
+                  return f.getData();
+               }
+               else { 
+                  if(PRINT_FINDER)
+                     System.out.println("i: " + (index-1) + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - list.get(index-1).getUniqueId()));
+                  f = list.get(index-1);
+                  oldDataRemove(list, index-2);
+                  return f.getData();
+               }
+            }
+            
+            index -= indexMover;
+         }
+         else {
+            if(index == list.size() - 1) {
+               if(PRINT_FINDER)
+                  System.out.println("i: " + index + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - f.getUniqueId()));
+               list.clear();
+               list.add(f);
+               return f.getData();               
+            }
+            if(pointCloudTimeStamp < list.get(index+1).getUniqueId()) {
+               if(Math.abs(list.get(index+1).getUniqueId() - pointCloudTimeStamp) > Math.abs(f.getUniqueId() - pointCloudTimeStamp)) {
+                  if(PRINT_FINDER)
+                     System.out.println("i: " + index + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - f.getUniqueId()));
+                  oldDataRemove(list, index-1);
+                  return f.getData();
+               }
+               else {
+                  if(PRINT_FINDER)
+                     System.out.println("i: " + (index+1) + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - list.get(index+1).getUniqueId()));
+                  f = list.get(index+1);
+                  oldDataRemove(list, index);
+                  return f.getData();
+               }
+            }
+            
+            index += indexMover;          
+         }
+         indexMover /= 2;
+         if(indexMover == 0)
+            indexMover++;
+      }
+   }
+   
+   private void oldDataRemove(List<Float64> list, int index)
+   {
+      while(index >= 0) {
+         list.remove(0);         
+         index--;
+      }
+   }
+   
+
+   long lastValidDistance = System.currentTimeMillis();
+   private void evaluateAndSend()
+   {
+      if(distanceLeft != DEFAULT_VALUE || distanceRight != DEFAULT_VALUE) {
+         lastValidDistance = System.currentTimeMillis();  
+         
+         if(distanceLeft > distanceRight) {
+            if(DISTANCE_IN_FEET) {
+               sender.send("R: " + String.format("%.2f", (distanceRight*3.28084)) + " feet");                      
+            }
+            else {
+               sender.send("R: " + String.format("%.2f", distanceRight) + " meters");                  
+            }
+         }
+         else {
+            if(DISTANCE_IN_FEET) {
+               sender.send("L: " + String.format("%.2f", (distanceLeft*3.28084)) + " feet");                    
+            }
+            else {
+               sender.send("L: " + String.format("%.2f", distanceLeft) + " meters");
+            }
+         }
+      }
+      else if(System.currentTimeMillis() - lastValidDistance > TIME_BEFORE_NO_DISTANCE_REPORT){
+         sender.send("free to go");
+      }      
+   }
+   
+   /*
     * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
     * OBSOLETE
     */
    private double stairDistance(PlanarRegionsList planarRegionsList)
    {  
       if(planarRegionsList.getNumberOfPlanarRegions() == 0)
-         return DEFAULT_DISTANCE_VALUE;
+         return DEFAULT_VALUE;
       
       //variable
-      double distance = DEFAULT_DISTANCE_VALUE;
+      double distance = DEFAULT_VALUE;
       
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
@@ -786,14 +961,15 @@ public class ObstacleDisplayer
    /*
     * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
     * different approach
+    * OBSOLETE
     */
    private double stairDistance2(PlanarRegionsList planarRegionsList, double distanceCameraGround, double idealAngleBetweenCameraAndPlane, double idealAngleBetweenGroundAndPlane)
    {  
-      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || distanceCameraGround == 500.0) // 500 means leg in swing
-         return DEFAULT_DISTANCE_VALUE;      
+      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || distanceCameraGround == DEFAULT_VALUE)
+         return DEFAULT_VALUE;      
             
       //variable
-      double distance = DEFAULT_DISTANCE_VALUE;
+      double distance = DEFAULT_VALUE;
 
       RotationScaleMatrix rotation = null;
       Point3D translation = null;
@@ -841,11 +1017,11 @@ public class ObstacleDisplayer
     */
    private double stairDistance3(PlanarRegionsList planarRegionsList, double distanceCameraGround, double idealAngleBetweenCameraAndPlane, double idealAngleBetweenGroundAndPlane)
    {  
-      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || distanceCameraGround == 500.0) // 500 means leg in swing
-         return DEFAULT_DISTANCE_VALUE;      
+      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || distanceCameraGround == DEFAULT_VALUE) 
+         return DEFAULT_VALUE;      
             
       //variable
-      double distance = DEFAULT_DISTANCE_VALUE;           
+      double distance = DEFAULT_VALUE;           
       
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
@@ -888,10 +1064,11 @@ public class ObstacleDisplayer
    }   
    /*
     * returns DEFAULT_DISTANCE_VALUE if there is no obstacle otherwise return distance to obstacle
+    * OBSOLETE
     */
    private double obstacleDistance(PlanarRegionsList planarRegionsList) {
       //variables
-      double distance = DEFAULT_DISTANCE_VALUE;  
+      double distance = DEFAULT_VALUE;  
       LinkedList<Double> distanceList = new LinkedList<Double>();
       
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
@@ -914,35 +1091,7 @@ public class ObstacleDisplayer
       }
       return distance;   
    }
-
-   public void start() throws IOException
-   {
-      if (scheduled == null)
-      {
-         scheduled = executorService.scheduleAtFixedRate(this::mainUpdate, 0, THREAD_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
-         executorService.scheduleAtFixedRate(stereoVisionBufferUpdaterLeft.createBufferThread(), 0, BUFFER_THREAD_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
-         executorService.scheduleAtFixedRate(stereoVisionBufferUpdaterRight.createBufferThread(), 0, BUFFER_THREAD_PERIOD_MILLISECONDS, TimeUnit.MILLISECONDS);
-      }
-   }
-
-   public void stop() throws Exception
-   {
-      reaMessager1.closeMessager();
-      reaMessager2.closeMessager();
-      ros2Node.destroy();
-
-      if (scheduled != null)
-      {
-         scheduled.cancel(true);
-         scheduled = null;
-      }
-
-      if (executorService != null)
-      {
-         executorService.shutdownNow();
-         executorService = null;
-      }
-   }
+   
 
    public static ObstacleDisplayer createIntraprocessModule() throws Exception
    {

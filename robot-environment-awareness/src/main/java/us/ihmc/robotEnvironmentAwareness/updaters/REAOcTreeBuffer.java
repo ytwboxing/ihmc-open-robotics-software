@@ -111,52 +111,57 @@ public class REAOcTreeBuffer
          @Override
          public void run()
          {
-            updateScanCollection();
-            ScanCollection newScan = newFullScanReference.getAndSet(null);
-
-            if (!enable.get() || !enableBuffer.get() || clearBuffer.getAndSet(false))
-            {
-               bufferOctree.clear();
-               messageCounter = 0;
-               isBufferFull.set(false);
-               isBufferRequested.set(false);
-               return;
-            }
-
-            if (newScan == null)
-               return;
-
-            bufferOctree.insertScanCollection(newScan, false);
-            messageCounter++;
-
-            if (messageCounter >= messageCapacity.get().intValue())
-            {
-               isBufferFull.set(true);
-            }
-            else
-            {
-               int numberOfLeafNodesInBuffer = bufferOctree.getNumberOfLeafNodes();
-               if (numberOfLeafNodesInBuffer >= ocTreeCapacity.get().intValue())
-                  isBufferFull.set(true);
-               else
-               {
-                  isBufferFull.set(false);
-                  return;
-               }
-            }
-
-            if (isBufferRequested.get())
-            {
-               newBuffer.set(bufferOctree);
-               bufferOctree = new NormalOcTree(octreeResolution.get());
-               isBufferRequested.set(false);
-               messageCounter = 0;
-            }
-
-            if (isBufferStateRequested.getAndSet(false))
-               reaMessager.submitMessage(stateTopic, OcTreeMessageConverter.convertToMessage(bufferOctree));
-         }
+            runMethod(bufferOctree);
+         }         
       };
+   }
+   
+   public void runMethod(NormalOcTree bufferOctree)
+   {
+      updateScanCollection();
+      ScanCollection newScan = newFullScanReference.getAndSet(null);
+      
+      if (!enable.get() || !enableBuffer.get() || clearBuffer.getAndSet(false))
+      {
+         bufferOctree.clear();
+         messageCounter = 0;
+         isBufferFull.set(false);
+         isBufferRequested.set(false);
+         return;
+      }
+
+      if (newScan == null)
+         return;
+
+      bufferOctree.insertScanCollection(newScan, false);
+      messageCounter++;
+
+      if (messageCounter >= messageCapacity.get().intValue())
+      {
+         isBufferFull.set(true);
+      }
+      else
+      {
+         int numberOfLeafNodesInBuffer = bufferOctree.getNumberOfLeafNodes();
+         if (numberOfLeafNodesInBuffer >= ocTreeCapacity.get().intValue())
+            isBufferFull.set(true);
+         else
+         {
+            isBufferFull.set(false);
+            return;
+         }
+      }
+
+      if (isBufferRequested.get())
+      {
+         newBuffer.set(bufferOctree);
+         bufferOctree = new NormalOcTree(octreeResolution.get());
+         isBufferRequested.set(false);
+         messageCounter = 0;
+      }
+
+      if (isBufferStateRequested.getAndSet(false))
+         reaMessager.submitMessage(stateTopic, OcTreeMessageConverter.convertToMessage(bufferOctree));            
    }
 
    public void clearBuffer()

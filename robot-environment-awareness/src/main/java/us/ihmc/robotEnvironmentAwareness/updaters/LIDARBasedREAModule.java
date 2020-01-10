@@ -80,7 +80,8 @@ public class LIDARBasedREAModule
    private final REAOcTreeBuffer stereoVisionBufferUpdater;
    private final REAOcTreeUpdater mainUpdater;
    private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdater;
-   public static final double DEFAULT_DISTANCE_VALUE = 999.0;
+   public static final double DEFAULT_VALUE = 500.0;
+   private final static double RIGHT_ANGLE_RAD = 1.5707963267948966192313216916398;
 
    private final REAModuleStateReporter moduleStateReporter;
    private final REAPlanarRegionPublicNetworkProvider planarRegionNetworkProvider;
@@ -188,96 +189,6 @@ public class LIDARBasedREAModule
       reaMessager.submitMessage(REAModuleAPI.RequestEntireModuleState, true);
    }
    
-   private double DISTANCE_CAMERA_GROUND = 0.625;
-   private int CAMERA_POSITION = 1;
-   private void handleExoKneeHeight(Subscriber<Float64> subscriber) {
-      Double value = subscriber.takeNextData().data_;
-      if(value == 0.0)
-         return;
-      
-      if(value == 500.0) {
-         DISTANCE_CAMERA_GROUND = 500.0;
-         return;
-      }
-      
-      switch (CAMERA_POSITION)
-      {
-         case 1:
-            DISTANCE_CAMERA_GROUND = value + Math.sin(THIGH_ANGLE - 0.69001592) * 0.0943; //0.69001592 rad (39.535°) and 0.0943 meters are measurements from exo
-            break;
-         case 2:
-            DISTANCE_CAMERA_GROUND = value + Math.sin(THIGH_ANGLE - 0.265586752) * 0.0631; //0.265586752 rad (15.217°) and 0.0631 meters are measurements from exo
-            break;
-         default:
-            break;
-      }
-   } 
-   
-   private double THIGH_ANGLE = 1.5708;
-   private double IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = 90.0;
-   private double IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = 0.0;
-   private void handleExoThighAngle(Subscriber<Float64> subscriber) {
-      Double value = subscriber.takeNextData().data_;
-      if(value == 0.0 || value == 500.0)
-         return;
-      
-      THIGH_ANGLE = value;
-      
-      switch (CAMERA_POSITION)
-      {
-         case 1:
-            IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (1.5708 - (THIGH_ANGLE - 1.5708)); // 1.5708 rad (90°) is ideal angle between camera view vector(forward) and stair 
-            IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
-            break;
-         case 2:
-            IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((1.5708 + 0.698132) - (THIGH_ANGLE - 1.5708)); // when camera is looking down, where is additional 0.698132 rad (40°) 
-            IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
-            break;
-         default:
-            break;
-      }
-   }
-   
-   private void dispatchLidarScanMessage(Subscriber<LidarScanMessage> subscriber)
-   {
-      LidarScanMessage message = subscriber.takeNextData();
-      moduleStateReporter.registerLidarScanMessage(message);
-      lidarBufferUpdater.handleLidarScanMessage(message);
-      mainUpdater.handleLidarScanMessage(message);
-   }
-
-   boolean switchingThingy = true;
-   private void dispatchStereoVisionPointCloudMessage(Subscriber<StereoVisionPointCloudMessage> subscriber)
-   {
-      StereoVisionPointCloudMessage message = subscriber.takeNextData();   
-      
-      /*
-      if(switchingThingy) {
-         //switchingThingy = false;
-         RotationScaleMatrix rotation = new RotationScaleMatrix();
-         rotation.setEuler(0.0, -6.287552158727884*(Math.PI/180), -2.643502424091119*(Math.PI/180)); 
-         Point3D translation = new Point3D(0.0, 0.0, 0.0);
-         AffineTransform transform = new AffineTransform(rotation, translation);         
-         
-         us.ihmc.idl.IDLSequence.Float floatIGuess = message.getPointCloud();
-         for(int i = 0; i < floatIGuess.size(); i+=3) {
-            Point3D point = new Point3D(floatIGuess.get(i), floatIGuess.get(i+1), floatIGuess.get(i+2));
-            point.applyTransform(transform);
-            floatIGuess.set(i, point.getX32());
-            floatIGuess.set(i+1, point.getY32());
-            floatIGuess.set(i+2, point.getZ32());
-         }         
-      }
-      else {
-         switchingThingy = true;
-      }
-      */
-      
-      moduleStateReporter.registerStereoVisionPointCloudMessage(message);
-      stereoVisionBufferUpdater.handleStereoVisionPointCloudMessage(message);
-      mainUpdater.handleStereoVisionPointCloudMessage(message);
-   }
-
    private void dispatchCustomPlanarRegion(Subscriber<PlanarRegionsListMessage> subscriber)
    {
       PlanarRegionsListMessage message = subscriber.takeNextData();
@@ -331,7 +242,67 @@ public class LIDARBasedREAModule
    }
 
    private final AtomicDouble lastCompleteUpdate = new AtomicDouble(Double.NaN);
+   
+   private double DISTANCE_CAMERA_GROUND = 0.625;
+   private double KNEE_HEIGHT = 0.625;   
+   private int CAMERA_POSITION = 2;
+   private void handleExoKneeHeight(Subscriber<Float64> subscriber) {
+      KNEE_HEIGHT = subscriber.takeNextData().getData();
+   } 
+   
+   private double THIGH_ANGLE = RIGHT_ANGLE_RAD;
+   private double IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = 90.0;
+   private double IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = 0.0;
+   private void handleExoThighAngle(Subscriber<Float64> subscriber) {    
+      THIGH_ANGLE = subscriber.takeNextData().getData();      
+   }
+   
+   private void dispatchLidarScanMessage(Subscriber<LidarScanMessage> subscriber)
+   {
+      LidarScanMessage message = subscriber.takeNextData();
+      moduleStateReporter.registerLidarScanMessage(message);
+      lidarBufferUpdater.handleLidarScanMessage(message);
+      mainUpdater.handleLidarScanMessage(message);
+   }
 
+   boolean switchingThingy = true;
+   NormalOcTree bufferOctree = new NormalOcTree(DEFAULT_OCTREE_RESOLUTION);
+   private void dispatchStereoVisionPointCloudMessage(Subscriber<StereoVisionPointCloudMessage> subscriber)
+   {
+      StereoVisionPointCloudMessage message = subscriber.takeNextData();   
+      
+      /*
+      if(switchingThingy) {
+         //switchingThingy = false;
+         RotationScaleMatrix rotation = new RotationScaleMatrix();
+         rotation.setEuler(0.0, -38.0*(Math.PI/180), 0.0); 
+         Point3D translation = new Point3D(0.0, 0.0, 0.0);
+         AffineTransform transform = new AffineTransform(rotation, translation);         
+         
+         us.ihmc.idl.IDLSequence.Float floatIGuess = message.getPointCloud();
+         for(int i = 0; i < floatIGuess.size(); i+=3) {
+            Point3D point = new Point3D(floatIGuess.get(i), floatIGuess.get(i+1), floatIGuess.get(i+2));
+            point.applyTransform(transform);
+            floatIGuess.set(i, point.getX32());
+            floatIGuess.set(i+1, point.getY32());
+            floatIGuess.set(i+2, point.getZ32());
+         }         
+      }
+      else {
+         switchingThingy = true;
+      }
+      */
+
+      moduleStateReporter.registerStereoVisionPointCloudMessage(message);
+      stereoVisionBufferUpdater.handleStereoVisionPointCloudMessage(message);
+      mainUpdater.handleStereoVisionPointCloudMessage(message);
+      
+      //todo
+      //stereoVisionBufferUpdater.runMethod(bufferOctree);      
+      //mainUpdate(message);
+   }
+   
+   double distance = DEFAULT_VALUE;
    private void mainUpdate()
    {
       if (isThreadInterrupted())
@@ -370,16 +341,41 @@ public class LIDARBasedREAModule
 
             timeReporter.run(() -> planarRegionFeatureUpdater.update(mainOctree), planarRegionsTimeReport);
             timeReporter.run(() -> moduleStateReporter.reportPlanarRegionsState(planarRegionFeatureUpdater), reportPlanarRegionsStateTimeReport);
-
-            double stairDistance = stairDistance3(planarRegionFeatureUpdater.getPlanarRegionsList());
-            /*if(stairDistance != DEFAULT_DISTANCE_VALUE)
-               System.out.println(stairDistance);
-               */
-            /*
-            double distance = obstacleDistance(planarRegionFeatureUpdater.getPlanarRegionsList());
-            if(distance != DEFAULT_DISTANCE_VALUE)
-               System.out.println(distance);
-            */            
+            
+            if(THIGH_ANGLE != DEFAULT_VALUE){            
+               switch (CAMERA_POSITION)
+               {
+                  case 1:
+                     IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* (RIGHT_ANGLE_RAD - (THIGH_ANGLE - RIGHT_ANGLE_RAD));
+                     IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
+                     break;
+                  case 2:
+                     IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE = (180/Math.PI)* ((RIGHT_ANGLE_RAD + 0.698132) - (THIGH_ANGLE - RIGHT_ANGLE_RAD));
+                     IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE - 90.0;
+                     break;
+                  default:
+                     break;
+               }
+            }         
+            
+            if(KNEE_HEIGHT == DEFAULT_VALUE) {
+               DISTANCE_CAMERA_GROUND = DEFAULT_VALUE;
+            }
+            else {
+               switch (CAMERA_POSITION)
+               {
+                  case 1:
+                     DISTANCE_CAMERA_GROUND = KNEE_HEIGHT + Math.sin(THIGH_ANGLE - 0.69001592) * 0.0943; //0.69001592 rad (39.535°) and 0.0943 meters are measurements from exo
+                     break;
+                  case 2:
+                     DISTANCE_CAMERA_GROUND = KNEE_HEIGHT + Math.sin(THIGH_ANGLE - 0.265586752) * 0.0631; //0.265586752 rad (15.217°) and 0.0631 meters are measurements from exo
+                     break;
+                  default:
+                     break;
+               }
+            }
+            
+            double stairDistance = stairDistance3(planarRegionFeatureUpdater.getPlanarRegionsList());          
             
             planarRegionNetworkProvider.update(ocTreeUpdateSuccess);
             planarRegionNetworkProvider.publishCurrentState();
@@ -415,7 +411,7 @@ public class LIDARBasedREAModule
    private double stairDistance(PlanarRegionsList planarRegionsList)
    {  
       if(planarRegionsList.getNumberOfPlanarRegions() == 0)
-         return DEFAULT_DISTANCE_VALUE;
+         return DEFAULT_VALUE;
       
       //params
       final double angleToCameraTolerance = 25.0;
@@ -423,7 +419,7 @@ public class LIDARBasedREAModule
       final double XYZTolerance = 0.1;
       
       //variable
-      double distance = DEFAULT_DISTANCE_VALUE;
+      double distance = DEFAULT_VALUE;
 
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
@@ -481,11 +477,11 @@ public class LIDARBasedREAModule
     */
    private double stairDistance3(PlanarRegionsList planarRegionsList)
    {  
-      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || DISTANCE_CAMERA_GROUND == 500.0) // 500 means leg in swing
-         return DEFAULT_DISTANCE_VALUE;      
+      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || DISTANCE_CAMERA_GROUND == DEFAULT_VALUE) // 500 means leg in swing
+         return DEFAULT_VALUE;      
             
       //variable
-      double distance = DEFAULT_DISTANCE_VALUE;           
+      double distance = DEFAULT_VALUE;           
       
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
          PlanarRegion planarRegionI = planarRegionsList.getPlanarRegion(i);
@@ -530,14 +526,15 @@ public class LIDARBasedREAModule
    /*
     * returns distance to the closest stair, if no stair detected then returns DEFAULT_DISTANCE_VALUE
     * different approach
+    * OBSOLETE
     */
    private double stairDistance2(PlanarRegionsList planarRegionsList)
    {  
-      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || DISTANCE_CAMERA_GROUND == 500.0) // 500 means leg in swing
-         return DEFAULT_DISTANCE_VALUE;      
+      if(planarRegionsList.getNumberOfPlanarRegions() == 0 || DISTANCE_CAMERA_GROUND == DEFAULT_VALUE) // 500 means leg in swing
+         return DEFAULT_VALUE;      
             
       //variable
-      double distance = DEFAULT_DISTANCE_VALUE;
+      double distance = DEFAULT_VALUE;
       
       RotationScaleMatrix rotation = null;
       Point3D translation = null;
@@ -585,7 +582,7 @@ public class LIDARBasedREAModule
     */
    private double obstacleDistance(PlanarRegionsList planarRegionsList) {                    
       //variables
-      double distance = DEFAULT_DISTANCE_VALUE;  
+      double distance = DEFAULT_VALUE;  
       LinkedList<Double> distanceList = new LinkedList<Double>();
       
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
@@ -608,7 +605,7 @@ public class LIDARBasedREAModule
       }
       return distance;   
    }
-
+   
    
    private boolean isThreadInterrupted()
    {
@@ -645,7 +642,7 @@ public class LIDARBasedREAModule
          executorService = null;
       }
    }
-
+   
    public static LIDARBasedREAModule createRemoteModule(String configurationFilePath) throws Exception
    {
       KryoMessager server = KryoMessager.createTCPServer(REAModuleAPI.API, NetworkPorts.REA_MODULE_UI_PORT,
