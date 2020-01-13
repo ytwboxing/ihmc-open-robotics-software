@@ -417,7 +417,8 @@ public class ObstacleDisplayer
       stereoVisionBufferUpdaterLeft.handleStereoVisionPointCloudMessage(message);      
       mainUpdaterLeft.handleStereoVisionPointCloudMessage(message);
       
-      stereoVisionBufferUpdaterLeft.runMethod(bufferOctreeLeft);      
+      bufferOctreeLeft = new NormalOcTree(DEFAULT_OCTREE_RESOLUTION);
+      stereoVisionBufferUpdaterLeft.runMethod(bufferOctreeLeft);
       mainUpdateLeft(message.getTimestamp(), message);
    }
 
@@ -428,6 +429,7 @@ public class ObstacleDisplayer
       stereoVisionBufferUpdaterRight.handleStereoVisionPointCloudMessage(message);      
       mainUpdaterRight.handleStereoVisionPointCloudMessage(message);
       
+      bufferOctreeRight = new NormalOcTree(DEFAULT_OCTREE_RESOLUTION);
       stereoVisionBufferUpdaterRight.runMethod(bufferOctreeRight);
       mainUpdateRight(message.getTimestamp(), message);
    }
@@ -1078,16 +1080,12 @@ public class ObstacleDisplayer
       LinkedList<Double> distanceList = new LinkedList<Double>();
       
       for(int i = 0; i < planarRegionsList.getNumberOfPlanarRegions(); i++) {
-         PlanarRegion planarRegion = planarRegionsList.getPlanarRegion(i);
-         Vector3D vector = planarRegion.getNormal();
-         double angle = Math.acos(vector.getZ())*(180/Math.PI);
-         if(angle > 180 - ANGLE_CAMERA_PLANE_TOLERANCE) {
-            double D2Distance = planarRegion.distanceToPointByProjectionOntoXYPlane(0.0, 0.0);
-            if(D2Distance < XYZ_TOLERANCE) {
-               distance = planarRegion.getPlaneZGivenXY(0, 0);
-               distanceList.add(distance);                        
-            }
-         }               
+         PlanarRegion planarRegion = planarRegionsList.getPlanarRegion(i);   
+         double D2Distance = planarRegion.distanceToPointByProjectionOntoXYPlane(0.0, 0.0);
+         if(D2Distance < XYZ_TOLERANCE) {
+            distance = planarRegion.getPlaneZGivenXY(0, 0);
+            distanceList.add(distance);                        
+         }            
       }
       
       for(int i = 0; i < distanceList.size() -1; i++){
