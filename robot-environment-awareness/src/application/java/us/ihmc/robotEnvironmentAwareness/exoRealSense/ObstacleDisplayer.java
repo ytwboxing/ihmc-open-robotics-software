@@ -172,8 +172,7 @@ public class ObstacleDisplayer
          ObstacleDisplayer module = ObstacleDisplayer.createIntraprocessModule();
          
          //sender to hololens
-         //todo JOBY uncomment
-         //sender = new UDPDataSender("192.168.0.13", 6669, PRINT_SENDER);
+         sender = new UDPDataSender("192.168.0.13", 6669, PRINT_SENDER);
          
          System.out.println("init complete");
          Scanner commandScanner = new Scanner(System.in);
@@ -787,8 +786,7 @@ public class ObstacleDisplayer
                break;
          }
          
-         //todo JOBY uncomment
-         //evaluateAndSend();
+         evaluateAndSend();
       }
       catch (Exception ex)
       {
@@ -881,26 +879,34 @@ public class ObstacleDisplayer
    {
       if(distanceLeft != DEFAULT_VALUE || distanceRight != DEFAULT_VALUE) {
          lastValidDistance = System.currentTimeMillis();  
+         String colorMark = null;
+         String sideMark = null;
+         double reportingDistance = DEFAULT_VALUE;
          
          if(distanceLeft > distanceRight) {
-            if(DISTANCE_IN_FEET) {
-               sender.send("R: " + String.format("%.2f", (distanceRight*3.28084)) + " feet");                      
-            }
-            else {
-               sender.send("R: " + String.format("%.2f", distanceRight) + " meters");                  
-            }
+            reportingDistance = distanceRight;
+            sideMark = "R";
          }
          else {
-            if(DISTANCE_IN_FEET) {
-               sender.send("L: " + String.format("%.2f", (distanceLeft*3.28084)) + " feet");                    
-            }
-            else {
-               sender.send("L: " + String.format("%.2f", distanceLeft) + " meters");
-            }
+            reportingDistance = distanceLeft;
+            sideMark = "L";
+         }
+         
+         if(reportingDistance < 0.5)
+            colorMark = "r";
+         else
+            colorMark = "b"; 
+         
+         if(DISTANCE_IN_FEET) {
+            reportingDistance *= 3.28084;
+            sender.send(colorMark + sideMark + ": " + String.format("%.2f", reportingDistance) + " feet");                    
+         }
+         else {
+            sender.send(colorMark + sideMark + ": " + String.format("%.2f", reportingDistance) + " meters");
          }
       }
       else if(System.currentTimeMillis() - lastValidDistance > TIME_BEFORE_NO_DISTANCE_REPORT){
-         sender.send("free to go");
+         sender.send("gfree to go");
       }      
    }
    
