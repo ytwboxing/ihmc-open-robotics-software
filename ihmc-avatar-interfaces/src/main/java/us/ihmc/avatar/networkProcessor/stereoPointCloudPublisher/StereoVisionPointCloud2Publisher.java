@@ -50,7 +50,7 @@ public class StereoVisionPointCloud2Publisher
    private final String robotName;
    private final FullRobotModel fullRobotModel;
    private ReferenceFrame stereoVisionPointsFrame = worldFrame;
-   private StereoVisionWorldTransformCalculator stereoVisionTransformer = null;
+   private StereoVisionPointCloudPublisher.StereoVisionWorldTransformCalculator stereoVisionTransformer = null;
 
    private final RobotConfigurationDataBuffer robotConfigurationDataBuffer = new RobotConfigurationDataBuffer();
 
@@ -133,7 +133,7 @@ public class StereoVisionPointCloud2Publisher
       this.rosClockCalculator = rosClockCalculator;
    }
 
-   public void setCustomStereoVisionTransformer(StereoVisionWorldTransformCalculator transformer)
+   public void setCustomStereoVisionTransformer(StereoVisionPointCloudPublisher.StereoVisionWorldTransformCalculator transformer)
    {
       stereoVisionTransformer = transformer;
    }
@@ -258,10 +258,5 @@ public class StereoVisionPointCloud2Publisher
    {
       this.linearVelocityThreshold.set(linearVelocityThreshold);
       this.angularVelocityThreshold.set(angularVelocityThreshold);
-   }
-
-   public static interface StereoVisionWorldTransformCalculator
-   {
-      public void computeTransformToWorld(FullRobotModel fullRobotModel, RigidBodyTransform transformToWorldToPack, Pose3DBasics sensorPoseToPack);
    }
 }

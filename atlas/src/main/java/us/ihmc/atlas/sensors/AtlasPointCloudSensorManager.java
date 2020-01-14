@@ -2,6 +2,7 @@ package us.ihmc.atlas.sensors;
 
 import controller_msgs.msg.dds.StampedPosePacket;
 import us.ihmc.atlas.parameters.AtlasSensorInformation;
+import us.ihmc.avatar.networkProcessor.stereoPointCloudPublisher.StereoVisionPointCloud2Publisher;
 import us.ihmc.avatar.networkProcessor.stereoPointCloudPublisher.StereoVisionPointCloudPublisher;
 import us.ihmc.avatar.networkProcessor.stereoPointCloudPublisher.StereoVisionPointCloudPublisher.StereoVisionWorldTransformCalculator;
 import us.ihmc.avatar.networkProcessor.trackingCameraPublisher.TrackingCameraBridge;
@@ -23,6 +24,8 @@ public class AtlasPointCloudSensorManager
    private final StereoVisionPointCloudPublisher realsenseDepthPointCloudPublisher;
    private final TrackingCameraBridge trackingCameraPublisher;
 
+   private final StereoVisionPointCloud2Publisher realsenseDepthPointCloud2Publisher;
+
    private static final String topicNamePrefixToPublish = ROS2Tools.IHMC_ROS_TOPIC_PREFIX;
 
    private static final String depthTopicNameSurfixToPublish = "_D435";
@@ -40,6 +43,13 @@ public class AtlasPointCloudSensorManager
       realsenseDepthPointCloudPublisher = new StereoVisionPointCloudPublisher(modelFactory, ros2Node, rcdTopicName, depthCloudTopicNameGenerator);
       realsenseDepthPointCloudPublisher.setROSClockCalculator(rosClockCalculator);
 
+      MessageTopicNameGenerator pointCloud2TopicNameGenerator;
+      pointCloud2TopicNameGenerator = (Class<?> T) -> ROS2Tools.appendTypeToTopicName(topicNamePrefixToPublish, T) + "_PointCloud2";
+      realsenseDepthPointCloud2Publisher = new StereoVisionPointCloud2Publisher(modelFactory, ros2Node, rcdTopicName, pointCloud2TopicNameGenerator);
+      realsenseDepthPointCloud2Publisher.setROSClockCalculator(rosClockCalculator);
+
+      //realsenseDepthPointCloud2Publisher.setCustomStereoVisionTransformer(createDepthPointCloudWorldTransformCalculator());
+
       MessageTopicNameGenerator trackingCameraTopicNameGenerator;
       trackingCameraTopicNameGenerator = (Class<?> T) -> ROS2Tools.appendTypeToTopicName(topicNamePrefixToPublish, T) + trackingTopicNameSurfixToPublish;
       trackingCameraPublisher = new TrackingCameraBridge(modelFactory, ros2Node, rcdTopicName, trackingCameraTopicNameGenerator);
@@ -55,17 +65,20 @@ public class AtlasPointCloudSensorManager
    public void receiveDataFromROS1(RosMainNode rosMainNode)
    {
       realsenseDepthPointCloudPublisher.receiveStereoPointCloudFromROS1(depthTopicNameToSubscribe, rosMainNode);
+      realsenseDepthPointCloud2Publisher.receiveStereoPointCloudFromROS1(depthTopicNameToSubscribe, rosMainNode);
       trackingCameraPublisher.receiveTrackingCameraDataFromROS1(trackingTopicNameToSubscribe, rosMainNode);
    }
 
    public void start()
    {
+      realsenseDepthPointCloud2Publisher.start();
       realsenseDepthPointCloudPublisher.start();
       trackingCameraPublisher.start();
    }
 
    public void shutdown()
    {
+      realsenseDepthPointCloud2Publisher.shutdown();
       realsenseDepthPointCloudPublisher.shutdown();
       trackingCameraPublisher.shutdown();
    }
