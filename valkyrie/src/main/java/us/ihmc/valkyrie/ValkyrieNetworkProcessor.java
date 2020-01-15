@@ -25,8 +25,6 @@ public class ValkyrieNetworkProcessor
       DRCNetworkModuleParameters networkModuleParams = new DRCNetworkModuleParameters();
       boolean startREA = false;
       
-      networkModuleParams.enableControllerCommunicator(true);
-      networkModuleParams.enableLocalControllerCommunicator(false);
       networkModuleParams.enableRobotEnvironmentAwerenessModule(true);
       networkModuleParams.enableKinematicsToolbox(true);
       networkModuleParams.enableKinematicsStreamingToolbox(true, ValkyrieKinematicsStreamingToolboxModule.class);
