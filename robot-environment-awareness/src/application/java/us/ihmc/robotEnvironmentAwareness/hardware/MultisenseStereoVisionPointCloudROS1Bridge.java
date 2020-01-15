@@ -241,14 +241,14 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
       String dataSetNumber = "1";
       
       String path = "DATASETS/" + dataSetNumber;
-      //new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", path + "LPC", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
-      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", path + "RPC", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
+      new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", path + "LPC", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
+      //new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", path + "RPC", new RosMainNode(masterURI, "StereoVisionPublisher", true), true);
       */
       /*
       //one particular point cloud
       String dataset = "1"; //  "1 P2"
       String LR = "R"; //L
-      String number = "3";
+      String number = "12";
       File f = new File("DATASETS/" + dataset + "/" + LR + "PC/points (" + number + ").txt"); 
       Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "stereoVisionPublisherNode");
       IHMCROS2Publisher<StereoVisionPointCloudMessage> stereoVisionPublisher = ROS2Tools.createPublisher(ros2Node, StereoVisionPointCloudMessage.class, ROS2Tools.getDefaultTopicNameGenerator());
@@ -276,7 +276,7 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
          reader1.readLine();
          reader2.readLine();  
          height = Double.valueOf(reader1.readLine()); 
-         angle = Double.valueOf(reader2.readLine()); 
+         angle = Double.valueOf(reader2.readLine());
          
          heightF = new Float64();
          heightF.data_ = height;
@@ -309,9 +309,9 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
       
       
       //whole dataset
-      System.out.println("waiting");
-      new Scanner(System.in).next();
-      System.out.println("started");
+      //System.out.println("waiting");
+      //new Scanner(System.in).next();
+      //System.out.println("started");
       
       String dataset = "1"; //  "1 P2"
       String LR = "R"; //L
@@ -399,7 +399,7 @@ public class MultisenseStereoVisionPointCloudROS1Bridge extends AbstractRosTopic
          
          try
          {
-            Thread.sleep(10000);
+            Thread.sleep(2000);
          }
          catch (InterruptedException e)
          {

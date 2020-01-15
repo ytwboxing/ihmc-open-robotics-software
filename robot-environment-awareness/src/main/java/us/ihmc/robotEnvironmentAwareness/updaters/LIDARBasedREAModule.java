@@ -166,7 +166,7 @@ public class LIDARBasedREAModule
       
       
       //left
-      boundingBox.maxX = 0.01f;
+      boundingBox.maxX = 3.0f; //0.0 for camera position 1, 3.0 for camera position 2
       boundingBox.minX = -1.0f;
       boundingBox.maxY = 1.0f;
       boundingBox.minY = -0.1f;
@@ -269,13 +269,13 @@ public class LIDARBasedREAModule
    NormalOcTree bufferOctree = new NormalOcTree(DEFAULT_OCTREE_RESOLUTION);
    private void dispatchStereoVisionPointCloudMessage(Subscriber<StereoVisionPointCloudMessage> subscriber)
    {
-      StereoVisionPointCloudMessage message = subscriber.takeNextData();   
-      
+      StereoVisionPointCloudMessage message = subscriber.takeNextData();
       /*
+      //point cloud rotation for better visualization
       if(switchingThingy) {
          //switchingThingy = false;
          RotationScaleMatrix rotation = new RotationScaleMatrix();
-         rotation.setEuler(0.0, -38.0*(Math.PI/180), 0.0); 
+         rotation.setEuler(0.0, -41.5*(Math.PI/180), 0.0); 
          Point3D translation = new Point3D(0.0, 0.0, 0.0);
          AffineTransform transform = new AffineTransform(rotation, translation);         
          
@@ -292,14 +292,9 @@ public class LIDARBasedREAModule
          switchingThingy = true;
       }
       */
-
       moduleStateReporter.registerStereoVisionPointCloudMessage(message);
       stereoVisionBufferUpdater.handleStereoVisionPointCloudMessage(message);
       mainUpdater.handleStereoVisionPointCloudMessage(message);
-      
-      //todo
-      //stereoVisionBufferUpdater.runMethod(bufferOctree);      
-      //mainUpdate(message);
    }
    
    double distance = DEFAULT_VALUE;
@@ -375,7 +370,9 @@ public class LIDARBasedREAModule
                }
             }
             
-            double stairDistance = stairDistance3(planarRegionFeatureUpdater.getPlanarRegionsList());          
+            double stairDistance = stairDistance3(planarRegionFeatureUpdater.getPlanarRegionsList());
+            if(stairDistance != DEFAULT_VALUE)
+               System.out.println(stairDistance);
             
             planarRegionNetworkProvider.update(ocTreeUpdateSuccess);
             planarRegionNetworkProvider.publishCurrentState();

@@ -434,7 +434,7 @@ public class ObstacleDisplayer
       mainUpdateRight(message.getTimestamp(), message);
    }
 
-   List<Float64> exoLeftKneeHeightList = COPY_ON_WRITE_ARRAYS ? new ArrayList<Float64>() : new CopyOnWriteArrayList<Float64>();     
+   List<Float64> exoLeftKneeHeightList = COPY_ON_WRITE_ARRAYS ? new CopyOnWriteArrayList<Float64>() : new ArrayList<Float64>();     
    private void handleExoLeftKneeHeight(Subscriber<std_msgs.msg.dds.String> subscriber) {
       std_msgs.msg.dds.String s = subscriber.takeNextData();
       String[] values = s.data_.toString().split(";");
@@ -453,7 +453,7 @@ public class ObstacleDisplayer
       }
    } 
 
-   List<Float64> exoRightKneeHeightList = COPY_ON_WRITE_ARRAYS ? new ArrayList<Float64>() : new CopyOnWriteArrayList<Float64>();   
+   List<Float64> exoRightKneeHeightList = COPY_ON_WRITE_ARRAYS ? new CopyOnWriteArrayList<Float64>() : new ArrayList<Float64>();   
    private void handleExoRightKneeHeight(Subscriber<std_msgs.msg.dds.String> subscriber) {
       std_msgs.msg.dds.String s = subscriber.takeNextData();
       String[] values = s.data_.toString().split(";");
@@ -472,7 +472,7 @@ public class ObstacleDisplayer
       }      
    }
 
-   List<Float64> exoLeftThighAngleList = COPY_ON_WRITE_ARRAYS ? new ArrayList<Float64>() : new CopyOnWriteArrayList<Float64>();      
+   List<Float64> exoLeftThighAngleList = COPY_ON_WRITE_ARRAYS ? new CopyOnWriteArrayList<Float64>() : new ArrayList<Float64>();      
    private void handleExoLeftThighAngle(Subscriber<std_msgs.msg.dds.String> subscriber) {
       std_msgs.msg.dds.String s = subscriber.takeNextData();
       String[] values = s.data_.toString().split(";");
@@ -491,7 +491,7 @@ public class ObstacleDisplayer
       }      
    }
 
-   List<Float64> exoRightThighAngleList = COPY_ON_WRITE_ARRAYS ? new ArrayList<Float64>() : new CopyOnWriteArrayList<Float64>();   
+   List<Float64> exoRightThighAngleList = COPY_ON_WRITE_ARRAYS ? new CopyOnWriteArrayList<Float64>() : new ArrayList<Float64>();   
    private void handleExoRightThighAngle(Subscriber<std_msgs.msg.dds.String> subscriber) {
       std_msgs.msg.dds.String s = subscriber.takeNextData();
       String[] values = s.getData().toString().split(";");
@@ -814,19 +814,19 @@ public class ObstacleDisplayer
          if(pointCloudTimeStamp < f.getUniqueId()) {
             if(index == 0) {
                if(PRINT_FINDER)
-                  System.out.println("i: " + index + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - f.getUniqueId()));               
+                  System.out.println("i: " + index + ", size: " + list.size() + " difference: " + (f.getUniqueId() - pointCloudTimeStamp));               
                return f.getData();
             }
             if(list.get(index-1).getUniqueId() < pointCloudTimeStamp) {
-               if(Math.abs(list.get(index-1).getUniqueId() - pointCloudTimeStamp) > Math.abs(f.getUniqueId() - pointCloudTimeStamp)) {
+               if(pointCloudTimeStamp - list.get(index-1).getUniqueId() > f.getUniqueId() - pointCloudTimeStamp) {
                   if(PRINT_FINDER)
-                     System.out.println("i: " + index + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - f.getUniqueId()));
+                     System.out.println("i: " + index + ", size: " + list.size() + " difference: " + (f.getUniqueId() - pointCloudTimeStamp));
                   oldDataRemove(list, index-1);
                   return f.getData();
                }
                else { 
                   if(PRINT_FINDER)
-                     System.out.println("i: " + (index-1) + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - list.get(index-1).getUniqueId()));
+                     System.out.println("i: " + (index-1) + ", size: " + list.size() + " difference: " + (pointCloudTimeStamp - list.get(index-1).getUniqueId()));
                   f = list.get(index-1);
                   oldDataRemove(list, index-2);
                   return f.getData();
@@ -838,21 +838,21 @@ public class ObstacleDisplayer
          else {
             if(index == list.size() - 1) {
                if(PRINT_FINDER)
-                  System.out.println("i: " + index + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - f.getUniqueId()));
+                  System.out.println("i: " + index + ", size: " + list.size() + " difference: " + (pointCloudTimeStamp - f.getUniqueId()));
                list.clear();
                list.add(f);
                return f.getData();               
             }
             if(pointCloudTimeStamp < list.get(index+1).getUniqueId()) {
-               if(Math.abs(list.get(index+1).getUniqueId() - pointCloudTimeStamp) > Math.abs(f.getUniqueId() - pointCloudTimeStamp)) {
+               if(list.get(index+1).getUniqueId() - pointCloudTimeStamp > pointCloudTimeStamp - f.getUniqueId()) {
                   if(PRINT_FINDER)
-                     System.out.println("i: " + index + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - f.getUniqueId()));
+                     System.out.println("i: " + index + ", size: " + list.size() + " difference: " + (pointCloudTimeStamp - f.getUniqueId()));
                   oldDataRemove(list, index-1);
                   return f.getData();
                }
                else {
                   if(PRINT_FINDER)
-                     System.out.println("i: " + (index+1) + ", size: " + list.size() + " difference: " + Math.abs(pointCloudTimeStamp - list.get(index+1).getUniqueId()));
+                     System.out.println("i: " + (index+1) + ", size: " + list.size() + " difference: " + (list.get(index+1).getUniqueId() - pointCloudTimeStamp));
                   f = list.get(index+1);
                   oldDataRemove(list, index);
                   return f.getData();
@@ -881,7 +881,6 @@ public class ObstacleDisplayer
    {
       if(distanceLeft != DEFAULT_VALUE || distanceRight != DEFAULT_VALUE) {
          lastValidDistance = System.currentTimeMillis();  
-         String colorMark = null;
          String sideMark = null;
          double reportingDistance = DEFAULT_VALUE;
          
@@ -893,19 +892,23 @@ public class ObstacleDisplayer
             reportingDistance = distanceLeft;
             sideMark = "L";
          }
-         
+
+         String colorMark = null;
          if(reportingDistance < 0.5)
             colorMark = "r";
          else
             colorMark = "b"; 
          
+         String units = null;
          if(DISTANCE_IN_FEET) {
-            reportingDistance *= 3.28084;
-            sender.send(colorMark + sideMark + ": " + String.format("%.2f", reportingDistance) + " feet");                    
+            reportingDistance *= 3.28084; 
+            units = "feet";
          }
          else {
-            sender.send(colorMark + sideMark + ": " + String.format("%.2f", reportingDistance) + " meters");
+            units = "meters";
          }
+         
+         sender.send(colorMark + sideMark + ": " + String.format("%.2f", reportingDistance) + " " + units); 
       }
       else if(System.currentTimeMillis() - lastValidDistance > TIME_BEFORE_NO_DISTANCE_REPORT){
          sender.send("gfree to go");
@@ -1054,7 +1057,7 @@ public class ObstacleDisplayer
 
          max.applyTransform(transform);
          min.applyTransform(transform);
-         normalI.applyTransform(transform);        
+         normalI.applyTransform(transform);
          
          //distinguishing between floor and stair 
          double pointToGround = (min.getX() + max.getX()) / -2.0; // average + inverting sign
