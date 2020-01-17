@@ -88,7 +88,7 @@ public class YoJointDesiredOutput implements JointDesiredOutputBasics
    @Override
    public void setDesiredTorque(double tau)
    {
-      final double THRESHOLD = 340.0;
+      final double THRESHOLD = 330.0;
       
       if (tau > THRESHOLD) {
          tau = THRESHOLD;
