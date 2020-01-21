@@ -7,11 +7,11 @@ import us.ihmc.jOctoMap.tools.ScannerTools;
 public class PlanarRegionSegmentationParameters
 {
    private static final double DEFAULT_SEARCH_RADIUS = 0.05;
-   private static final double DEFAULT_MAX_DISTANCE_FROM_PLANE = 0.05;
-   private static final double DEFAULT_MAX_ANGLE_FROM_PLANE = Math.toRadians(10.0);
+   private static final double DEFAULT_MAX_DISTANCE_FROM_PLANE = 0.07;
+   private static final double DEFAULT_MAX_ANGLE_FROM_PLANE = Math.toRadians(18.0);
    private static final double DEFAULT_MIN_NORMAL_QUALITY = 0.005;
    private static final int DEFAULT_MIN_REGION_SIZE = 50;
-   private static final double DEFAULT_MAX_STANDARD_DEVIATION = 0.015;
+   private static final double DEFAULT_MAX_STANDARD_DEVIATION = 0.017;
    private static final double DEFAULT_VOLUMIC_DENSITY = 0.10 * 1.0e6; // cm^3 to m^3
 
    private double searchRadius;
