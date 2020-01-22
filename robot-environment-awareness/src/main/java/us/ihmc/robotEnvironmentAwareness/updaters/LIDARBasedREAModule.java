@@ -123,11 +123,11 @@ public class LIDARBasedREAModule
       
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "mina_v2/knee_height" // /left
+                                           , "mina_v2/knee_height"
                                            , this::handleExoKneeHeight);
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "mina_v2/thigh_angle" // /right
+                                           , "mina_v2/thigh_angle"
                                            , this::handleExoThighAngle);
 
       FilePropertyHelper filePropertyHelper = new FilePropertyHelper(configurationFile);
@@ -602,8 +602,7 @@ public class LIDARBasedREAModule
       }
       return distance;   
    }
-   
-   
+      
    private boolean isThreadInterrupted()
    {
       return Thread.interrupted() || scheduled == null || scheduled.isCancelled();

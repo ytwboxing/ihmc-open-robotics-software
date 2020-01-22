@@ -70,9 +70,6 @@ public class ObstacleDisplayer
    private final REAOcTreeBuffer stereoVisionBufferUpdaterRight;
    private final REAOcTreeUpdater mainUpdaterRight; 
    private final REAPlanarRegionFeatureUpdater planarRegionFeatureUpdaterRight;
-
-   private final Messager reaMessager1;  
-   private final Messager reaMessager2;  
    
    private boolean nonEmptyLeftOcTree = false;
    private boolean nonEmptyRightOcTree = false;   
@@ -103,7 +100,7 @@ public class ObstacleDisplayer
    private static String ALGORITHM_SELECTOR = "stairDistance3"; //name of function      
    private static boolean DISTANCE_IN_FEET = false;   
    private static int CAMERA_POSITION = 2; //1 - parallel with thight, 2 - pointing down 42°
-   private static boolean PUBLISH_EXO = false;
+   private static boolean REPUBLISH_EXO_DATA = false;
    private static int DATASET_NUMBER = 1;
    private static double DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = 0.0;
    private static int CYCKE_COUNTER_THRESHOLD = 100;
@@ -140,7 +137,7 @@ public class ObstacleDisplayer
    private static final String MARK_ALGORITHM_SELECTOR = "ALGORITHM_SELECTOR";   
    private static final String MARK_DISTANCE_IN_FEET = "DISTANCE_IN_FEET";   
    private static final String MARK_CAMERA_POSITION = "CAMERA_POSITION"; 
-   private static final String MARK_PUBLISH_EXO = "PUBLISH_EXO";
+   private static final String MARK_REPUBLISH_EXO_DATA = "REPUBLISH_EXO_DATA";
    private static final String MARK_DATASET_NUMBER = "DATASET_NUMBER";
    private static final String MARK_DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE = "DEFAULT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE";
    private static final String MARK_CYCKE_COUNTER_THRESHOLD = "CYCKE_COUNTER_THRESHOLD";
@@ -167,14 +164,15 @@ public class ObstacleDisplayer
                                  , ros2Node
                                  , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
                                  , MAX_NUMBER_OF_POINTS); 
-         
-         //main module
-         ObstacleDisplayer module = ObstacleDisplayer.createIntraprocessModule();
-         
+
          //sender to hololens
          sender = new UDPDataSender("192.168.0.13", 6669, PRINT_SENDER);
          
+         //main module
+         ObstacleDisplayer.createIntraprocessModule();
+                  
          System.out.println("init complete");
+         //avaiting dataset creation command
          Scanner commandScanner = new Scanner(System.in);
          while (true)
          {
@@ -197,24 +195,23 @@ public class ObstacleDisplayer
       }
    }
 
-   private ObstacleDisplayer(Messager reaMessager1, Messager reaMessager2, File configurationFile) throws IOException
+   private ObstacleDisplayer(Messager reaMessagerLeft, Messager reaMessagerRight, File configurationFile) throws IOException
    {
-      this.reaMessager1 = reaMessager1;
-      this.reaMessager2 = reaMessager2;
-
-      stereoVisionBufferUpdaterLeft = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessager1, REAModuleAPI.StereoVisionBufferEnable, true,
+      //planar region finders stuff
+      stereoVisionBufferUpdaterLeft = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessagerLeft, REAModuleAPI.StereoVisionBufferEnable, true,
                                                       REAModuleAPI.StereoVisionBufferOcTreeCapacity, 1000000, REAModuleAPI.StereoVisionBufferMessageCapacity, 1,
                                                       REAModuleAPI.RequestStereoVisionBuffer, REAModuleAPI.StereoVisionBufferState);
-      stereoVisionBufferUpdaterRight = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessager2, REAModuleAPI.StereoVisionBufferEnable, true,
+      stereoVisionBufferUpdaterRight = new REAOcTreeBuffer(DEFAULT_OCTREE_RESOLUTION, reaMessagerRight, REAModuleAPI.StereoVisionBufferEnable, true,
                                                           REAModuleAPI.StereoVisionBufferOcTreeCapacity, 1000000, REAModuleAPI.StereoVisionBufferMessageCapacity, 1,
                                                           REAModuleAPI.RequestStereoVisionBuffer, REAModuleAPI.StereoVisionBufferState);
       REAOcTreeBuffer[] bufferUpdatersLeft = new REAOcTreeBuffer[] { stereoVisionBufferUpdaterLeft};
       REAOcTreeBuffer[] bufferUpdatersRight = new REAOcTreeBuffer[] { stereoVisionBufferUpdaterRight};
-      mainUpdaterLeft = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdatersLeft, reaMessager1);
-      mainUpdaterRight = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdatersRight, reaMessager2);
-      planarRegionFeatureUpdaterLeft = new REAPlanarRegionFeatureUpdater(reaMessager1);
-      planarRegionFeatureUpdaterRight = new REAPlanarRegionFeatureUpdater(reaMessager2);
+      mainUpdaterLeft = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdatersLeft, reaMessagerLeft);
+      mainUpdaterRight = new REAOcTreeUpdater(DEFAULT_OCTREE_RESOLUTION, bufferUpdatersRight, reaMessagerRight);
+      planarRegionFeatureUpdaterLeft = new REAPlanarRegionFeatureUpdater(reaMessagerLeft);
+      planarRegionFeatureUpdaterRight = new REAPlanarRegionFeatureUpdater(reaMessagerRight);
       
+      //subscribing to cameras
       ROS2Tools.createCallbackSubscription(ros2Node
                                            , StereoVisionPointCloudMessage.class
                                            , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Left"
@@ -223,7 +220,8 @@ public class ObstacleDisplayer
                                            , StereoVisionPointCloudMessage.class
                                            , ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(StereoVisionPointCloudMessage.class) + "Right"
                                            , this::dispatchStereoVisionPointCloudMessageRight);      
-      
+
+      //subscribing to exo
       ROS2Tools.createCallbackSubscription(ros2Node
                                            , std_msgs.msg.dds.String.class
                                            , "mina_v2/knee_height/left"
@@ -241,7 +239,7 @@ public class ObstacleDisplayer
                                            , "mina_v2/thigh_angle/right"
                                            , this::handleExoRightThighAngle);
 
-      if(PUBLISH_EXO) {
+      if(REPUBLISH_EXO_DATA) {
          ExoLeftKneeHeightPublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "knee_height/left");
          ExoRightKneeHeightPublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "knee_height/right");
          ExoLeftThighAnglePublisher = ROS2Tools.createPublisher(ros2Node, Float64.class, "thigh_angle/left");
@@ -256,7 +254,8 @@ public class ObstacleDisplayer
       FilePropertyHelper filePropertyHelper = new FilePropertyHelper(configurationFile);
       loadConfigurationFile(filePropertyHelper);
 
-      reaMessager1.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
+      //setting planar region finders
+      reaMessagerLeft.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
       BoundingBoxParametersMessage boundingBox = new BoundingBoxParametersMessage();
       boundingBox.maxX = MAXX;
       boundingBox.minX = MINX;
@@ -264,28 +263,28 @@ public class ObstacleDisplayer
       boundingBox.minY = MINY; 
       boundingBox.maxZ = MAXZ;
       boundingBox.minZ = MINZ;
-      reaMessager1.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox);
-      reaMessager1.submitMessage(REAModuleAPI.LidarBufferEnable, false);
-      reaMessager1.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
+      reaMessagerLeft.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox);
+      reaMessagerLeft.submitMessage(REAModuleAPI.LidarBufferEnable, false);
+      reaMessagerLeft.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
       
-      reaMessager2.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
+      reaMessagerRight.submitMessage(REAModuleAPI.OcTreeBoundingBoxEnable, true);
       boundingBox = new BoundingBoxParametersMessage();
       boundingBox.maxX = MAXX;
       boundingBox.minX = MINX;
       boundingBox.maxY = -MINY;//ON PURPOSE
-      boundingBox.minY = -MAXY;
+      boundingBox.minY = -MAXY;//ON PURPOSE
       boundingBox.maxZ = MAXZ;
       boundingBox.minZ = MINZ;
-      reaMessager2.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox);
-      reaMessager2.submitMessage(REAModuleAPI.LidarBufferEnable, false);
-      reaMessager2.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
+      reaMessagerRight.submitMessage(REAModuleAPI.OcTreeBoundingBoxParameters, boundingBox);
+      reaMessagerRight.submitMessage(REAModuleAPI.LidarBufferEnable, false);
+      reaMessagerRight.submitMessage(REAModuleAPI.UIOcTreeDisplayType, DisplayType.HIDE);
 
-      reaMessager1.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse(PLANAR_REGIONS_SEGMENTATION_PARAMETERS));
-      reaMessager2.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse(PLANAR_REGIONS_SEGMENTATION_PARAMETERS));      
+      reaMessagerLeft.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse(PLANAR_REGIONS_SEGMENTATION_PARAMETERS));
+      reaMessagerRight.submitMessage(REAModuleAPI.PlanarRegionsSegmentationParameters, PlanarRegionSegmentationParameters.parse(PLANAR_REGIONS_SEGMENTATION_PARAMETERS));      
 
       // At the very end, we force the modules to submit their state so duplicate inputs have consistent values.
-      reaMessager1.submitMessage(REAModuleAPI.RequestEntireModuleState, true); 
-      reaMessager2.submitMessage(REAModuleAPI.RequestEntireModuleState, true); 
+      reaMessagerLeft.submitMessage(REAModuleAPI.RequestEntireModuleState, true); 
+      reaMessagerRight.submitMessage(REAModuleAPI.RequestEntireModuleState, true); 
    }
 
    private void loadConfigurationFile(FilePropertyHelper filePropertyHelper)
@@ -373,8 +372,8 @@ public class ObstacleDisplayer
                case MARK_CAMERA_POSITION:
                   CAMERA_POSITION = Integer.valueOf(bReader.readLine());
                   break;
-               case MARK_PUBLISH_EXO:
-                  PUBLISH_EXO = Boolean.valueOf(bReader.readLine());
+               case MARK_REPUBLISH_EXO_DATA:
+                  REPUBLISH_EXO_DATA = Boolean.valueOf(bReader.readLine());
                   break;
                case MARK_DATASET_NUMBER:
                   DATASET_NUMBER = Integer.valueOf(bReader.readLine());
@@ -436,17 +435,19 @@ public class ObstacleDisplayer
 
    List<Float64> exoLeftKneeHeightList = COPY_ON_WRITE_ARRAYS ? new CopyOnWriteArrayList<Float64>() : new ArrayList<Float64>();     
    private void handleExoLeftKneeHeight(Subscriber<std_msgs.msg.dds.String> subscriber) {
+      //handling data
       std_msgs.msg.dds.String s = subscriber.takeNextData();
       String[] values = s.data_.toString().split(";");
       Float64 f = new Float64();
       f.setUniqueId(Long.valueOf(values[0]));
-      f.setData(Double.valueOf(values[1]));      
-      
+      f.setData(Double.valueOf(values[1]));
       exoLeftKneeHeightList.add(f);   
 
-      if(PUBLISH_EXO)
+      //republishing data from exo
+      if(REPUBLISH_EXO_DATA)
          ExoLeftKneeHeightPublisher.publish(new Float64(f));
       
+      //conformation message
       if(recievingLeftKneeHeight == false) {
          recievingLeftKneeHeight = true;
          System.out.println("recieving Left Knee Height");
@@ -455,6 +456,7 @@ public class ObstacleDisplayer
 
    List<Float64> exoRightKneeHeightList = COPY_ON_WRITE_ARRAYS ? new CopyOnWriteArrayList<Float64>() : new ArrayList<Float64>();   
    private void handleExoRightKneeHeight(Subscriber<std_msgs.msg.dds.String> subscriber) {
+      //handling data
       std_msgs.msg.dds.String s = subscriber.takeNextData();
       String[] values = s.data_.toString().split(";");
       Float64 f = new Float64();
@@ -462,10 +464,12 @@ public class ObstacleDisplayer
       f.setData(Double.valueOf(values[1])); 
       
       exoRightKneeHeightList.add(f);       
-      
-      if(PUBLISH_EXO)
+
+      //republishing data from exo
+      if(REPUBLISH_EXO_DATA)
          ExoRightKneeHeightPublisher.publish(new Float64(f));
 
+      //conformation message
       if(recievingRightKneeHeight == false) {
          recievingRightKneeHeight = true;
          System.out.println("recieving Right Knee Height");
@@ -474,6 +478,7 @@ public class ObstacleDisplayer
 
    List<Float64> exoLeftThighAngleList = COPY_ON_WRITE_ARRAYS ? new CopyOnWriteArrayList<Float64>() : new ArrayList<Float64>();      
    private void handleExoLeftThighAngle(Subscriber<std_msgs.msg.dds.String> subscriber) {
+      //handling data
       std_msgs.msg.dds.String s = subscriber.takeNextData();
       String[] values = s.data_.toString().split(";");
       Float64 f = new Float64();
@@ -481,10 +486,12 @@ public class ObstacleDisplayer
       f.setData(Double.valueOf(values[1])); 
       
       exoLeftThighAngleList.add(f);       
-      
-      if(PUBLISH_EXO)
+
+      //republishing data from exo
+      if(REPUBLISH_EXO_DATA)
          ExoLeftThighAnglePublisher.publish(new Float64(f));
 
+      //conformation message
       if(recievingLeftThighAngle == false) {
          recievingLeftThighAngle = true;
          System.out.println("recieving Left Thigh Angle");
@@ -493,6 +500,7 @@ public class ObstacleDisplayer
 
    List<Float64> exoRightThighAngleList = COPY_ON_WRITE_ARRAYS ? new CopyOnWriteArrayList<Float64>() : new ArrayList<Float64>();   
    private void handleExoRightThighAngle(Subscriber<std_msgs.msg.dds.String> subscriber) {
+      //handling data
       std_msgs.msg.dds.String s = subscriber.takeNextData();
       String[] values = s.getData().toString().split(";");
       Float64 f = new Float64();
@@ -501,9 +509,11 @@ public class ObstacleDisplayer
       
       exoRightThighAngleList.add(f);      
       
-      if(PUBLISH_EXO)
+      //republishing data from exo
+      if(REPUBLISH_EXO_DATA)
          ExoRightThighAnglePublisher.publish(new Float64(f));
-      
+
+      //conformation message
       if(recievingRightThighAngle == false) {
          recievingRightThighAngle = true;
          System.out.println("recieving Right Thigh Angle");
@@ -579,6 +589,26 @@ public class ObstacleDisplayer
             }
          }
          
+         //detection part
+         switch(ALGORITHM_SELECTOR) {
+            case "stairDistance3": 
+               distanceLeft = stairDistance3(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
+               break;
+            case "stairDistance2": 
+               distanceLeft = stairDistance2(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
+               break;
+            case "stairDistance": 
+               distanceLeft = stairDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
+               break;
+            case "obstacleDistance":  
+               distanceLeft = obstacleDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
+               break;
+            default:
+               break;
+         }
+         
+         evaluateAndSend();
+
          //saving
          if(CREATE_DATASET) {
             try
@@ -626,26 +656,6 @@ public class ObstacleDisplayer
                ex.printStackTrace();
             }
          }
-
-         //detection part
-         switch(ALGORITHM_SELECTOR) {
-            case "stairDistance3": 
-               distanceLeft = stairDistance3(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
-               break;
-            case "stairDistance2": 
-               distanceLeft = stairDistance2(planarRegionFeatureUpdaterLeft.getPlanarRegionsList(), DISTANCE_LEFT_CAMERA_GROUND, LEFT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, LEFT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
-               break;
-            case "stairDistance": 
-               distanceLeft = stairDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
-               break;
-            case "obstacleDistance":  
-               distanceLeft = obstacleDistance(planarRegionFeatureUpdaterLeft.getPlanarRegionsList());
-               break;
-            default:
-               break;
-         }
-         
-         evaluateAndSend();
       }
       catch (Exception ex)
       {
@@ -721,6 +731,26 @@ public class ObstacleDisplayer
                   break;
             }            
          }
+
+         //detection part
+         switch(ALGORITHM_SELECTOR) {
+            case "stairDistance3": 
+               distanceRight = stairDistance3(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
+               break;
+            case "stairDistance2": 
+               distanceRight = stairDistance2(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
+               break;
+            case "stairDistance": 
+               distanceRight = stairDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
+               break;
+            case "obstacleDistance":  
+               distanceRight = obstacleDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
+               break;
+            default:
+               break;
+         }
+         
+         evaluateAndSend();
          
          //saving
          if(CREATE_DATASET) {
@@ -769,26 +799,6 @@ public class ObstacleDisplayer
                ex.printStackTrace();
             }
          }
-
-         //detection part
-         switch(ALGORITHM_SELECTOR) {
-            case "stairDistance3": 
-               distanceRight = stairDistance3(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
-               break;
-            case "stairDistance2": 
-               distanceRight = stairDistance2(planarRegionFeatureUpdaterRight.getPlanarRegionsList(), DISTANCE_RIGHT_CAMERA_GROUND, RIGHT_IDEAL_ANGLE_BETWEEN_CAMERA_AND_PLANE, RIGHT_IDEAL_ANGLE_BETWEEN_GROUND_AND_PLANE);
-               break;
-            case "stairDistance": 
-               distanceRight = stairDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
-               break;
-            case "obstacleDistance":  
-               distanceRight = obstacleDistance(planarRegionFeatureUpdaterRight.getPlanarRegionsList());
-               break;
-            default:
-               break;
-         }
-         
-         evaluateAndSend();
       }
       catch (Exception ex)
       {
@@ -867,6 +877,7 @@ public class ObstacleDisplayer
       }
    }
    
+   //remove data from start to the index included
    private void oldDataRemove(List<Float64> list, int index)
    {
       while(index >= 0) {
@@ -875,8 +886,10 @@ public class ObstacleDisplayer
       }
    }
    
-
    long lastValidDistance = System.currentTimeMillis();
+   /*
+    * decide which value to send and calls UDPDataSender
+    */
    private void evaluateAndSend()
    {
       if(distanceLeft != DEFAULT_VALUE || distanceRight != DEFAULT_VALUE) {

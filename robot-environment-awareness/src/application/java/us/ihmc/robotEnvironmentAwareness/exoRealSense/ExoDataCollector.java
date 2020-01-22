@@ -13,17 +13,23 @@ import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
 import us.ihmc.pubsub.subscriber.Subscriber;
 import us.ihmc.ros2.RealtimeRos2Node;
 
+/*
+ * Class for testing data recieving from exo and saving into files
+ */
 public class ExoDataCollector
 {
    RealtimeRos2Node realTimeRos2Node = ROS2Tools.createRealtimeRos2Node(PubSubImplementation.FAST_RTPS, "ExoDataCollector");
    
+   //signal flag for saving
    public AtomicReference<Boolean> saveIntoFiles = new AtomicReference<Boolean>(false);
 
+   //conformation flags
    private boolean recievingLeftKneeHeight = false;
    private boolean recievingRightKneeHeight = false;
    private boolean recievingLeftThighAngle = false;
    private boolean recievingRightThighAngle = false;    
 
+   //files for saving
    BufferedWriter leftKneeHeightWriter;
    BufferedWriter rightKneeHeightWriter;
    BufferedWriter leftThighAngleWriter;
@@ -44,30 +50,33 @@ public class ExoDataCollector
          return;
       }
       
+      //subscribing to exo
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "knee_height/left" //mina_v2/
+                                           , "mina_v2/knee_height/left"
                                            , this::handleExoLeftKneeHeight);
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "knee_height/right" //mina_v2/
+                                           , "mina_v2/knee_height/right"
                                            , this::handleExoRightKneeHeight);
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "thigh_angle/left" //mina_v2/
+                                           , "mina_v2/thigh_angle/left"
                                            , this::handleExoLeftThighAngle);
       ROS2Tools.createCallbackSubscription(realTimeRos2Node
                                            , Float64.class
-                                           , "thigh_angle/right" //mina_v2/
+                                           , "mina_v2/thigh_angle/right"
                                            , this::handleExoRightThighAngle);
    }
 
    private void handleExoLeftKneeHeight(Subscriber<Float64> subscriber) {
+      //conformation message
       if(recievingLeftKneeHeight == false) {
          recievingLeftKneeHeight = true;
          System.out.println("recieving Left Knee Height");
       }
 
+      //saving
       if(saveIntoFiles.get()) {
          Double value = subscriber.takeNextData().data_;
          try
@@ -84,11 +93,13 @@ public class ExoDataCollector
    }    
    
    private void handleExoRightKneeHeight(Subscriber<Float64> subscriber) {
+      //conformation message
       if(recievingRightKneeHeight == false) {
          recievingRightKneeHeight = true;
          System.out.println("recieving Right Knee Height");
       }
 
+      //saving
       if(saveIntoFiles.get()) {
          Double value = subscriber.takeNextData().data_;
          try
@@ -104,12 +115,14 @@ public class ExoDataCollector
       }
    }
    
-   private void handleExoLeftThighAngle(Subscriber<Float64> subscriber) {      
+   private void handleExoLeftThighAngle(Subscriber<Float64> subscriber) {  
+      //conformation message    
       if(recievingLeftThighAngle == false) {
          recievingLeftThighAngle = true;
          System.out.println("recieving Left Thigh Angle");
       }
 
+      //saving
       if(saveIntoFiles.get()) {
          Double value = subscriber.takeNextData().data_;
          try
@@ -126,11 +139,13 @@ public class ExoDataCollector
    }
    
    private void handleExoRightThighAngle(Subscriber<Float64> subscriber) {
+      //conformation message
       if(recievingRightThighAngle == false) {
          recievingRightThighAngle = true;
          System.out.println("recieving Right Thigh Angle");
       }
-      
+
+      //saving
       if(saveIntoFiles.get()) {
          Double value = subscriber.takeNextData().data_;
          try
@@ -147,60 +162,7 @@ public class ExoDataCollector
    }
    
    public static void main(String[] args)
-   {          
-      /*
-      double value = 0.0;
-      try { 
-         BufferedWriter writer = new BufferedWriter(new FileWriter("test.txt"));
-         while(true) {
-            String fileContent = String.valueOf(System.currentTimeMillis()) + "\n";
-            fileContent += String.valueOf(value++) + "\n";
-            writer.write(fileContent);
-            writer.flush();
-            //writer.close(); 
-            System.out.print(fileContent);
-            Thread.sleep(1500);
-         }
-                 
-      }
-      catch(Exception ex) {
-         ex.printStackTrace();
-      }
-      */
-      /*
-      try { 
-         long myDelay = System.currentTimeMillis();
-         File file = new File("test.txt");
-         BufferedReader reader = new BufferedReader(new FileReader(file));         
-         String line = reader.readLine();
-         long time1 = 0;
-         long time2 = file.lastModified() -5000;
-         long artificialDelay = 500;
-         while(true) {
-            if(line == null || line.isEmpty()) {
-               reader.close();
-               reader = new BufferedReader(new FileReader(file));
-               line = reader.readLine();               
-               time2 = file.lastModified() -5000;              
-            }
-            
-            time1 = Long.valueOf(line);
-            double value = Double.valueOf(reader.readLine());
-            
-            long waitTime = time1 - time2 - (System.currentTimeMillis() - myDelay) + artificialDelay;
-            if(waitTime > 0)
-               Thread.sleep(waitTime);
-            myDelay = System.currentTimeMillis();
-            System.out.println(value);
-            
-            time2 = time1;            
-            line = reader.readLine();
-         }                 
-      }
-      catch(Exception ex) {
-         ex.printStackTrace();
-      }
-      */
-   }
-   
+   {
+      ExoDataCollector collector = new ExoDataCollector("EXO");
+   }   
 }

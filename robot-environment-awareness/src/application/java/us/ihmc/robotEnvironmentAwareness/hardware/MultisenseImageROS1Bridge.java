@@ -13,41 +13,30 @@ import javax.imageio.ImageIO;
 import org.jboss.netty.buffer.ChannelBuffer;
 
 import controller_msgs.msg.dds.Image32;
-import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
-import sensor_msgs.CameraInfo;
 import sensor_msgs.Image;
-import std_msgs.Header;
 import us.ihmc.communication.IHMCROS2Publisher;
 import us.ihmc.communication.ROS2Tools;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
 import us.ihmc.robotEnvironmentAwareness.exoRealSense.ExoDataCollector;
-import us.ihmc.robotEnvironmentAwareness.fusion.MultisenseInformation;
 import us.ihmc.ros2.Ros2Node;
 import us.ihmc.utilities.ros.RosMainNode;
 import us.ihmc.utilities.ros.subscriber.AbstractRosTopicSubscriber;
 
 /*
  * original class changed for testing purposes
- * static main contains data set creating and loading 
  */
 public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
 {
-   private static final MultisenseInformation multisense = MultisenseInformation.CART;
-
    private final Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, "imagePublisherNode");
 
    private IHMCROS2Publisher<Image32> imagePublisher;
 
-   //private final MultisenseCameraInfoROS1Bridge cameraInfoBridge;
-
    private Scanner commandScanner;
    private static final String commandToSaveImage = "s";
    private static final String commandToStopSavingImage = "d";
-   private static final String commandToShowCameraInfo = "c";
    private int savingIndex = 0;
 
    public AtomicReference<Boolean> saveImage = new AtomicReference<Boolean>(false);
-   private AtomicReference<Boolean> showCameraInfo = new AtomicReference<Boolean>(false);
 
    private String savePath;
    private boolean selfStart;
@@ -57,15 +46,9 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
       this.savePath = savePath;
       this.selfStart = selfStart;
       commandScanner = new Scanner(System.in);
-      //URI masterURI = new URI(multisense.getAddress());
-      //URI masterURI = new URI("http://192.168.137.2:11311");
-      //RosMainNode rosMainNode = new RosMainNode(masterURI, "ImagePublisher", true);
-      //rosMainNode.attachSubscriber(MultisenseInformation.getImageTopicName(), this);
       rosMainNode.attachSubscriber(topic, this);      
 
       System.out.println(ROS2Tools.getDefaultTopicNameGenerator().generateTopicName(Image32.class));
-
-      //cameraInfoBridge = new MultisenseCameraInfoROS1Bridge();
 
       if(selfStart) {
          rosMainNode.execute();
@@ -89,11 +72,6 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
                   {
                      saveImage.set(false);
                      System.out.println(commandToStopSavingImage + " pressed");
-                  }
-                  else if (command.contains(commandToShowCameraInfo))
-                  {
-                     showCameraInfo.set(true);
-                     System.out.println(commandToShowCameraInfo + " pressed");
                   }
                }
             }
@@ -180,9 +158,9 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
          savingIndex++;
          System.out.println(savePath + " - " + savingIndex);
       }
-      
-      
+
       /*
+      //alternative version
       int width = image.getWidth();
       int height = image.getHeight();
 
@@ -253,10 +231,12 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
          }
          savingIndex++;
          System.out.println(savePath + " - " + savingIndex);
-      }*/
+      }
+      */
    }
    
    private final short DIFFERENCE_TOLLERANCE = 2;
+   //not finished, this for alternative for using depth image instead of point cloud
    private short[][] detectEdges(short[][] values)
    {
       int width = values.length;
@@ -382,9 +362,14 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
    }   
 
    public static void main(String[] args) throws URISyntaxException, IOException
-   {
+   {     
       /*
-      //one particular image
+      //standalone
+      URI masterURI = new URI("http://192.168.0.12:11311");
+      new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "", new RosMainNode(masterURI, "whatever", true), true);
+      */  
+      /*
+      //publishing one particular image
       File f = new File("DATASETS/1/LI/image (1).jpg");
       BufferedImage img = ImageIO.read(f);      
       Image32 message = new Image32();
@@ -419,25 +404,20 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
             e.printStackTrace();
          }         
       }
-      */      
-      /*
-      //standalone
-      URI masterURI = new URI("http://192.168.0.12:11311");
-      new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "", new RosMainNode(masterURI, "whatever", true), true);
-      */   
+      */
       
       //dataset creator
       final String datasetNUmber = "1";
       URI masterURI = new URI("http://192.168.0.12:11311");
-      //RosMainNode node = new RosMainNode(masterURI, "whatever", true);
+      RosMainNode node = new RosMainNode(masterURI, "whatever", true);
       
-      //MultisenseImageROS1Bridge leftI = new MultisenseImageROS1Bridge("/cam_1/color/image_raw", "DATASETS/" + datasetNUmber + "/LI", node, false);  
-      //MultisenseImageROS1Bridge rightI = new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/RI", node, false); 
-      //MultisenseStereoVisionPointCloudROS1Bridge leftPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "DATASETS/" + datasetNUmber + "/LPC", node, false);
-      //MultisenseStereoVisionPointCloudROS1Bridge rightPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "DATASETS/" + datasetNUmber + "/RPC", node, false);
+      MultisenseImageROS1Bridge leftI = new MultisenseImageROS1Bridge("/cam_1/color/image_raw", "DATASETS/" + datasetNUmber + "/LI", node, false);  
+      MultisenseImageROS1Bridge rightI = new MultisenseImageROS1Bridge("/cam_2/depth/image_rect_raw", "DATASETS/" + datasetNUmber + "/RI", node, false); 
+      MultisenseStereoVisionPointCloudROS1Bridge leftPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_1/depth/color/points", "DATASETS/" + datasetNUmber + "/LPC", node, false);
+      MultisenseStereoVisionPointCloudROS1Bridge rightPC = new MultisenseStereoVisionPointCloudROS1Bridge("/cam_2/depth/color/points", "DATASETS/" + datasetNUmber + "/RPC", node, false);
       ExoDataCollector exoDataCollector = new ExoDataCollector("DATASETS/" + datasetNUmber + "/EXO");
 
-      //node.execute();
+      node.execute();
       Scanner commandScanner = new Scanner(System.in);
       while (true)
       {
@@ -445,19 +425,19 @@ public class MultisenseImageROS1Bridge extends AbstractRosTopicSubscriber<Image>
 
          if (command.contains(commandToSaveImage))
          {
-            //leftI.saveImage.set(true);
-            //rightI.saveImage.set(true);
-            //leftPC.saveStereoVisionPointCloud.set(true);
-            //rightPC.saveStereoVisionPointCloud.set(true);
+            leftI.saveImage.set(true);
+            rightI.saveImage.set(true);
+            leftPC.saveStereoVisionPointCloud.set(true);
+            rightPC.saveStereoVisionPointCloud.set(true);
             exoDataCollector.saveIntoFiles.set(true);
             System.out.println(commandToSaveImage + " pressed");
          }
          else if (command.contains(commandToStopSavingImage))
          {
-            //leftI.saveImage.set(false);
-            //rightI.saveImage.set(false);
-            //leftPC.saveStereoVisionPointCloud.set(false);
-            //rightPC.saveStereoVisionPointCloud.set(false);
+            leftI.saveImage.set(false);
+            rightI.saveImage.set(false);
+            leftPC.saveStereoVisionPointCloud.set(false);
+            rightPC.saveStereoVisionPointCloud.set(false);
             exoDataCollector.saveIntoFiles.set(false);
             System.out.println(commandToStopSavingImage + " pressed");
          }
