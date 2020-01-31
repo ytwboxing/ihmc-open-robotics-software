@@ -1358,7 +1358,7 @@ public class ValkyrieMultiContactStaticPoseEndToEndTest
       scs.disableGUIComponents();
       String configurationName = info.getTestMethod().get().getName().replace("test", "");
       saveScreenshot(outputFolder, configurationName);
-      scs.writeState(new File(outputFolder, configurationName + ".state"));
+      scs.writeState(new File(outputFolder, configurationName + ".m"));
       scs.enableGUIComponents();
       ThreadTools.sleepForever();
    }
