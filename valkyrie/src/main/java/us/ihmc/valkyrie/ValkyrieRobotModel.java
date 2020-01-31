@@ -583,6 +583,8 @@ public class ValkyrieRobotModel implements DRCRobotModel
 
    public void setContactPointParameters(RobotContactPointParameters<RobotSide> contactPointParameters)
    {
+      if (robotDescription != null)
+         throw new IllegalArgumentException("Cannot set contact points once robotDescription has been created.");
       this.contactPointParameters = contactPointParameters;
    }
 
