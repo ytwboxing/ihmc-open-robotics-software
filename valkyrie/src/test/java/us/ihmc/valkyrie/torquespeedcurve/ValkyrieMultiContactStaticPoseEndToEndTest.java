@@ -28,6 +28,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import com.jmatio.io.MatFileIncrementalWriter;
+import com.jmatio.types.MLDouble;
+import com.jmatio.types.MLStructure;
+
 import us.ihmc.avatar.SimulatedLowLevelOutputWriter;
 import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.initialSetup.DRCSCSInitialSetup;
@@ -47,6 +51,7 @@ import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.graphicsDescription.plotting.artifact.TextArtifact;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.jMonkeyEngineToolkit.camera.CameraConfiguration;
+import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.modelFileLoaders.SdfLoader.SDFDescriptionMutatorList;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
@@ -80,6 +85,7 @@ import us.ihmc.valkyrie.parameters.ValkyrieJointMap;
 import us.ihmc.wholeBodyController.DRCRobotJointMap;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoFrameConvexPolygon2D;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 @TestMethodOrder(MethodOrderer.Alphanumeric.class)
 public class ValkyrieMultiContactStaticPoseEndToEndTest
@@ -1358,9 +1364,74 @@ public class ValkyrieMultiContactStaticPoseEndToEndTest
       scs.disableGUIComponents();
       String configurationName = info.getTestMethod().get().getName().replace("test", "");
       saveScreenshot(outputFolder, configurationName);
-      scs.writeState(new File(outputFolder, configurationName + ".m"));
+      //      scs.writeState(new File(outputFolder, configurationName + ".state"));
+      exportStateAsMatlabFile(new File(outputFolder, configurationName + ".mat"));
       scs.enableGUIComponents();
       ThreadTools.sleepForever();
+   }
+
+   private void exportStateAsMatlabFile(File outputFile)
+   {
+      try
+      {
+         MatFileIncrementalWriter writer = new MatFileIncrementalWriter(outputFile);
+
+         MLStructure mlRoot = null, mlNode;
+         ArrayList<YoVariable<?>> allVariables = scs.getAllVariables();
+         for (int i = 0; i < allVariables.size(); i++)
+         {
+            YoVariable<?> variable = allVariables.get(i);
+
+            List<String> subNames = variable.getNameSpace().getSubNames();
+            int subNameDepth = 0;
+
+            //find/create root
+            String rootName = subNames.get(subNameDepth++);
+            if (mlRoot == null)
+            {
+               mlRoot = new MLStructure(rootName, new int[] {1, 1});
+            }
+            else
+            {
+               if (!mlRoot.getName().equals(rootName))
+               {
+                  writer.write(mlRoot);
+                  LogTools.info("MLStructure '" + mlRoot.getName() + "' written", true);
+                  mlRoot = new MLStructure(rootName, new int[] {1, 1});
+               }
+            }
+
+            //query/create node
+            mlNode = mlRoot;
+            while (subNameDepth < subNames.size())
+            {
+               String childSubName = subNames.get(subNameDepth);
+               MLStructure mlSubNode = (MLStructure) mlNode.getField(childSubName);
+               if (mlSubNode == null)
+               {
+                  mlSubNode = new MLStructure(childSubName, new int[] {1, 1});
+                  mlNode.setField(childSubName, mlSubNode);
+               }
+               mlNode = mlSubNode;
+               subNameDepth++;
+            }
+
+            //store yo-variable as a new field
+            MLDouble outArray = new MLDouble(variable.getName(), new int[] {1, 1});
+            outArray.set(variable.getValueAsDouble(), 0);
+            mlNode.setField(variable.getName(), outArray);
+         }
+         if (mlRoot != null)
+         {
+            writer.write(mlRoot);
+            LogTools.info("MLStructure '" + mlRoot.getName() + "' written", true);
+         }
+         writer.close();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
    }
 
    private void configurePlotter()
