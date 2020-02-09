@@ -40,7 +40,7 @@ public class LQRSphereController implements SphereControllerInterface
 
       sphereRobot.getScsRobot().setController(this);
 
-      lqrMomentumController = new LQRMomentumController(sphereRobot.getOmega0Provider(), registry);
+      lqrMomentumController = new LQRMomentumController(sphereRobot.getOmega0Provider().getValue(), registry);
    }
 
    private final DenseMatrix64F currentState = new DenseMatrix64F(6, 1);

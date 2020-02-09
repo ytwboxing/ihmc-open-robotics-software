@@ -35,6 +35,8 @@ import java.util.List;
  */
 public class LQRMomentumController
 {
+   private static double maxSegmentDuration = 100.0;
+
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
    private final YoFrameVector3D yoK2 = new YoFrameVector3D("k2", ReferenceFrame.getWorldFrame(), registry);
    private final YoFrameVector3D feedbackForce = new YoFrameVector3D("feedbackForce", ReferenceFrame.getWorldFrame(), registry);
@@ -115,19 +117,24 @@ public class LQRMomentumController
 
    private boolean shouldUpdateS1 = true;
 
-   public LQRMomentumController(DoubleProvider omega)
+   public LQRMomentumController(double omega)
    {
       this(omega, null);
    }
 
-   public LQRMomentumController(DoubleProvider omega, YoVariableRegistry parentRegistry)
+   public LQRMomentumController(double omega, YoVariableRegistry parentRegistry)
    {
-      computeDynamicsMatrix(omega.getValue());
+      setOmega(omega);
 
       computeS1();
 
       if (parentRegistry != null)
          parentRegistry.addChild(registry);
+   }
+
+   public void setOmega(double omega)
+   {
+      computeDynamicsMatrix(omega);
    }
 
    public void setVRPTrackingWeight(double vrpTrackingWeight)
@@ -164,7 +171,7 @@ public class LQRMomentumController
       relativeVRPTrajectories.clear();
 
       Trajectory3D lastTrajectory = vrpTrajectory.get(vrpTrajectory.size() - 1);
-      lastTrajectory.compute(lastTrajectory.getFinalTime());
+      lastTrajectory.compute(Math.min(lastTrajectory.getFinalTime(), maxSegmentDuration));
       finalVRPPosition.set(lastTrajectory.getPosition());
       finalVRPPosition.get(finalVRPState);
 
@@ -313,7 +320,7 @@ public class LQRMomentumController
             betaLocalPrevious = betaLocal;
          }
 
-         double duration = relativeVRPTrajectories.get(j).getDuration();
+         double duration = Math.min(relativeVRPTrajectories.get(j).getDuration(), maxSegmentDuration);
          summedBetas.zero();
          for (int i = 0; i <= k; i++)
             CommonOps.addEquals(summedBetas, -MathTools.pow(duration, i), betas.get(j).get(i));

@@ -33,7 +33,7 @@ public class LQRMomentumControllerTest
    @Test
    public void testComputingS1()
    {
-      LQRMomentumController controller = new LQRMomentumController(() -> omega);
+      LQRMomentumController controller = new LQRMomentumController(omega);
 
       Point3D vrpStart = new Point3D(0.0, 0.0, 1.0);
       Point3D vrpEnd = new Point3D(1.0, 0.5, 1.0);
@@ -182,7 +182,7 @@ public class LQRMomentumControllerTest
    @Test
    public void testComputingS2FromSingleLinearTrajectory()
    {
-      LQRMomentumController controller = new LQRMomentumController(() -> omega);
+      LQRMomentumController controller = new LQRMomentumController(omega);
       controller.computeS1();
 
       Point3D vrpStart = new Point3D(0.0, 0.0, 1.0);
@@ -378,7 +378,7 @@ public class LQRMomentumControllerTest
    @Test
    public void testComputingS2FromSingleCubicTrajectory()
    {
-      LQRMomentumController controller = new LQRMomentumController(() -> omega);
+      LQRMomentumController controller = new LQRMomentumController(omega);
 
       Point3D vrpStart = new Point3D(0.0, 0.0, 1.0);
       Point3D vrpEnd = new Point3D(1.0, 0.5, 1.0);
@@ -589,7 +589,7 @@ public class LQRMomentumControllerTest
    @Test
    public void testComputingS2FromTwoLinearTrajectories()
    {
-      LQRMomentumController controller = new LQRMomentumController(() -> omega);
+      LQRMomentumController controller = new LQRMomentumController(omega);
 
       Point3D vrpStart = new Point3D(0.0, 0.0, 1.0);
       Point3D vrpMiddle = new Point3D(0.6, 0.75, 1.0);
@@ -1009,7 +1009,7 @@ public class LQRMomentumControllerTest
    @Test
    public void testComputingS2FromThreeCubicTrajectories()
    {
-      LQRMomentumController controller = new LQRMomentumController(() -> omega);
+      LQRMomentumController controller = new LQRMomentumController(omega);
 
       Point3D vrpStart = new Point3D(0.0, 0.0, 1.0);
       Point3D vrpMiddle = new Point3D(0.6, 0.75, 0.87);
@@ -1485,7 +1485,7 @@ public class LQRMomentumControllerTest
    public void testBasicTrajectoryTracking()
    {
       SimpleCoMTrajectoryPlanner planner = new SimpleCoMTrajectoryPlanner(() -> omega);
-      LQRMomentumController controller = new LQRMomentumController(() -> omega);
+      LQRMomentumController controller = new LQRMomentumController(omega);
 
       List<SettableContactStateProvider> contactSequence = new ArrayList<>();
 
