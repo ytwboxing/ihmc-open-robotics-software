@@ -22,10 +22,7 @@ import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector2D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.interfaces.FramePoint2DBasics;
-import us.ihmc.euclid.referenceFrame.interfaces.FramePoint2DReadOnly;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameVertex2DSupplier;
+import us.ihmc.euclid.referenceFrame.interfaces.*;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
@@ -989,6 +986,16 @@ public class HighLevelHumanoidControllerToolbox
    public WalkingMessageHandler getWalkingMessageHandler()
    {
       return walkingMessageHandler;
+   }
+
+   public FramePoint3DReadOnly getCenterOfMassPosition()
+   {
+      return capturePointCalculator.getCenterOfMassPosition();
+   }
+
+   public FrameVector3DReadOnly getCenterOfMassVelocity()
+   {
+      return capturePointCalculator.getCenterOfMassVelocity();
    }
 
 }

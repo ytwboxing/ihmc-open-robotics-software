@@ -43,9 +43,19 @@ public class CapturePointCalculator
       CapturePointTools.computeCapturePointPosition(centerOfMassPosition2d, centerOfMassVelocity2d, omega0, capturePointToPack);
    }
 
+   public FramePoint3DReadOnly getCenterOfMassPosition()
+   {
+      return centerOfMassPosition;
+   }
+
+   public FrameVector3DReadOnly getCenterOfMassVelocity()
+   {
+      return centerOfMassVelocity;
+   }
+
    /**
     * Deprecated on 6/1/2020.
-    * 
+    *
     * Use {@link CapturePointTools#computeCapturePointPosition(FramePoint2DReadOnly, FrameVector2DReadOnly, double, FixedFramePoint2DBasics)} instead
     */
    @Deprecated
