@@ -32,6 +32,7 @@ import us.ihmc.humanoidRobotics.model.CenterOfPressureDataHolder;
 import us.ihmc.mecano.multiBodySystem.interfaces.FloatingJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
+import us.ihmc.robotics.robotController.RawOutputWriter;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SegmentDependentList;
 import us.ihmc.robotics.robotSide.SideDependentList;
@@ -416,7 +417,9 @@ public class AvatarEstimatorThreadFactory
                                                                               createControllerCrashPublisher(),
                                                                               estimatorRegistry,
                                                                               yoGraphicsListRegistry);
-      avatarEstimatorThread.setRawOutputWriter(getRobotConfigurationDataPublisher());
+      RawOutputWriter rawOutputWriter = getRobotConfigurationDataPublisher();
+      if (rawOutputWriter != null)
+         avatarEstimatorThread.setRawOutputWriter(rawOutputWriter);
       ParameterLoaderHelper.loadParameters(this, getControllerParameters(), estimatorRegistry);
 
       FactoryTools.disposeFactory(this);

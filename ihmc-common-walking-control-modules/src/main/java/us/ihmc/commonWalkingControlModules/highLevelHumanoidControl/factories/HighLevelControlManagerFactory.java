@@ -369,7 +369,8 @@ public class HighLevelControlManagerFactory
             ret.addCommand(bodyManager.createFeedbackControlTemplate());
       }
 
-      ret.addCommand(centerOfMassHeightManager.createFeedbackControlTemplate());
+      if (centerOfMassHeightManager != null)
+         ret.addCommand(centerOfMassHeightManager.createFeedbackControlTemplate());
 
       if (pelvisOrientationManager != null)
       {
