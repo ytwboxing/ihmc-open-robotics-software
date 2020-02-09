@@ -1,13 +1,11 @@
 package us.ihmc.commonWalkingControlModules.dynamicPlanning.bipedPlanning;
 
-import us.ihmc.commonWalkingControlModules.dynamicPlanning.comPlanning.CoMTrajectoryPlanner;
-import us.ihmc.commonWalkingControlModules.dynamicPlanning.comPlanning.CoMTrajectoryPlannerInterface;
-import us.ihmc.commonWalkingControlModules.dynamicPlanning.comPlanning.ContactStateProvider;
-import us.ihmc.commonWalkingControlModules.dynamicPlanning.comPlanning.CornerPointViewer;
+import us.ihmc.commonWalkingControlModules.dynamicPlanning.comPlanning.*;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
+import us.ihmc.robotics.math.trajectories.Trajectory3D;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -30,7 +28,7 @@ public class BipedCoMTrajectoryPlanner
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
    private final BipedContactSequenceUpdater sequenceUpdater;
-   private final CoMTrajectoryPlannerInterface comTrajectoryPlanner;
+   private final CoMTrajectoryProvider comTrajectoryPlanner;
 
    private final YoDouble timeInContactPhase = new YoDouble("timeInContactPhase", registry);
 
@@ -66,7 +64,7 @@ public class BipedCoMTrajectoryPlanner
       sequenceUpdater.initialize();
    }
 
-   void computeSetpoints(double currentTime, List<RobotSide> currentFeetInContact)
+   public void computeSetpoints(double currentTime, List<RobotSide> currentFeetInContact)
    {
       sequenceUpdater.update(stepSequence, currentFeetInContact, currentTime);
 
@@ -106,4 +104,10 @@ public class BipedCoMTrajectoryPlanner
    {
       return comTrajectoryPlanner.getDesiredVRPPosition();
    }
+
+   public List<Trajectory3D> getVRPTrajectories()
+   {
+      return comTrajectoryPlanner.getVRPTrajectories();
+   }
+
 }
