@@ -43,6 +43,11 @@ public class UserPelvisOrientationManager implements PelvisOrientationControlSta
       orientationController.setWeights(angularWeight);
    }
 
+   public void setGains(PID3DGainsReadOnly gains)
+   {
+      orientationController.setGains(gains);
+   }
+
    @Override
    public void doAction(double timeInState)
    {

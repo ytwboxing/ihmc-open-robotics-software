@@ -75,6 +75,12 @@ public class PelvisOrientationManager
       userManager.setWeights(weight);
    }
 
+   public void setGains(PID3DGainsReadOnly gains)
+   {
+      walkingManager.setGains(gains);
+      userManager.setGains(gains);
+   }
+
    public void setPrepareForLocomotion(boolean value)
    {
       doPrepareForLocomotion.set(value);

@@ -68,7 +68,7 @@ public class ControllerPelvisOrientationManager implements PelvisOrientationCont
    private final ReferenceFrame pelvisFrame;
    private final ReferenceFrame desiredPelvisFrame;
 
-   private final PID3DGainsReadOnly gains;
+   private PID3DGainsReadOnly gains;
 
    private Footstep nextFootstep;
    private final ReferenceFrame nextSoleZUpFrame;
@@ -131,6 +131,11 @@ public class ControllerPelvisOrientationManager implements PelvisOrientationCont
    public void setWeights(Vector3DReadOnly pelvisAngularWeight)
    {
       this.pelvisAngularWeight = pelvisAngularWeight;
+   }
+
+   public void setGains(PID3DGainsReadOnly gains)
+   {
+      this.gains = gains;
    }
 
    public void setTrajectoryTime(double trajectoryTime)
