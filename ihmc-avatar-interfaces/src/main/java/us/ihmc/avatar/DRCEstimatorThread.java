@@ -65,6 +65,7 @@ import us.ihmc.stateEstimation.humanoid.StateEstimatorController;
 import us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation.ForceSensorCalibrationModule;
 import us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation.ForceSensorStateUpdater;
 import us.ihmc.stateEstimation.humanoid.kinematicsBasedStateEstimation.KinematicsBasedStateEstimatorFactory;
+import us.ihmc.tools.UnitConversions;
 import us.ihmc.wholeBodyController.RobotContactPointParameters;
 import us.ihmc.wholeBodyController.concurrent.ThreadDataSynchronizerInterface;
 import us.ihmc.wholeBodyController.parameters.ParameterLoaderHelper;
@@ -247,6 +248,7 @@ public class DRCEstimatorThread implements MultiThreadedRobotControlElement
             forceSensorDataHolderToSend = forceSensorDataHolderForEstimator;
 
          RobotConfigurationDataPublisherFactory factory = new RobotConfigurationDataPublisherFactory();
+         factory.setPublishPeriod(Conversions.secondsToNanoseconds(UnitConversions.hertzToSeconds(120)));
          factory.setDefinitionsToPublish(estimatorFullRobotModel);
          factory.setSensorSource(estimatorFullRobotModel, forceSensorDataHolderToSend, rawSensorOutputMap);
          factory.setRobotMotionStatusHolder(robotMotionStatusFromController);
