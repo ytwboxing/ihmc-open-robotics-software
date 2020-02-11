@@ -49,6 +49,11 @@ public class BipedCoMTrajectoryPlanner
       stepSequence.clear();
    }
 
+   public void setNominalHeight(double nominalHeight)
+   {
+      comTrajectoryPlanner.setNominalCoMHeight(nominalHeight);
+   }
+
    public void addStepToSequence(BipedTimedStep step)
    {
       stepSequence.add(step);
