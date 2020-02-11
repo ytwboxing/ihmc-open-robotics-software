@@ -24,7 +24,13 @@ import us.ihmc.commonWalkingControlModules.momentumBasedController.feedbackContr
 import us.ihmc.commonWalkingControlModules.momentumBasedController.feedbackController.taskspace.SpatialFeedbackController;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.robotics.controllers.pidGains.PID3DGains;
+import us.ihmc.robotics.screwTheory.SelectionMatrix3D;
+import us.ihmc.robotics.screwTheory.SelectionMatrix6D;
 import us.ihmc.robotics.time.ExecutionTimer;
+import us.ihmc.robotics.weightMatrices.WeightMatrix3D;
+import us.ihmc.robotics.weightMatrices.WeightMatrix6D;
+import us.ihmc.tools.ArrayTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class WholeBodyFeedbackController
@@ -281,6 +287,7 @@ public class WholeBodyFeedbackController
    private void submitSpatialFeedbackControlCommand(WholeBodyControllerCoreMode activeControlMode, SpatialFeedbackControlCommand feedbackControlCommand)
    {
       checkRequestedControlMode(activeControlMode, feedbackControlCommand.getControlMode());
+      checkValidWeightsAndGains(feedbackControlCommand);
       RigidBodyBasics endEffector = feedbackControlCommand.getEndEffector();
       SpatialFeedbackController controller = spatialFeedbackControllerMap.get(endEffector);
       if (controller.isEnabled())
@@ -292,6 +299,7 @@ public class WholeBodyFeedbackController
    private void submitPointFeedbackControlCommand(WholeBodyControllerCoreMode activeControlMode, PointFeedbackControlCommand feedbackControlCommand)
    {
       checkRequestedControlMode(activeControlMode, feedbackControlCommand.getControlMode());
+      checkValidWeightsAndGains(feedbackControlCommand);
       RigidBodyBasics endEffector = feedbackControlCommand.getEndEffector();
       PointFeedbackController controller = pointFeedbackControllerMap.get(endEffector);
       if (controller.isEnabled())
@@ -303,6 +311,7 @@ public class WholeBodyFeedbackController
    private void submitOrientationFeedbackControlCommand(WholeBodyControllerCoreMode activeControlMode, OrientationFeedbackControlCommand feedbackControlCommand)
    {
       checkRequestedControlMode(activeControlMode, feedbackControlCommand.getControlMode());
+      checkValidWeightsAndGains(feedbackControlCommand);
       RigidBodyBasics endEffector = feedbackControlCommand.getEndEffector();
       OrientationFeedbackController controller = orientationFeedbackControllerMap.get(endEffector);
       if (controller.isEnabled())
@@ -314,6 +323,7 @@ public class WholeBodyFeedbackController
    private void submitOneDoFJointFeedbackControlCommand(WholeBodyControllerCoreMode activeControlMode, OneDoFJointFeedbackControlCommand feedbackControlCommand)
    {
       checkRequestedControlMode(activeControlMode, feedbackControlCommand.getControlMode());
+      checkValidWeightsAndGains(feedbackControlCommand);
       OneDoFJointBasics joint = feedbackControlCommand.getJoint();
       OneDoFJointFeedbackController controller = oneDoFJointFeedbackControllerMap.get(joint);
       if (controller.isEnabled())
@@ -328,6 +338,52 @@ public class WholeBodyFeedbackController
       checkRequestedControlMode(activeControlMode, feedbackControlCommand.getControlMode());
       centerOfMassFeedbackController.submitFeedbackControlCommand(feedbackControlCommand);
       centerOfMassFeedbackController.setEnabled(true);
+   }
+
+   private static void checkValidWeightsAndGains(SpatialFeedbackControlCommand feedbackControlCommand)
+   {
+      checkValidWeightsAndGains(feedbackControlCommand.getSpatialAccelerationCommand().getSelectionMatrix().getLinearPart(),
+                                feedbackControlCommand.getGains().getPositionGains(),
+                                feedbackControlCommand.getSpatialAccelerationCommand().getWeightMatrix().getLinearPart());
+      checkValidWeightsAndGains(feedbackControlCommand.getSpatialAccelerationCommand().getSelectionMatrix().getAngularPart(),
+                                feedbackControlCommand.getGains().getOrientationGains(),
+                                feedbackControlCommand.getSpatialAccelerationCommand().getWeightMatrix().getAngularPart());
+   }
+
+   private static void checkValidWeightsAndGains(PointFeedbackControlCommand feedbackControlCommand)
+   {
+      checkValidWeightsAndGains(feedbackControlCommand.getSpatialAccelerationCommand().getSelectionMatrix().getLinearPart(), feedbackControlCommand.getGains(),
+                                feedbackControlCommand.getSpatialAccelerationCommand().getWeightMatrix().getLinearPart());
+   }
+
+   private static void checkValidWeightsAndGains(OrientationFeedbackControlCommand feedbackControlCommand)
+   {
+      checkValidWeightsAndGains(feedbackControlCommand.getSpatialAccelerationCommand().getSelectionMatrix().getAngularPart(), feedbackControlCommand.getGains(),
+                                feedbackControlCommand.getSpatialAccelerationCommand().getWeightMatrix().getAngularPart());
+   }
+
+   private static void checkValidWeightsAndGains(SelectionMatrix3D selectionMatrix, PID3DGains gains, WeightMatrix3D weights)
+   {
+      for (int i = 0; i < 3; i++)
+      {
+         if (!selectionMatrix.isAxisSelected(i))
+            continue;
+
+         if (Double.isNaN(gains.getProportionalGains()[i]))
+            throw new IllegalArgumentException("Invalid proportional gain.");
+         if (Double.isNaN(gains.getDerivativeGains()[i]))
+            throw new IllegalArgumentException("Invalid derivative gain.");
+         if (Double.isNaN(weights.getElement(i)))
+            throw new IllegalArgumentException("Invalid weight.");
+      }
+   }
+
+   private static void checkValidWeightsAndGains(OneDoFJointFeedbackControlCommand feedbackControlCommand)
+   {
+      if (Double.isNaN(feedbackControlCommand.getGains().getKp()))
+         throw new IllegalArgumentException("Invalid proportional gain.");
+      if (Double.isNaN(feedbackControlCommand.getGains().getKd()))
+         throw new IllegalArgumentException("Invalid derivative gain.");
    }
 
    private static void checkRequestedControlMode(WholeBodyControllerCoreMode activeControlMode, WholeBodyControllerCoreMode requestedControlMode)
