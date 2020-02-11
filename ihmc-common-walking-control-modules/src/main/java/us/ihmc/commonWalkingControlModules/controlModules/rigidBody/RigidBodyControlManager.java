@@ -226,7 +226,7 @@ public class RigidBodyControlManager
       jointspaceControlState.setGains(jointspaceGains);
    }
 
-   public void setGains(YoPIDGains jointspaceGains)
+   public void setGains(PIDGainsReadOnly jointspaceGains)
    {
       jointspaceControlState.setGains(jointspaceGains);
    }
