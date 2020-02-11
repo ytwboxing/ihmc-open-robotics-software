@@ -19,7 +19,6 @@ import us.ihmc.avatar.networkProcessor.modules.RosModule;
 import us.ihmc.avatar.networkProcessor.reaStateUpdater.HumanoidAvatarREAStateUpdater;
 import us.ihmc.avatar.networkProcessor.supportingPlanarRegionPublisher.BipedalSupportPlanarRegionPublisher;
 import us.ihmc.avatar.networkProcessor.walkingPreview.WalkingControllerPreviewToolboxModule;
-import us.ihmc.avatar.sensors.DRCSensorSuiteManager;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.communication.configuration.NetworkParameters;
 import us.ihmc.log.LogTools;
@@ -28,6 +27,7 @@ import us.ihmc.robotEnvironmentAwareness.updaters.LIDARBasedREAModule;
 import us.ihmc.tools.processManagement.JavaProcessSpawner;
 import us.ihmc.tools.thread.CloseableAndDisposable;
 import us.ihmc.valkyrie.planner.ValkyrieAStarFootstepPlanner;
+import us.ihmc.valkyrie.sensors.ValkyrieSensorSuiteManager;
 
 public class ValkyrieNetworkProcessor
 {
@@ -73,7 +73,10 @@ public class ValkyrieNetworkProcessor
 
    private void setupSensorModule() throws IOException
    {
-      DRCSensorSuiteManager sensorSuiteManager = robotModel.getSensorSuiteManager();
+      ValkyrieSensorSuiteManager sensorSuiteManager = robotModel.getSensorSuiteManager();
+      sensorSuiteManager.setEnableVideoPublisher(false);
+      sensorSuiteManager.setEnableStereoVisionPointCloudPublisher(false);
+      sensorSuiteManager.setEnableLidarScanPublisher(true);
       sensorSuiteManager.initializePhysicalSensors(rosURI);
       sensorSuiteManager.connect();
       modules.add(sensorSuiteManager);
