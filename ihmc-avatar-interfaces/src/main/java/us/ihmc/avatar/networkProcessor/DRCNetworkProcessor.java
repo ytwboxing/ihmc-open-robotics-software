@@ -301,22 +301,22 @@ public class DRCNetworkProcessor implements CloseableAndDisposable
       }
    }
 
-   private void tryToStartModule(ModuleStarter runnable)
+   public static void tryToStartModule(ModuleStarter runnable)
    {
       try
       {
          runnable.startModule();
       }
-      catch (RuntimeException | IOException e)
+      catch (Throwable e)
       {
          LogTools.error("Failed to start a module in the network processor, stack trace:");
          e.printStackTrace();
       }
    }
 
-   private interface ModuleStarter
+   public static interface ModuleStarter
    {
-      void startModule() throws IOException;
+      void startModule() throws Throwable;
    }
 
    @Override

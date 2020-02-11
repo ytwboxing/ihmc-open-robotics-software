@@ -42,8 +42,9 @@ import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools;
 import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools.ExceptionHandling;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.ros2.Ros2Node;
+import us.ihmc.tools.thread.CloseableAndDisposable;
 
-public class LIDARBasedREAModule
+public class LIDARBasedREAModule implements CloseableAndDisposable
 {
    private static final String ocTreeTimeReport = "OcTree update took: ";
    private static final String reportOcTreeStateTimeReport = "Reporting OcTree state took: ";
@@ -305,11 +306,19 @@ public class LIDARBasedREAModule
       }
    }
 
-   public void stop() throws Exception
+   public void stop()
    {
       LogTools.info("REA Module is going down.");
 
-      reaMessager.closeMessager();
+      try
+      {
+         reaMessager.closeMessager();
+      }
+      catch (Exception e)
+      {
+         e.printStackTrace();
+      }
+
       ros2Node.destroy();
 
       if (scheduled != null)
@@ -323,6 +332,12 @@ public class LIDARBasedREAModule
          executorService.shutdownNow();
          executorService = null;
       }
+   }
+
+   @Override
+   public void closeAndDispose()
+   {
+      stop();
    }
 
    public static LIDARBasedREAModule createRemoteModule(String configurationFilePath) throws Exception

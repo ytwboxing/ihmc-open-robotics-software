@@ -34,6 +34,7 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.trajectories.TrajectoryType;
 import us.ihmc.ros2.Ros2Node;
+import us.ihmc.tools.thread.CloseableAndDisposable;
 import us.ihmc.valkyrie.ValkyrieRobotModel;
 import us.ihmc.valkyrie.configuration.ValkyrieRobotVersion;
 import us.ihmc.valkyrie.parameters.ValkyrieAdaptiveSwingParameters;
@@ -49,7 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-public class ValkyrieAStarFootstepPlanner
+public class ValkyrieAStarFootstepPlanner implements CloseableAndDisposable
 {
    private static final boolean sendCroppedFootholds = false;
    private static final boolean setSwingParameters = true;
