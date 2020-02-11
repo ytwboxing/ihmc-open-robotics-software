@@ -144,7 +144,7 @@ public class RigidBodyJointControlHelper
       }
    }
 
-   public void setGains(YoPIDGains gains)
+   public void setGains(PIDGainsReadOnly gains)
    {
       hasGains.set(true);
       this.gains.clear();

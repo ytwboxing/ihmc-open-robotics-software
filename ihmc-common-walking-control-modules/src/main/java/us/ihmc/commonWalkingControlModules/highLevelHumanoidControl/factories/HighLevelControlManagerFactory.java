@@ -3,6 +3,7 @@ package us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 import gnu.trove.map.hash.TObjectDoubleHashMap;
 import us.ihmc.commonWalkingControlModules.capturePoint.BalanceManager;
@@ -199,6 +200,32 @@ public class HighLevelControlManagerFactory
       // Weights
       Vector3DReadOnly taskspaceAngularWeight = taskspaceAngularWeightMap.get(bodyName);
       Vector3DReadOnly taskspaceLinearWeight = taskspaceLinearWeightMap.get(bodyName);
+
+      return getOrCreateRigidBodyManager(bodyToControl, baseBody, controlFrame, taskspaceOrientationGains, taskspacePositionGains, taskspaceAngularWeight,
+                                         taskspaceLinearWeight, baseFrame);
+   }
+
+   public RigidBodyControlManager getOrCreateRigidBodyManager(RigidBodyBasics bodyToControl, RigidBodyBasics baseBody, ReferenceFrame controlFrame,
+                                                              PID3DGainsReadOnly taskspaceOrientationGains, PID3DGainsReadOnly taskspacePositionGains,
+                                                              Vector3DReadOnly taskspaceAngularWeight, Vector3DReadOnly taskspaceLinearWeight,
+                                                              ReferenceFrame baseFrame)
+   {
+      if (bodyToControl == null)
+         return null;
+
+      String bodyName = bodyToControl.getName();
+      if (rigidBodyManagerMapByBodyName.containsKey(bodyName))
+      {
+         RigidBodyControlManager manager = rigidBodyManagerMapByBodyName.get(bodyName);
+         if (manager != null)
+            return manager;
+      }
+
+      if (!hasWalkingControllerParameters(RigidBodyControlManager.class))
+         return null;
+      if (!hasMomentumOptimizationSettings(RigidBodyControlManager.class))
+         return null;
+
 
       TObjectDoubleHashMap<String> homeConfiguration = walkingControllerParameters.getOrCreateJointHomeConfiguration();
       Pose3D homePose = walkingControllerParameters.getOrCreateBodyHomeConfiguration().get(bodyName);

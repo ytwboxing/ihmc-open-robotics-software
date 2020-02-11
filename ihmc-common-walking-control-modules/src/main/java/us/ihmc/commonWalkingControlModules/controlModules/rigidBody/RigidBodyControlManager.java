@@ -26,6 +26,7 @@ import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.robotics.contactable.ContactablePlaneBody;
 import us.ihmc.robotics.controllers.pidGains.PID3DGainsReadOnly;
 import us.ihmc.robotics.controllers.pidGains.PIDGainsReadOnly;
+import us.ihmc.robotics.controllers.pidGains.implementations.YoPIDGains;
 import us.ihmc.robotics.stateMachine.core.StateMachine;
 import us.ihmc.robotics.stateMachine.factories.StateMachineFactory;
 import us.ihmc.yoVariables.parameters.EnumParameter;
@@ -206,8 +207,16 @@ public class RigidBodyControlManager
       return factory.build(RigidBodyControlMode.JOINTSPACE);
    }
 
+   public void setWeight(DoubleProvider jointspaceWeight, DoubleProvider userModeWeight)
+   {
+      // FIXME need a taskspace control weight
+      jointspaceControlState.setDefaultWeight(jointspaceWeight);
+      userControlState.setWeight(userModeWeight);
+   }
+
    public void setWeights(Map<String, DoubleProvider> jointspaceWeights, Map<String, DoubleProvider> userModeWeights)
    {
+      // FIXME need a taskspace control weight
       jointspaceControlState.setDefaultWeights(jointspaceWeights);
       userControlState.setWeights(userModeWeights);
    }
@@ -217,9 +226,14 @@ public class RigidBodyControlManager
       jointspaceControlState.setGains(jointspaceGains);
    }
 
+   public void setGains(YoPIDGains jointspaceGains)
+   {
+      jointspaceControlState.setGains(jointspaceGains);
+   }
+
    /**
     * Sets the behavior for {@link #prepareForLocomotion()}.
-    * 
+    *
     * @param value whether {@link #prepareForLocomotion()} should be enabled or not.
     */
    public void setDoPrepareForLocomotion(boolean value)
