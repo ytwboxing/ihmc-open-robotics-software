@@ -2,61 +2,77 @@
 # Default float64 field to represent uninitialized value
 float64 DEFAULT_NO_VALUE=-11.1
 
-# Returns the ideal step width (i.e. lateral distance) for walking
+# The ideal step width (i.e. lateral distance) for walking
+# Should be a positive number, around 0.25
 # Field default value -11.1
 float64 ideal_footstep_width
 
-# Returns the farthest backward step length allowed, should be a negative number
+# The farthest backward step length allowed
+# Should be a negative number, around -0.3
 # Field default value -11.1
 float64 minimum_step_length
 
 # Returns the ideal step length (i.e. forward distance) for walking on flat ground.
+# Should be a positive number, around 0.3
 # Field default value -11.1
 float64 ideal_footstep_length
 
 # Minimum step width allowed.
 # Step width is the magnitude of the y-position of a footstep expressed in its parent's (i.e. opposite side) frame.
+# Should be a positive number, around 0.15
 # Field default value -11.1
 float64 minimum_step_width
 
 # Maximum step width allowed.
 # Step width is the magnitude of the y-position of a footstep expressed in its parent's (i.e. opposite side) frame.
+# Should be a positive number, around 0.4
 # Field default value -11.1
 float64 maximum_step_width
 
 # Maximum xy distance from the default squared-up stance as specified by ideal_footstep_width
+# Should be a positive number, around 0.5
 # Field default value -11.1
 float64 maximum_step_reach
 
 # Minimum allowed x distance when y distance is less than min_y_clearance_from_stance
+# Should be a positive number, around 0.2
 # Field default value -11.1
 float64 min_x_clearance_from_stance
 
 # Minimum allowed y distance when x distance is less than min_x_clearance_from_stance
+# Should be a positive number, around 0.2
 # Field default value -11.1
 float64 min_y_clearance_from_stance
 
 # Minimum step yaw, i.e. the farthest angle that steps can point towards each other
+# Should be a negative number, around -0.35
 # Field default value -11.1
 float64 minimum_step_yaw
 
 # Maximum step yaw, i.e. the farthest angle that steps can point away from each other
+# Should be a positive number, around 0.7
 # Field default value -11.1
 float64 maximum_step_yaw
 
 # Reduction factor in yaw depending on step reach. At full reach the yaw constraints are scaled by this factor.
+# Should be in the range 0.0 - 1.0.
+# At 0.0 large steps will be able to have full yaw range.
+# At 1.0 large steps will have yaw restricted to match the stance foot
 # Field default value -11.1
 float64 step_yaw_reduction_factor_at_max_reach
 
 # Maximum step height delta allowed, for both step up and step downs
+# Should be a positive number, around 0.15
 # Field default value -11.1
 float64 maximum_step_z
 
 # Minimum percentage that a candidate footstep needs to overlap with its associated planar region in order to be accepted.
+# Should be in the range 0.0 - 1.0.
 # Field default value -11.1
 float64 minimum_foothold_percent
 
 # Maximum allowed surface incline to place steps
+# Should be in the range 0.05 - 0.5*pi. At 0.0 the planner will only step on perfectly level ground. At 0.5*pi the planner will step on any inclined surface.
 # Field default value -11.1
 float64 maximum_surface_incline_radians
 
@@ -66,46 +82,60 @@ bool wiggle_while_planning
 
 # Amount that the planner will attempt to shift footsteps inside of planar regions.
 # For example, for a value of 0.01 each footstep will be shifted so that its edge is at least 1cm from the planar region's edge
+# Should be in the range -0.02 - 0.05. At -0.02 the planner might place steps with a 2cm overhang.
+# At 0.05 the planner will try to place steps 5cm inwards of a ledge.
 # Field default value -11.1
 float64 wiggle_inside_delta
 
 # Maximum xy distance that steps can be shifted to move into planar regions.
+# Should be in the range 0.025 - 0.1.
 # Field default value -11.1
 float64 maximum_xy_wiggle_distance
 
-# Maximum yaw distance that steps can be rotated to move into planar regions.
+# Maximum yaw angle that steps can be rotated to move into planar regions.
+# Should be in the range 0.1 - 0.3.
 # Field default value -11.1
 float64 maximum_yaw_wiggle
 
 # Height threshold to consider an obstacle a "cliff". Steps will not be closer to cliffs than minimum_distance_from_cliff_bottoms
+# If this value is positive, cliff avoidance is activated and will shift away from the given height.
+# If this value is non-positive, cliff avoidance is disabled.
 # Field default value -11.1
 float64 cliff_height_to_avoid
 
 # Minimum allowed distance to "cliffs"
+# If this value is positive, cliff avoidance is activated and steps are rejected if closer than the given distance.
+# If this value is non-positive, cliff avoidance is disabled.
 # Field default value -11.1
 float64 minimum_distance_from_cliff_bottoms
 
 # Steps with height changes below this value will be considered step downs. This value should be negative.
+# Should be in the range -0.1 - 0.0
 # Field default value -11.1
 float64 flat_ground_lower_threshold
 
 # Steps with height changes above this value will be considered step ups
+# Should be in the range 0.0 - 0.1
 # Field default value -11.1
 float64 flat_ground_upper_threshold
 
 # Maximum step with if step height change is lower than flat_ground_lower_threshold
+# Should be a positive number around 0.3
 # Field default value -11.1
 float64 maximum_step_width_when_stepping_down
 
 # Maximum step reach, i.e. xy distance from nominal stance, when stepping down.
+# Should be a positive number around 0.4
 # Field default value -11.1
 float64 maximum_step_reach_when_stepping_down
 
 # Maximum step with if the step height exceeds flat_ground_upper_threshold
+# Should be a positive number around 0.25
 # Field default value -11.1
 float64 maximum_step_width_when_stepping_up
 
 # Maximum step reach, i.e. xy distance from nominal stance, when stepping up.
+# Should be a positive number around 0.4
 # Field default value -11.1
 float64 maximum_step_reach_when_stepping_up
 
@@ -117,6 +147,7 @@ float64 maximum_step_reach_when_stepping_up
 float64 translation_scale_from_grandparent_node
 
 # Radius around the goal inside which the planner should start to turn to match the goal's orientation
+# Should be a positive number, around 0.2
 # Field default value -11.1
 float64 final_turn_proximity
 
@@ -128,36 +159,48 @@ bool check_for_path_collisions
 bool check_for_body_box_collisions
 
 # Body box dimensions
+# Should be all positive. XYZ represent the front-back, side-to-side, and vertical bounding box measurements.
+# Should be around (0.4, 0.85, 1.5)
 geometry_msgs/Vector3 body_box_dimensions
 
 # Body box offset
+# Represents the offset from the sole frame to the bounding box frame (located at the bottom-center of the box).
+# Should be around (0.03, 0.2, 0.1)
 geometry_msgs/Vector3 body_box_offset
 
-# Sets the number of body collision checks (minimum is 1).
+# (Experimental) Sets number of additional bounding box checks.
 # Additional checks are done by interpolating between the initial and final steps
-# Field default value 1
-uint32 number_of_bounding_box_checks
+# If this value is non-positive, the "standard" collision check will still be performed by checking the box relative to the step location
+# If this value is 2, for example, two extra checks will be performed by interpolating between the stance and step locations
+uint32 number_of_additional_bounding_box_checks
 
-# XYZ translation weight vector
+# XYZ translation weight vector. Penalizes deviations from ideal step
+# Should be zero (disabled) or positive (enabled) around (0.2, 0.2, 0.2)
 geometry_msgs/Vector3 translation_weight
 
-# Yaw-Pitch-Roll weight vector
+# Yaw-Pitch-Roll weight vector. Penalizes deviations from ideal step
+# Should be zero (disabled) or positive (enabled) around (0.2, 0.3, 0.3)
 geometry_msgs/Vector3 orientation_weight
 
 # Contact cost associated with each step. Increase this value if planner is returning extra steps
+# Should be zero (disabled) or positive (enabled) around 0.1
 # Field default value -11.1
 float64 cost_per_step
 
-# Weight for partial foothold cost term
+# Weight for partial foothold cost term. Applies a cost of c * (a - a_min)/(a_max - a_min)
+# c = this term, a = foothold area, a_min = minimum foothold area, a_max = full foothold area
+# Should be zero (disabled) or positive (enabled) around 2.0
 # Field default value -11.1
 float64 foothold_area_weight
 
 # Heuristic weight for A* search. Higher heuristic weights will result in quicker plan times,
 # but plans might be less optimal.
+# Should be in the range 1.0 - 20.0, usually around 2.5
 # Field default value -11.1
 float64 a_star_heuristics_weight
 
-# Only used when waypoints are requested. "Reward" cost for passing a waypoint, recommended in the range 0.5-5.0
+# Only used when waypoints are requested. "Reward" cost for passing a waypoint
+# Should be zero (disabled) or positive (enabled) in the range 0.5 - 5.0
 # At higher values the planner will plan quicker but might have less optimal plans.
 # Field default value -11.1
 float64 waypoint_cost

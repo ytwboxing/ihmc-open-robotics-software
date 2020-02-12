@@ -13,61 +13,77 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
           */
    public static final double DEFAULT_NO_VALUE = -11.1;
    /**
-            * Returns the ideal step width (i.e. lateral distance) for walking
+            * The ideal step width (i.e. lateral distance) for walking
+            * Should be a positive number, around 0.25
             */
    public double ideal_footstep_width_ = -11.1;
    /**
-            * Returns the farthest backward step length allowed, should be a negative number
+            * The farthest backward step length allowed
+            * Should be a negative number, around -0.3
             */
    public double minimum_step_length_ = -11.1;
    /**
             * Returns the ideal step length (i.e. forward distance) for walking on flat ground.
+            * Should be a positive number, around 0.3
             */
    public double ideal_footstep_length_ = -11.1;
    /**
             * Minimum step width allowed.
             * Step width is the magnitude of the y-position of a footstep expressed in its parent's (i.e. opposite side) frame.
+            * Should be a positive number, around 0.15
             */
    public double minimum_step_width_ = -11.1;
    /**
             * Maximum step width allowed.
             * Step width is the magnitude of the y-position of a footstep expressed in its parent's (i.e. opposite side) frame.
+            * Should be a positive number, around 0.4
             */
    public double maximum_step_width_ = -11.1;
    /**
             * Maximum xy distance from the default squared-up stance as specified by ideal_footstep_width
+            * Should be a positive number, around 0.5
             */
    public double maximum_step_reach_ = -11.1;
    /**
             * Minimum allowed x distance when y distance is less than min_y_clearance_from_stance
+            * Should be a positive number, around 0.2
             */
    public double min_x_clearance_from_stance_ = -11.1;
    /**
             * Minimum allowed y distance when x distance is less than min_x_clearance_from_stance
+            * Should be a positive number, around 0.2
             */
    public double min_y_clearance_from_stance_ = -11.1;
    /**
             * Minimum step yaw, i.e. the farthest angle that steps can point towards each other
+            * Should be a negative number, around -0.35
             */
    public double minimum_step_yaw_ = -11.1;
    /**
             * Maximum step yaw, i.e. the farthest angle that steps can point away from each other
+            * Should be a positive number, around 0.7
             */
    public double maximum_step_yaw_ = -11.1;
    /**
             * Reduction factor in yaw depending on step reach. At full reach the yaw constraints are scaled by this factor.
+            * Should be in the range 0.0 - 1.0.
+            * At 0.0 large steps will be able to have full yaw range.
+            * At 1.0 large steps will have yaw restricted to match the stance foot
             */
    public double step_yaw_reduction_factor_at_max_reach_ = -11.1;
    /**
             * Maximum step height delta allowed, for both step up and step downs
+            * Should be a positive number, around 0.15
             */
    public double maximum_step_z_ = -11.1;
    /**
             * Minimum percentage that a candidate footstep needs to overlap with its associated planar region in order to be accepted.
+            * Should be in the range 0.0 - 1.0.
             */
    public double minimum_foothold_percent_ = -11.1;
    /**
             * Maximum allowed surface incline to place steps
+            * Should be in the range 0.05 - 0.5*pi. At 0.0 the planner will only step on perfectly level ground. At 0.5*pi the planner will step on any inclined surface.
             */
    public double maximum_surface_incline_radians_ = -11.1;
    /**
@@ -78,46 +94,60 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    /**
             * Amount that the planner will attempt to shift footsteps inside of planar regions.
             * For example, for a value of 0.01 each footstep will be shifted so that its edge is at least 1cm from the planar region's edge
+            * Should be in the range -0.02 - 0.05. At -0.02 the planner might place steps with a 2cm overhang.
+            * At 0.05 the planner will try to place steps 5cm inwards of a ledge.
             */
    public double wiggle_inside_delta_ = -11.1;
    /**
             * Maximum xy distance that steps can be shifted to move into planar regions.
+            * Should be in the range 0.025 - 0.1.
             */
    public double maximum_xy_wiggle_distance_ = -11.1;
    /**
-            * Maximum yaw distance that steps can be rotated to move into planar regions.
+            * Maximum yaw angle that steps can be rotated to move into planar regions.
+            * Should be in the range 0.1 - 0.3.
             */
    public double maximum_yaw_wiggle_ = -11.1;
    /**
             * Height threshold to consider an obstacle a "cliff". Steps will not be closer to cliffs than minimum_distance_from_cliff_bottoms
+            * If this value is positive, cliff avoidance is activated and will shift away from the given height.
+            * If this value is non-positive, cliff avoidance is disabled.
             */
    public double cliff_height_to_avoid_ = -11.1;
    /**
             * Minimum allowed distance to "cliffs"
+            * If this value is positive, cliff avoidance is activated and steps are rejected if closer than the given distance.
+            * If this value is non-positive, cliff avoidance is disabled.
             */
    public double minimum_distance_from_cliff_bottoms_ = -11.1;
    /**
             * Steps with height changes below this value will be considered step downs. This value should be negative.
+            * Should be in the range -0.1 - 0.0
             */
    public double flat_ground_lower_threshold_ = -11.1;
    /**
             * Steps with height changes above this value will be considered step ups
+            * Should be in the range 0.0 - 0.1
             */
    public double flat_ground_upper_threshold_ = -11.1;
    /**
             * Maximum step with if step height change is lower than flat_ground_lower_threshold
+            * Should be a positive number around 0.3
             */
    public double maximum_step_width_when_stepping_down_ = -11.1;
    /**
             * Maximum step reach, i.e. xy distance from nominal stance, when stepping down.
+            * Should be a positive number around 0.4
             */
    public double maximum_step_reach_when_stepping_down_ = -11.1;
    /**
             * Maximum step with if the step height exceeds flat_ground_upper_threshold
+            * Should be a positive number around 0.25
             */
    public double maximum_step_width_when_stepping_up_ = -11.1;
    /**
             * Maximum step reach, i.e. xy distance from nominal stance, when stepping up.
+            * Should be a positive number around 0.4
             */
    public double maximum_step_reach_when_stepping_up_ = -11.1;
    /**
@@ -129,6 +159,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    public double translation_scale_from_grandparent_node_ = -11.1;
    /**
             * Radius around the goal inside which the planner should start to turn to match the goal's orientation
+            * Should be a positive number, around 0.2
             */
    public double final_turn_proximity_ = -11.1;
    /**
@@ -142,40 +173,53 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    public boolean check_for_body_box_collisions_;
    /**
             * Body box dimensions
+            * Should be all positive. XYZ represent the front-back, side-to-side, and vertical bounding box measurements.
+            * Should be around (0.4, 0.85, 1.5)
             */
    public us.ihmc.euclid.tuple3D.Vector3D body_box_dimensions_;
    /**
             * Body box offset
+            * Represents the offset from the sole frame to the bounding box frame (located at the bottom-center of the box).
+            * Should be around (0.03, 0.2, 0.1)
             */
    public us.ihmc.euclid.tuple3D.Vector3D body_box_offset_;
    /**
-            * Sets the number of body collision checks (minimum is 1).
+            * (Experimental) Sets number of additional bounding box checks.
             * Additional checks are done by interpolating between the initial and final steps
+            * If this value is non-positive, the "standard" collision check will still be performed by checking the box relative to the step location
+            * If this value is 2, for example, two extra checks will be performed by interpolating between the stance and step locations
             */
-   public long number_of_bounding_box_checks_ = 1;
+   public long number_of_additional_bounding_box_checks_;
    /**
-            * XYZ translation weight vector
+            * XYZ translation weight vector. Penalizes deviations from ideal step
+            * Should be zero (disabled) or positive (enabled) around (0.2, 0.2, 0.2)
             */
    public us.ihmc.euclid.tuple3D.Vector3D translation_weight_;
    /**
-            * Yaw-Pitch-Roll weight vector
+            * Yaw-Pitch-Roll weight vector. Penalizes deviations from ideal step
+            * Should be zero (disabled) or positive (enabled) around (0.2, 0.3, 0.3)
             */
    public us.ihmc.euclid.tuple3D.Vector3D orientation_weight_;
    /**
             * Contact cost associated with each step. Increase this value if planner is returning extra steps
+            * Should be zero (disabled) or positive (enabled) around 0.1
             */
    public double cost_per_step_ = -11.1;
    /**
-            * Weight for partial foothold cost term
+            * Weight for partial foothold cost term. Applies a cost of c * (a - a_min)/(a_max - a_min)
+            * c = this term, a = foothold area, a_min = minimum foothold area, a_max = full foothold area
+            * Should be zero (disabled) or positive (enabled) around 2.0
             */
    public double foothold_area_weight_ = -11.1;
    /**
             * Heuristic weight for A* search. Higher heuristic weights will result in quicker plan times,
             * but plans might be less optimal.
+            * Should be in the range 1.0 - 20.0, usually around 2.5
             */
    public double a_star_heuristics_weight_ = -11.1;
    /**
-            * Only used when waypoints are requested. "Reward" cost for passing a waypoint, recommended in the range 0.5-5.0
+            * Only used when waypoints are requested. "Reward" cost for passing a waypoint
+            * Should be zero (disabled) or positive (enabled) in the range 0.5 - 5.0
             * At higher values the planner will plan quicker but might have less optimal plans.
             */
    public double waypoint_cost_ = -11.1;
@@ -258,7 +302,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
       geometry_msgs.msg.dds.Vector3PubSubType.staticCopy(other.body_box_dimensions_, body_box_dimensions_);
       geometry_msgs.msg.dds.Vector3PubSubType.staticCopy(other.body_box_offset_, body_box_offset_);
-      number_of_bounding_box_checks_ = other.number_of_bounding_box_checks_;
+      number_of_additional_bounding_box_checks_ = other.number_of_additional_bounding_box_checks_;
 
       geometry_msgs.msg.dds.Vector3PubSubType.staticCopy(other.translation_weight_, translation_weight_);
       geometry_msgs.msg.dds.Vector3PubSubType.staticCopy(other.orientation_weight_, orientation_weight_);
@@ -273,14 +317,16 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
 
    /**
-            * Returns the ideal step width (i.e. lateral distance) for walking
+            * The ideal step width (i.e. lateral distance) for walking
+            * Should be a positive number, around 0.25
             */
    public void setIdealFootstepWidth(double ideal_footstep_width)
    {
       ideal_footstep_width_ = ideal_footstep_width;
    }
    /**
-            * Returns the ideal step width (i.e. lateral distance) for walking
+            * The ideal step width (i.e. lateral distance) for walking
+            * Should be a positive number, around 0.25
             */
    public double getIdealFootstepWidth()
    {
@@ -288,14 +334,16 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
 
    /**
-            * Returns the farthest backward step length allowed, should be a negative number
+            * The farthest backward step length allowed
+            * Should be a negative number, around -0.3
             */
    public void setMinimumStepLength(double minimum_step_length)
    {
       minimum_step_length_ = minimum_step_length;
    }
    /**
-            * Returns the farthest backward step length allowed, should be a negative number
+            * The farthest backward step length allowed
+            * Should be a negative number, around -0.3
             */
    public double getMinimumStepLength()
    {
@@ -304,6 +352,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Returns the ideal step length (i.e. forward distance) for walking on flat ground.
+            * Should be a positive number, around 0.3
             */
    public void setIdealFootstepLength(double ideal_footstep_length)
    {
@@ -311,6 +360,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Returns the ideal step length (i.e. forward distance) for walking on flat ground.
+            * Should be a positive number, around 0.3
             */
    public double getIdealFootstepLength()
    {
@@ -320,6 +370,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    /**
             * Minimum step width allowed.
             * Step width is the magnitude of the y-position of a footstep expressed in its parent's (i.e. opposite side) frame.
+            * Should be a positive number, around 0.15
             */
    public void setMinimumStepWidth(double minimum_step_width)
    {
@@ -328,6 +379,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    /**
             * Minimum step width allowed.
             * Step width is the magnitude of the y-position of a footstep expressed in its parent's (i.e. opposite side) frame.
+            * Should be a positive number, around 0.15
             */
    public double getMinimumStepWidth()
    {
@@ -337,6 +389,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    /**
             * Maximum step width allowed.
             * Step width is the magnitude of the y-position of a footstep expressed in its parent's (i.e. opposite side) frame.
+            * Should be a positive number, around 0.4
             */
    public void setMaximumStepWidth(double maximum_step_width)
    {
@@ -345,6 +398,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    /**
             * Maximum step width allowed.
             * Step width is the magnitude of the y-position of a footstep expressed in its parent's (i.e. opposite side) frame.
+            * Should be a positive number, around 0.4
             */
    public double getMaximumStepWidth()
    {
@@ -353,6 +407,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Maximum xy distance from the default squared-up stance as specified by ideal_footstep_width
+            * Should be a positive number, around 0.5
             */
    public void setMaximumStepReach(double maximum_step_reach)
    {
@@ -360,6 +415,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Maximum xy distance from the default squared-up stance as specified by ideal_footstep_width
+            * Should be a positive number, around 0.5
             */
    public double getMaximumStepReach()
    {
@@ -368,6 +424,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Minimum allowed x distance when y distance is less than min_y_clearance_from_stance
+            * Should be a positive number, around 0.2
             */
    public void setMinXClearanceFromStance(double min_x_clearance_from_stance)
    {
@@ -375,6 +432,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Minimum allowed x distance when y distance is less than min_y_clearance_from_stance
+            * Should be a positive number, around 0.2
             */
    public double getMinXClearanceFromStance()
    {
@@ -383,6 +441,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Minimum allowed y distance when x distance is less than min_x_clearance_from_stance
+            * Should be a positive number, around 0.2
             */
    public void setMinYClearanceFromStance(double min_y_clearance_from_stance)
    {
@@ -390,6 +449,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Minimum allowed y distance when x distance is less than min_x_clearance_from_stance
+            * Should be a positive number, around 0.2
             */
    public double getMinYClearanceFromStance()
    {
@@ -398,6 +458,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Minimum step yaw, i.e. the farthest angle that steps can point towards each other
+            * Should be a negative number, around -0.35
             */
    public void setMinimumStepYaw(double minimum_step_yaw)
    {
@@ -405,6 +466,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Minimum step yaw, i.e. the farthest angle that steps can point towards each other
+            * Should be a negative number, around -0.35
             */
    public double getMinimumStepYaw()
    {
@@ -413,6 +475,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Maximum step yaw, i.e. the farthest angle that steps can point away from each other
+            * Should be a positive number, around 0.7
             */
    public void setMaximumStepYaw(double maximum_step_yaw)
    {
@@ -420,6 +483,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Maximum step yaw, i.e. the farthest angle that steps can point away from each other
+            * Should be a positive number, around 0.7
             */
    public double getMaximumStepYaw()
    {
@@ -428,6 +492,9 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Reduction factor in yaw depending on step reach. At full reach the yaw constraints are scaled by this factor.
+            * Should be in the range 0.0 - 1.0.
+            * At 0.0 large steps will be able to have full yaw range.
+            * At 1.0 large steps will have yaw restricted to match the stance foot
             */
    public void setStepYawReductionFactorAtMaxReach(double step_yaw_reduction_factor_at_max_reach)
    {
@@ -435,6 +502,9 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Reduction factor in yaw depending on step reach. At full reach the yaw constraints are scaled by this factor.
+            * Should be in the range 0.0 - 1.0.
+            * At 0.0 large steps will be able to have full yaw range.
+            * At 1.0 large steps will have yaw restricted to match the stance foot
             */
    public double getStepYawReductionFactorAtMaxReach()
    {
@@ -443,6 +513,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Maximum step height delta allowed, for both step up and step downs
+            * Should be a positive number, around 0.15
             */
    public void setMaximumStepZ(double maximum_step_z)
    {
@@ -450,6 +521,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Maximum step height delta allowed, for both step up and step downs
+            * Should be a positive number, around 0.15
             */
    public double getMaximumStepZ()
    {
@@ -458,6 +530,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Minimum percentage that a candidate footstep needs to overlap with its associated planar region in order to be accepted.
+            * Should be in the range 0.0 - 1.0.
             */
    public void setMinimumFootholdPercent(double minimum_foothold_percent)
    {
@@ -465,6 +538,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Minimum percentage that a candidate footstep needs to overlap with its associated planar region in order to be accepted.
+            * Should be in the range 0.0 - 1.0.
             */
    public double getMinimumFootholdPercent()
    {
@@ -473,6 +547,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Maximum allowed surface incline to place steps
+            * Should be in the range 0.05 - 0.5*pi. At 0.0 the planner will only step on perfectly level ground. At 0.5*pi the planner will step on any inclined surface.
             */
    public void setMaximumSurfaceInclineRadians(double maximum_surface_incline_radians)
    {
@@ -480,6 +555,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Maximum allowed surface incline to place steps
+            * Should be in the range 0.05 - 0.5*pi. At 0.0 the planner will only step on perfectly level ground. At 0.5*pi the planner will step on any inclined surface.
             */
    public double getMaximumSurfaceInclineRadians()
    {
@@ -506,6 +582,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    /**
             * Amount that the planner will attempt to shift footsteps inside of planar regions.
             * For example, for a value of 0.01 each footstep will be shifted so that its edge is at least 1cm from the planar region's edge
+            * Should be in the range -0.02 - 0.05. At -0.02 the planner might place steps with a 2cm overhang.
+            * At 0.05 the planner will try to place steps 5cm inwards of a ledge.
             */
    public void setWiggleInsideDelta(double wiggle_inside_delta)
    {
@@ -514,6 +592,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    /**
             * Amount that the planner will attempt to shift footsteps inside of planar regions.
             * For example, for a value of 0.01 each footstep will be shifted so that its edge is at least 1cm from the planar region's edge
+            * Should be in the range -0.02 - 0.05. At -0.02 the planner might place steps with a 2cm overhang.
+            * At 0.05 the planner will try to place steps 5cm inwards of a ledge.
             */
    public double getWiggleInsideDelta()
    {
@@ -522,6 +602,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Maximum xy distance that steps can be shifted to move into planar regions.
+            * Should be in the range 0.025 - 0.1.
             */
    public void setMaximumXyWiggleDistance(double maximum_xy_wiggle_distance)
    {
@@ -529,6 +610,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Maximum xy distance that steps can be shifted to move into planar regions.
+            * Should be in the range 0.025 - 0.1.
             */
    public double getMaximumXyWiggleDistance()
    {
@@ -536,14 +618,16 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
 
    /**
-            * Maximum yaw distance that steps can be rotated to move into planar regions.
+            * Maximum yaw angle that steps can be rotated to move into planar regions.
+            * Should be in the range 0.1 - 0.3.
             */
    public void setMaximumYawWiggle(double maximum_yaw_wiggle)
    {
       maximum_yaw_wiggle_ = maximum_yaw_wiggle;
    }
    /**
-            * Maximum yaw distance that steps can be rotated to move into planar regions.
+            * Maximum yaw angle that steps can be rotated to move into planar regions.
+            * Should be in the range 0.1 - 0.3.
             */
    public double getMaximumYawWiggle()
    {
@@ -552,6 +636,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Height threshold to consider an obstacle a "cliff". Steps will not be closer to cliffs than minimum_distance_from_cliff_bottoms
+            * If this value is positive, cliff avoidance is activated and will shift away from the given height.
+            * If this value is non-positive, cliff avoidance is disabled.
             */
    public void setCliffHeightToAvoid(double cliff_height_to_avoid)
    {
@@ -559,6 +645,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Height threshold to consider an obstacle a "cliff". Steps will not be closer to cliffs than minimum_distance_from_cliff_bottoms
+            * If this value is positive, cliff avoidance is activated and will shift away from the given height.
+            * If this value is non-positive, cliff avoidance is disabled.
             */
    public double getCliffHeightToAvoid()
    {
@@ -567,6 +655,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Minimum allowed distance to "cliffs"
+            * If this value is positive, cliff avoidance is activated and steps are rejected if closer than the given distance.
+            * If this value is non-positive, cliff avoidance is disabled.
             */
    public void setMinimumDistanceFromCliffBottoms(double minimum_distance_from_cliff_bottoms)
    {
@@ -574,6 +664,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Minimum allowed distance to "cliffs"
+            * If this value is positive, cliff avoidance is activated and steps are rejected if closer than the given distance.
+            * If this value is non-positive, cliff avoidance is disabled.
             */
    public double getMinimumDistanceFromCliffBottoms()
    {
@@ -582,6 +674,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Steps with height changes below this value will be considered step downs. This value should be negative.
+            * Should be in the range -0.1 - 0.0
             */
    public void setFlatGroundLowerThreshold(double flat_ground_lower_threshold)
    {
@@ -589,6 +682,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Steps with height changes below this value will be considered step downs. This value should be negative.
+            * Should be in the range -0.1 - 0.0
             */
    public double getFlatGroundLowerThreshold()
    {
@@ -597,6 +691,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Steps with height changes above this value will be considered step ups
+            * Should be in the range 0.0 - 0.1
             */
    public void setFlatGroundUpperThreshold(double flat_ground_upper_threshold)
    {
@@ -604,6 +699,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Steps with height changes above this value will be considered step ups
+            * Should be in the range 0.0 - 0.1
             */
    public double getFlatGroundUpperThreshold()
    {
@@ -612,6 +708,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Maximum step with if step height change is lower than flat_ground_lower_threshold
+            * Should be a positive number around 0.3
             */
    public void setMaximumStepWidthWhenSteppingDown(double maximum_step_width_when_stepping_down)
    {
@@ -619,6 +716,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Maximum step with if step height change is lower than flat_ground_lower_threshold
+            * Should be a positive number around 0.3
             */
    public double getMaximumStepWidthWhenSteppingDown()
    {
@@ -627,6 +725,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Maximum step reach, i.e. xy distance from nominal stance, when stepping down.
+            * Should be a positive number around 0.4
             */
    public void setMaximumStepReachWhenSteppingDown(double maximum_step_reach_when_stepping_down)
    {
@@ -634,6 +733,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Maximum step reach, i.e. xy distance from nominal stance, when stepping down.
+            * Should be a positive number around 0.4
             */
    public double getMaximumStepReachWhenSteppingDown()
    {
@@ -642,6 +742,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Maximum step with if the step height exceeds flat_ground_upper_threshold
+            * Should be a positive number around 0.25
             */
    public void setMaximumStepWidthWhenSteppingUp(double maximum_step_width_when_stepping_up)
    {
@@ -649,6 +750,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Maximum step with if the step height exceeds flat_ground_upper_threshold
+            * Should be a positive number around 0.25
             */
    public double getMaximumStepWidthWhenSteppingUp()
    {
@@ -657,6 +759,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Maximum step reach, i.e. xy distance from nominal stance, when stepping up.
+            * Should be a positive number around 0.4
             */
    public void setMaximumStepReachWhenSteppingUp(double maximum_step_reach_when_stepping_up)
    {
@@ -664,6 +767,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Maximum step reach, i.e. xy distance from nominal stance, when stepping up.
+            * Should be a positive number around 0.4
             */
    public double getMaximumStepReachWhenSteppingUp()
    {
@@ -693,6 +797,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Radius around the goal inside which the planner should start to turn to match the goal's orientation
+            * Should be a positive number, around 0.2
             */
    public void setFinalTurnProximity(double final_turn_proximity)
    {
@@ -700,6 +805,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Radius around the goal inside which the planner should start to turn to match the goal's orientation
+            * Should be a positive number, around 0.2
             */
    public double getFinalTurnProximity()
    {
@@ -741,6 +847,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Body box dimensions
+            * Should be all positive. XYZ represent the front-back, side-to-side, and vertical bounding box measurements.
+            * Should be around (0.4, 0.85, 1.5)
             */
    public us.ihmc.euclid.tuple3D.Vector3D getBodyBoxDimensions()
    {
@@ -750,6 +858,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Body box offset
+            * Represents the offset from the sole frame to the bounding box frame (located at the bottom-center of the box).
+            * Should be around (0.03, 0.2, 0.1)
             */
    public us.ihmc.euclid.tuple3D.Vector3D getBodyBoxOffset()
    {
@@ -757,25 +867,30 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
 
    /**
-            * Sets the number of body collision checks (minimum is 1).
+            * (Experimental) Sets number of additional bounding box checks.
             * Additional checks are done by interpolating between the initial and final steps
+            * If this value is non-positive, the "standard" collision check will still be performed by checking the box relative to the step location
+            * If this value is 2, for example, two extra checks will be performed by interpolating between the stance and step locations
             */
-   public void setNumberOfBoundingBoxChecks(long number_of_bounding_box_checks)
+   public void setNumberOfAdditionalBoundingBoxChecks(long number_of_additional_bounding_box_checks)
    {
-      number_of_bounding_box_checks_ = number_of_bounding_box_checks;
+      number_of_additional_bounding_box_checks_ = number_of_additional_bounding_box_checks;
    }
    /**
-            * Sets the number of body collision checks (minimum is 1).
+            * (Experimental) Sets number of additional bounding box checks.
             * Additional checks are done by interpolating between the initial and final steps
+            * If this value is non-positive, the "standard" collision check will still be performed by checking the box relative to the step location
+            * If this value is 2, for example, two extra checks will be performed by interpolating between the stance and step locations
             */
-   public long getNumberOfBoundingBoxChecks()
+   public long getNumberOfAdditionalBoundingBoxChecks()
    {
-      return number_of_bounding_box_checks_;
+      return number_of_additional_bounding_box_checks_;
    }
 
 
    /**
-            * XYZ translation weight vector
+            * XYZ translation weight vector. Penalizes deviations from ideal step
+            * Should be zero (disabled) or positive (enabled) around (0.2, 0.2, 0.2)
             */
    public us.ihmc.euclid.tuple3D.Vector3D getTranslationWeight()
    {
@@ -784,7 +899,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
 
    /**
-            * Yaw-Pitch-Roll weight vector
+            * Yaw-Pitch-Roll weight vector. Penalizes deviations from ideal step
+            * Should be zero (disabled) or positive (enabled) around (0.2, 0.3, 0.3)
             */
    public us.ihmc.euclid.tuple3D.Vector3D getOrientationWeight()
    {
@@ -793,6 +909,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
    /**
             * Contact cost associated with each step. Increase this value if planner is returning extra steps
+            * Should be zero (disabled) or positive (enabled) around 0.1
             */
    public void setCostPerStep(double cost_per_step)
    {
@@ -800,6 +917,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
    /**
             * Contact cost associated with each step. Increase this value if planner is returning extra steps
+            * Should be zero (disabled) or positive (enabled) around 0.1
             */
    public double getCostPerStep()
    {
@@ -807,14 +925,18 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
 
    /**
-            * Weight for partial foothold cost term
+            * Weight for partial foothold cost term. Applies a cost of c * (a - a_min)/(a_max - a_min)
+            * c = this term, a = foothold area, a_min = minimum foothold area, a_max = full foothold area
+            * Should be zero (disabled) or positive (enabled) around 2.0
             */
    public void setFootholdAreaWeight(double foothold_area_weight)
    {
       foothold_area_weight_ = foothold_area_weight;
    }
    /**
-            * Weight for partial foothold cost term
+            * Weight for partial foothold cost term. Applies a cost of c * (a - a_min)/(a_max - a_min)
+            * c = this term, a = foothold area, a_min = minimum foothold area, a_max = full foothold area
+            * Should be zero (disabled) or positive (enabled) around 2.0
             */
    public double getFootholdAreaWeight()
    {
@@ -824,6 +946,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    /**
             * Heuristic weight for A* search. Higher heuristic weights will result in quicker plan times,
             * but plans might be less optimal.
+            * Should be in the range 1.0 - 20.0, usually around 2.5
             */
    public void setAStarHeuristicsWeight(double a_star_heuristics_weight)
    {
@@ -832,6 +955,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    /**
             * Heuristic weight for A* search. Higher heuristic weights will result in quicker plan times,
             * but plans might be less optimal.
+            * Should be in the range 1.0 - 20.0, usually around 2.5
             */
    public double getAStarHeuristicsWeight()
    {
@@ -839,7 +963,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
    }
 
    /**
-            * Only used when waypoints are requested. "Reward" cost for passing a waypoint, recommended in the range 0.5-5.0
+            * Only used when waypoints are requested. "Reward" cost for passing a waypoint
+            * Should be zero (disabled) or positive (enabled) in the range 0.5 - 5.0
             * At higher values the planner will plan quicker but might have less optimal plans.
             */
    public void setWaypointCost(double waypoint_cost)
@@ -847,7 +972,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
       waypoint_cost_ = waypoint_cost;
    }
    /**
-            * Only used when waypoints are requested. "Reward" cost for passing a waypoint, recommended in the range 0.5-5.0
+            * Only used when waypoints are requested. "Reward" cost for passing a waypoint
+            * Should be zero (disabled) or positive (enabled) in the range 0.5 - 5.0
             * At higher values the planner will plan quicker but might have less optimal plans.
             */
    public double getWaypointCost()
@@ -935,7 +1061,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
       if (!this.body_box_dimensions_.epsilonEquals(other.body_box_dimensions_, epsilon)) return false;
       if (!this.body_box_offset_.epsilonEquals(other.body_box_offset_, epsilon)) return false;
-      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.number_of_bounding_box_checks_, other.number_of_bounding_box_checks_, epsilon)) return false;
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.number_of_additional_bounding_box_checks_, other.number_of_additional_bounding_box_checks_, epsilon)) return false;
 
       if (!this.translation_weight_.epsilonEquals(other.translation_weight_, epsilon)) return false;
       if (!this.orientation_weight_.epsilonEquals(other.orientation_weight_, epsilon)) return false;
@@ -1022,7 +1148,7 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
 
       if (!this.body_box_dimensions_.equals(otherMyClass.body_box_dimensions_)) return false;
       if (!this.body_box_offset_.equals(otherMyClass.body_box_offset_)) return false;
-      if(this.number_of_bounding_box_checks_ != otherMyClass.number_of_bounding_box_checks_) return false;
+      if(this.number_of_additional_bounding_box_checks_ != otherMyClass.number_of_additional_bounding_box_checks_) return false;
 
       if (!this.translation_weight_.equals(otherMyClass.translation_weight_)) return false;
       if (!this.orientation_weight_.equals(otherMyClass.orientation_weight_)) return false;
@@ -1108,8 +1234,8 @@ public class ValkyrieFootstepPlannerParametersPacket extends Packet<ValkyrieFoot
       builder.append(this.body_box_dimensions_);      builder.append(", ");
       builder.append("body_box_offset=");
       builder.append(this.body_box_offset_);      builder.append(", ");
-      builder.append("number_of_bounding_box_checks=");
-      builder.append(this.number_of_bounding_box_checks_);      builder.append(", ");
+      builder.append("number_of_additional_bounding_box_checks=");
+      builder.append(this.number_of_additional_bounding_box_checks_);      builder.append(", ");
       builder.append("translation_weight=");
       builder.append(this.translation_weight_);      builder.append(", ");
       builder.append("orientation_weight=");

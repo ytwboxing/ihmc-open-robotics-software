@@ -48,7 +48,7 @@ public class ValkyrieAStarFootstepPlannerParameters
    private final YoBoolean checkForBodyBoxCollisions = new YoBoolean("checkForBodyBoxCollisions", registry);
    private final YoFrameVector3D bodyBoxDimensions = new YoFrameVector3D("bodyBoxDimensions", ReferenceFrame.getWorldFrame(), registry);
    private final YoFrameVector3D bodyBoxOffset = new YoFrameVector3D("bodyBoxOffset", ReferenceFrame.getWorldFrame(), registry);
-   private final YoInteger numberOfBoundingBoxChecks = new YoInteger("numberOfBoundingBoxChecks", registry);
+   private final YoInteger numberOfAdditionalBoundingBoxChecks = new YoInteger("numberOfAdditionalBoundingBoxChecks", registry);
    private final YoFrameVector3D translationWeight = new YoFrameVector3D("translationWeight", ReferenceFrame.getWorldFrame(), registry);
    private final YoFrameYawPitchRoll orientationWeight = new YoFrameYawPitchRoll("orientationWeight", ReferenceFrame.getWorldFrame(), registry);
    private final YoDouble costPerStep = new YoDouble("costPerStep", registry);
@@ -232,9 +232,9 @@ public class ValkyrieAStarFootstepPlannerParameters
       return bodyBoxOffset;
    }
 
-   public int getNumberOfBoundingBoxChecks()
+   public int getNumberOfAdditionalBoundingBoxChecks()
    {
-      return numberOfBoundingBoxChecks.getIntegerValue();
+      return numberOfAdditionalBoundingBoxChecks.getIntegerValue();
    }
 
    public Vector3DReadOnly getTranslationWeight()
@@ -446,9 +446,9 @@ public class ValkyrieAStarFootstepPlannerParameters
       this.bodyBoxOffset.setZ(bodyBoxOffsetZ);
    }
 
-   public void setNumberOfBoundingBoxChecks(int numberOfBoundingBoxChecks)
+   public void setNumberOfAdditionalBoundingBoxChecks(int numberOfAdditionalBoundingBoxChecks)
    {
-      this.numberOfBoundingBoxChecks.set(numberOfBoundingBoxChecks);
+      this.numberOfAdditionalBoundingBoxChecks.set(numberOfAdditionalBoundingBoxChecks);
    }
 
    public void setTranslationWeightX(double translationWeightX)
@@ -558,7 +558,7 @@ public class ValkyrieAStarFootstepPlannerParameters
       wiggleWhilePlanning.set(packet.getWiggleWhilePlanning());
       checkForPathCollisions.set(packet.getCheckForPathCollisions());
       checkForBodyBoxCollisions.set(packet.getCheckForBodyBoxCollisions());
-      numberOfBoundingBoxChecks.set((int) packet.getNumberOfBoundingBoxChecks());
+      numberOfAdditionalBoundingBoxChecks.set((int) packet.getNumberOfAdditionalBoundingBoxChecks());
    }
 
    public void setPacket(ValkyrieFootstepPlannerParametersPacket packet)
@@ -595,7 +595,7 @@ public class ValkyrieAStarFootstepPlannerParameters
       packet.setCheckForBodyBoxCollisions(checkForBodyBoxCollisions.getBooleanValue());
       packet.getBodyBoxDimensions().set(bodyBoxDimensions);
       packet.getBodyBoxOffset().set(bodyBoxOffset);
-      packet.setNumberOfBoundingBoxChecks(numberOfBoundingBoxChecks.getIntegerValue());
+      packet.setNumberOfAdditionalBoundingBoxChecks(numberOfAdditionalBoundingBoxChecks.getIntegerValue());
       packet.getTranslationWeight().set(translationWeight);
       packet.getOrientationWeight().set(orientationWeight.getYawPitchRoll());
       packet.setCostPerStep(costPerStep.getDoubleValue());
@@ -638,7 +638,7 @@ public class ValkyrieAStarFootstepPlannerParameters
       checkForBodyBoxCollisions.set(false);
       bodyBoxDimensions.set(0.4, 0.85, 1.5);
       bodyBoxOffset.set(0.03, 0.2, 0.1);
-      numberOfBoundingBoxChecks.set(1);
+      numberOfAdditionalBoundingBoxChecks.set(1);
       translationWeight.set(0.2, 0.2, 0.2);
       orientationWeight.set(0.2, 0.3, 0.3);
       costPerStep.set(0.1);

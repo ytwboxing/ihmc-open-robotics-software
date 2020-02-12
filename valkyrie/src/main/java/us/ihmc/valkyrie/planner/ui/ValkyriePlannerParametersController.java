@@ -193,7 +193,7 @@ public class ValkyriePlannerParametersController
       bodyBoxOffsetX.getValueFactory().valueProperty().addListener(observable -> parameters.setBodyBoxOffsetX(bodyBoxOffsetX.getValue()));
       bodyBoxOffsetY.getValueFactory().valueProperty().addListener(observable -> parameters.setBodyBoxOffsetY(bodyBoxOffsetY.getValue()));
       bodyBoxOffsetZ.getValueFactory().valueProperty().addListener(observable -> parameters.setBodyBoxOffsetZ(bodyBoxOffsetZ.getValue()));
-      numberOfBoundingBoxChecks.getValueFactory().valueProperty().addListener(observable -> parameters.setNumberOfBoundingBoxChecks(numberOfBoundingBoxChecks.getValue()));
+      numberOfBoundingBoxChecks.getValueFactory().valueProperty().addListener(observable -> parameters.setNumberOfAdditionalBoundingBoxChecks(numberOfBoundingBoxChecks.getValue()));
       translationWeightX.getValueFactory().valueProperty().addListener(observable -> parameters.setTranslationWeightX(translationWeightX.getValue()));
       translationWeightY.getValueFactory().valueProperty().addListener(observable -> parameters.setTranslationWeightY(translationWeightY.getValue()));
       translationWeightZ.getValueFactory().valueProperty().addListener(observable -> parameters.setTranslationWeightZ(translationWeightZ.getValue()));
@@ -243,7 +243,7 @@ public class ValkyriePlannerParametersController
       bodyBoxOffsetX.getValueFactory().setValue(parameters.getBodyBoxOffset().getX());
       bodyBoxOffsetY.getValueFactory().setValue(parameters.getBodyBoxOffset().getY());
       bodyBoxOffsetZ.getValueFactory().setValue(parameters.getBodyBoxOffset().getZ());
-      numberOfBoundingBoxChecks.getValueFactory().setValue(parameters.getNumberOfBoundingBoxChecks());
+      numberOfBoundingBoxChecks.getValueFactory().setValue(parameters.getNumberOfAdditionalBoundingBoxChecks());
       translationWeightX.getValueFactory().setValue(parameters.getTranslationWeight().getX());
       translationWeightY.getValueFactory().setValue(parameters.getTranslationWeight().getY());
       translationWeightZ.getValueFactory().setValue(parameters.getTranslationWeight().getZ());

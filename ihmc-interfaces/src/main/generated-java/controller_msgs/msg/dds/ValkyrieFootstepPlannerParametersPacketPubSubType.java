@@ -312,7 +312,7 @@ public class ValkyrieFootstepPlannerParametersPacketPubSubType implements us.ihm
 
       geometry_msgs.msg.dds.Vector3PubSubType.write(data.getBodyBoxDimensions(), cdr);
       geometry_msgs.msg.dds.Vector3PubSubType.write(data.getBodyBoxOffset(), cdr);
-      cdr.write_type_4(data.getNumberOfBoundingBoxChecks());
+      cdr.write_type_4(data.getNumberOfAdditionalBoundingBoxChecks());
 
       geometry_msgs.msg.dds.Vector3PubSubType.write(data.getTranslationWeight(), cdr);
       geometry_msgs.msg.dds.Vector3PubSubType.write(data.getOrientationWeight(), cdr);
@@ -390,7 +390,7 @@ public class ValkyrieFootstepPlannerParametersPacketPubSubType implements us.ihm
       	
       geometry_msgs.msg.dds.Vector3PubSubType.read(data.getBodyBoxDimensions(), cdr);	
       geometry_msgs.msg.dds.Vector3PubSubType.read(data.getBodyBoxOffset(), cdr);	
-      data.setNumberOfBoundingBoxChecks(cdr.read_type_4());
+      data.setNumberOfAdditionalBoundingBoxChecks(cdr.read_type_4());
       	
       geometry_msgs.msg.dds.Vector3PubSubType.read(data.getTranslationWeight(), cdr);	
       geometry_msgs.msg.dds.Vector3PubSubType.read(data.getOrientationWeight(), cdr);	
@@ -442,7 +442,7 @@ public class ValkyrieFootstepPlannerParametersPacketPubSubType implements us.ihm
 
       ser.write_type_a("body_box_offset", new geometry_msgs.msg.dds.Vector3PubSubType(), data.getBodyBoxOffset());
 
-      ser.write_type_4("number_of_bounding_box_checks", data.getNumberOfBoundingBoxChecks());
+      ser.write_type_4("number_of_additional_bounding_box_checks", data.getNumberOfAdditionalBoundingBoxChecks());
       ser.write_type_a("translation_weight", new geometry_msgs.msg.dds.Vector3PubSubType(), data.getTranslationWeight());
 
       ser.write_type_a("orientation_weight", new geometry_msgs.msg.dds.Vector3PubSubType(), data.getOrientationWeight());
@@ -490,7 +490,7 @@ public class ValkyrieFootstepPlannerParametersPacketPubSubType implements us.ihm
 
       ser.read_type_a("body_box_offset", new geometry_msgs.msg.dds.Vector3PubSubType(), data.getBodyBoxOffset());
 
-      data.setNumberOfBoundingBoxChecks(ser.read_type_4("number_of_bounding_box_checks"));
+      data.setNumberOfAdditionalBoundingBoxChecks(ser.read_type_4("number_of_additional_bounding_box_checks"));
       ser.read_type_a("translation_weight", new geometry_msgs.msg.dds.Vector3PubSubType(), data.getTranslationWeight());
 
       ser.read_type_a("orientation_weight", new geometry_msgs.msg.dds.Vector3PubSubType(), data.getOrientationWeight());

@@ -245,11 +245,12 @@ public class ValkyrieFootstepValidityChecker
       if (parameters.getCheckForBodyBoxCollisions())
       {
          collisionDetector.setPlanarRegionsList(planarRegionsList);
+         int numberOfCollisionChecks = 1 + Math.max(parameters.getNumberOfAdditionalBoundingBoxChecks(), 0);
          List<BodyCollisionData> bodyCollisionData = collisionDetector.checkForCollision(candidateNode,
                                                                                          stanceNode,
                                                                                          candidateNodeSnapData.getSnapTransform().getTranslationZ(),
                                                                                          stanceNodeSnapData.getSnapTransform().getTranslationZ(),
-                                                                                         parameters.getNumberOfBoundingBoxChecks());
+                                                                                         numberOfCollisionChecks);
          for (int i = 0; i < bodyCollisionData.size(); i++)
          {
             if (bodyCollisionData.get(i).isCollisionDetected())
