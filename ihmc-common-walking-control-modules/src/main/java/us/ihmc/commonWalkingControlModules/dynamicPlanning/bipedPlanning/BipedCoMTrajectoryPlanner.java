@@ -32,6 +32,7 @@ public class BipedCoMTrajectoryPlanner
 
    private final YoDouble timeInContactPhase = new YoDouble("timeInContactPhase", registry);
 
+   @Deprecated
    private final List<BipedTimedStep> stepSequence = new ArrayList<>();
 
    public BipedCoMTrajectoryPlanner(SideDependentList<MovingReferenceFrame> soleFrames, double gravityZ, double nominalCoMHeight,
@@ -44,6 +45,7 @@ public class BipedCoMTrajectoryPlanner
       parentRegistry.addChild(registry);
    }
 
+   @Deprecated
    public void clearStepSequence()
    {
       stepSequence.clear();
@@ -54,6 +56,7 @@ public class BipedCoMTrajectoryPlanner
       comTrajectoryPlanner.setNominalCoMHeight(nominalHeight);
    }
 
+   @Deprecated
    public void addStepToSequence(BipedTimedStep step)
    {
       stepSequence.add(step);
@@ -69,7 +72,13 @@ public class BipedCoMTrajectoryPlanner
       sequenceUpdater.initialize();
    }
 
+   @Deprecated
    public void computeSetpoints(double currentTime, List<RobotSide> currentFeetInContact)
+   {
+      computeSetpoints(currentTime, currentFeetInContact, stepSequence);
+   }
+
+   public void computeSetpoints(double currentTime, List<RobotSide> currentFeetInContact, List<BipedTimedStep> stepSequence)
    {
       sequenceUpdater.update(stepSequence, currentFeetInContact, currentTime);
 
