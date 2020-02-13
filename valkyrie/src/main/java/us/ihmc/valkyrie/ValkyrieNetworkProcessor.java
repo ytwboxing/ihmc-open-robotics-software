@@ -59,19 +59,19 @@ public class ValkyrieNetworkProcessor
       tryToStartModule(this::setupBipedalSupportPlanarRegionPublisherModule);
       tryToStartModule(this::setupHumanoidAvatarREAStateUpdater);
       tryToStartModule(this::setupRobotEnvironmentAwerenessModule);
-      tryToStartModule(this::setupKinematicsToolboxModule);
-      tryToStartModule(this::setupKinematicsPlanningToolboxModule);
+//      tryToStartModule(this::setupKinematicsToolboxModule);
+//      tryToStartModule(this::setupKinematicsPlanningToolboxModule);
       tryToStartModule(this::setupKinematicsStreamingToolboxModule);
 
       LogTools.info("All modules in network processor are up and running!");
    }
 
-   private void setupRosModule() throws IOException
+   void setupRosModule() throws IOException
    {
       modules.add(new RosModule(robotModel, rosURI, null, pubSubImplementation));
    }
 
-   private void setupSensorModule() throws IOException
+   void setupSensorModule() throws IOException
    {
       ValkyrieSensorSuiteManager sensorSuiteManager = robotModel.getSensorSuiteManager();
       sensorSuiteManager.setEnableVideoPublisher(false);
@@ -82,53 +82,53 @@ public class ValkyrieNetworkProcessor
       modules.add(sensorSuiteManager);
    }
 
-   private void setupAStarFootstepPlanner()
+   void setupAStarFootstepPlanner()
    {
       ValkyrieAStarFootstepPlanner footstepPlanner = new ValkyrieAStarFootstepPlanner(robotModel);
       modules.add(footstepPlanner);
       footstepPlanner.setupWithRos(pubSubImplementation);
    }
 
-   private void setupFootstepPlanningToolboxModule() throws IOException
+   void setupFootstepPlanningToolboxModule() throws IOException
    {
       modules.add(new MultiStageFootstepPlanningModule(robotModel, null, false, pubSubImplementation));
    }
 
-   private void setupWalkingPreviewModule() throws IOException
+   void setupWalkingPreviewModule() throws IOException
    {
       modules.add(new WalkingControllerPreviewToolboxModule(robotModel, false, pubSubImplementation));
    }
 
-   private void setupBipedalSupportPlanarRegionPublisherModule()
+   void setupBipedalSupportPlanarRegionPublisherModule()
    {
       BipedalSupportPlanarRegionPublisher module = new BipedalSupportPlanarRegionPublisher(robotModel, pubSubImplementation);
       module.start();
       modules.add(module);
    }
 
-   private void setupHumanoidAvatarREAStateUpdater()
+   void setupHumanoidAvatarREAStateUpdater()
    {
       modules.add(new HumanoidAvatarREAStateUpdater(robotModel, pubSubImplementation));
    }
 
-   private void setupRobotEnvironmentAwerenessModule() throws Exception
+   void setupRobotEnvironmentAwerenessModule() throws Exception
    {
       LIDARBasedREAModule remoteModule = LIDARBasedREAModule.createRemoteModule(REAConfigurationFilePath);
       modules.add(remoteModule);
       remoteModule.start();
    }
 
-   private void setupKinematicsToolboxModule() throws IOException
+   void setupKinematicsToolboxModule() throws IOException
    {
       modules.add(new KinematicsToolboxModule(robotModel, false, pubSubImplementation));
    }
 
-   private void setupKinematicsPlanningToolboxModule() throws IOException
+   void setupKinematicsPlanningToolboxModule() throws IOException
    {
       modules.add(new KinematicsPlanningToolboxModule(robotModel, false, pubSubImplementation));
    }
 
-   private void setupKinematicsStreamingToolboxModule() throws IOException
+   void setupKinematicsStreamingToolboxModule() throws IOException
    {
       JavaProcessSpawner javaProcessSpawner = new JavaProcessSpawner(true, true);
       Process process = javaProcessSpawner.spawn(ValkyrieKinematicsStreamingToolboxModule.class, programArguments);
