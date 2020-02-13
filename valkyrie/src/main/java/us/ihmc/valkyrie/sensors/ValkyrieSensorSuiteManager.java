@@ -150,8 +150,8 @@ public class ValkyrieSensorSuiteManager implements DRCSensorSuiteManager
          AvatarRobotLidarParameters multisenseLidarParameters = sensorInformation.getLidarParameters(ValkyrieSensorInformation.MULTISENSE_LIDAR_ID);
          lidarScanPublisher = createLidarScanPublisher();
          lidarScanPublisher.receiveLidarFromROS(multisenseLidarParameters.getRosTopic(), rosMainNode);
+         lidarScanPublisher.setPublisherPeriodInMillisecond(25L);
          lidarScanPublisher.setScanFrameToWorldFrame();
-         lidarScanPublisher.start();
       }
 
       if (enableStereoVisionPointCloudPublisher)
@@ -162,17 +162,22 @@ public class ValkyrieSensorSuiteManager implements DRCSensorSuiteManager
                                                             ValkyrieSensorInformation.angularVelocityThreshold);
          stereoVisionPointCloudPublisher.enableFilter(true);
          stereoVisionPointCloudPublisher.receiveStereoPointCloudFromROS1(multisenseStereoParameters.getRosTopic(), rosMainNode);
-         stereoVisionPointCloudPublisher.start();
       }
 
-      multiSenseSensorManager.initializeParameterListeners();
       rosClockCalculator.setROSMainNode(rosMainNode);
-      rosMainNode.execute();
    }
 
    @Override
    public void connect() throws IOException
    {
+      if (enableVideoPublisher)
+         multiSenseSensorManager.initializeParameterListeners();
+      if (enableLidarScanPublisher)
+         lidarScanPublisher.start();
+      if (enableStereoVisionPointCloudPublisher)
+         stereoVisionPointCloudPublisher.start();
+
+      rosMainNode.execute();
    }
 
    private StereoVisionPointCloudPublisher createStereoPointCloudPublisher()
