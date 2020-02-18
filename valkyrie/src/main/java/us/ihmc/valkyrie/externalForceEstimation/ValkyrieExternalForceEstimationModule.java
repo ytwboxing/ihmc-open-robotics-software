@@ -17,7 +17,7 @@ public class ValkyrieExternalForceEstimationModule extends ExternalForceEstimati
    
    public static void main(String[] args)
    {
-      ValkyrieRobotModel robotModel = new ValkyrieRobotModel(RobotTarget.REAL_ROBOT, ValkyrieRobotVersion.ARM_MASS_SIM);
+      ValkyrieRobotModel robotModel = new ValkyrieRobotModel(RobotTarget.REAL_ROBOT, ValkyrieRobotVersion.DEFAULT);
 
       boolean startYoVariableServer = true;
       PubSubImplementation pubSubImplementation = PubSubImplementation.FAST_RTPS;

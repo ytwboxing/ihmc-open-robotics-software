@@ -15,6 +15,9 @@ import us.ihmc.valkyrie.configuration.ValkyrieRobotVersion;
 import us.ihmc.valkyrie.planner.ValkyrieAStarFootstepPlanner;
 import us.ihmc.valkyrieRosControl.ValkyrieRosControlController;
 
+import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
+import us.ihmc.valkyrie.externalForceEstimation.ValkyrieExternalForceEstimationModule; 
+
 public class ValkyrieNetworkProcessor
 {
    private static final ValkyrieRobotModel model = new ValkyrieRobotModel(RobotTarget.REAL_ROBOT);
@@ -34,6 +37,8 @@ public class ValkyrieNetworkProcessor
       networkModuleParams.enableBipedalSupportPlanarRegionPublisher(true);
       networkModuleParams.enableWalkingPreviewToolbox(true);
       networkModuleParams.enableAutoREAStateUpdater(true);
+
+      new ValkyrieExternalForceEstimationModule(model, false, PubSubImplementation.FAST_RTPS);
 
 //      uncomment these for the sensors
       URI rosuri = NetworkParameters.getROSURI();
