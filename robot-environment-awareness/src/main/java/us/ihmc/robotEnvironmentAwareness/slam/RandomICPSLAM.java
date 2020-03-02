@@ -170,22 +170,22 @@ public class RandomICPSLAM extends SLAMBasics
          if (DEBUG)
             System.out.println("frame distance " + initialQuery);
 
-         if (initialQuery > parameters.getMaximumInitialDistanceRatio() * getOctreeResolution())
-         {
-            if (DEBUG)
-               System.out.println("too far. will not be merged.");
-            return null;
-         }
-         else
+//         if (initialQuery > parameters.getMaximumInitialDistanceRatio() * getOctreeResolution())
+//         {
+//            if (DEBUG)
+//               System.out.println("too far. will not be merged.");
+//            return null;
+//         }
+//         else
          {
             int numberOfInliers = SLAMTools.countNumberOfInliers(octree, transformWorldToSensorPose, sourcePointsToSensor,
                                                                  parameters.getMaximumICPSearchingSize());
-            if (numberOfInliers > parameters.getMinimumInliersRatioOfKeyFrame() * sourcePointsToSensor.length)
-            {
-               if (DEBUG)
-                  System.out.println("close enough. many inliers.");
-               return new RigidBodyTransform();
-            }
+//            if (numberOfInliers > parameters.getMinimumInliersRatioOfKeyFrame() * sourcePointsToSensor.length)
+//            {
+//               if (DEBUG)
+//                  System.out.println("close enough. many inliers.");
+//               return new RigidBodyTransform();
+//            }
 
             optimizer.redefineModule(costFunction);
             optimizer.setStepSize(-1.0);
@@ -267,6 +267,8 @@ public class RandomICPSLAM extends SLAMBasics
          convertToSensorPose(values, newSensorPose);
 
          double totalDistance = 0;
+         double totalOutLiersDistance = 0;
+         int numberOfOutLiers = 0;
          Point3D newSourcePointToWorld = new Point3D();
          for (Point3DReadOnly sourcePoint : sourcePointsToSensor)
          {
@@ -282,6 +284,12 @@ public class RandomICPSLAM extends SLAMBasics
             }
 
             totalDistance = totalDistance + distance;
+            
+            if(distance > getOctreeResolution() * 1)
+            {
+               totalOutLiersDistance = totalOutLiersDistance + distance;
+               numberOfOutLiers ++;
+            }
          }
 
          double squareOfInput = 0.0;
@@ -290,7 +298,11 @@ public class RandomICPSLAM extends SLAMBasics
             squareOfInput = squareOfInput + value * value;
          }
 
+         System.out.println(""+numberOfOutLiers +" " + totalDistance);
          double cost = 1 * totalDistance / sourcePointsToSensor.length + 0 * squareOfInput;
+//         double cost = 0.0;
+//         if(numberOfOutLiers > 0)
+//            cost = totalOutLiersDistance / numberOfOutLiers;
 
          return cost;
       }
