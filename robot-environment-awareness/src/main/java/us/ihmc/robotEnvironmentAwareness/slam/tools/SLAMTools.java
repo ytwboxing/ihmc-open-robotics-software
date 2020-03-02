@@ -344,18 +344,13 @@ public class SLAMTools
          index++;
       }
    }
-
-   /**
-    * if there is not enough source points, think this frame is key frame.
-    * return null.
-    */
-   public static Point3D[] createSourcePointsToSensorPose(SLAMFrame frame, NormalOcTree octree, int numberOfSourcePoints, double minimumOverlappedRatio,
-                                                          double windowMargin)
+   
+   public static ConvexPolygon2D computeWindowForMapToSensorPose(NormalOcTree octree, double windowMargin, RigidBodyTransformReadOnly sensorPose)
    {
       ocTreeHitLocationExtractor.clear();
       Point3DReadOnly[] octreePointMapToWorld = ocTreeHitLocationExtractor.extractHitLocationsToWorld(octree);
 
-      Point3D[] octreePointMapToSensorPose = createConvertedPointsToSensorPose(frame.getInitialSensorPoseToWorld(), octreePointMapToWorld);
+      Point3D[] octreePointMapToSensorPose = createConvertedPointsToSensorPose(sensorPose, octreePointMapToWorld);
       double[][] vertex = new double[octreePointMapToSensorPose.length][2];
 
       for (int i = 0; i < octreePointMapToSensorPose.length; i++)
@@ -365,6 +360,18 @@ public class SLAMTools
       }
       Vertex2DSupplier supplier = Vertex2DSupplier.asVertex2DSupplier(vertex);
       ConvexPolygon2D windowForMap = new ConvexPolygon2D(supplier);
+      
+      return windowForMap;
+   }
+
+   /**
+    * if there is not enough source points, think this frame is key frame.
+    * return null.
+    */
+   public static Point3D[] createSourcePointsToSensorPose(SLAMFrame frame, NormalOcTree octree, int numberOfSourcePoints, double minimumOverlappedRatio,
+                                                          double windowMargin)
+   {
+      ConvexPolygon2D windowForMap = computeWindowForMapToSensorPose(octree, windowMargin, frame.getInitialSensorPoseToWorld());
 
       Point3DReadOnly[] newPointCloudToSensorPose = frame.getOriginalPointCloudToSensorPose();
       boolean[] isInPreviousView = new boolean[newPointCloudToSensorPose.length];
