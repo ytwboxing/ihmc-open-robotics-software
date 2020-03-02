@@ -32,6 +32,12 @@ mainDependencies {
    api("us.ihmc:ihmc-commons:0.26.6")
    api("us.ihmc:ihmc-yovariables:0.4.0")
    api("us.ihmc:ihmc-javafx-toolkit:0.14.1")
+   var javaFXVersion = "11.0.2"
+   api(ihmc.javaFXModule("base", javaFXVersion))
+   api(ihmc.javaFXModule("controls", javaFXVersion))
+   api(ihmc.javaFXModule("graphics", javaFXVersion))
+   api(ihmc.javaFXModule("fxml", javaFXVersion))
+   api(ihmc.javaFXModule("swing", javaFXVersion))
    api("us.ihmc:ihmc-communication:source")
    api("us.ihmc:ihmc-robotics-toolkit:source")
    api("org.bytedeco:javacv-platform:1.5") {

@@ -24,6 +24,12 @@ mainDependencies {
    api("us.ihmc:ihmc-robot-description:0.14.1")
    api("us.ihmc:ihmc-graphics-description:0.14.1")
    api("us.ihmc:ihmc-javafx-toolkit:0.14.1")
+   def javaFXVersion = "11.0.2"
+   api(ihmc.javaFXModule("base", javaFXVersion))
+   api(ihmc.javaFXModule("controls", javaFXVersion))
+   api(ihmc.javaFXModule("graphics", javaFXVersion))
+   api(ihmc.javaFXModule("fxml", javaFXVersion))
+   api(ihmc.javaFXModule("swing", javaFXVersion))
    api("us.ihmc:ihmc-robotics-toolkit:source")
 }
 
