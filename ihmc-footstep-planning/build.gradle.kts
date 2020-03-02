@@ -28,7 +28,7 @@ mainDependencies {
 }
 
 testDependencies {
-   compile ihmc.sourceSetProject("visualizers")
+   api(ihmc.sourceSetProject("visualizers"))
 
    api("us.ihmc:ihmc-path-planning-data-sets:source")
    api("us.ihmc:simulation-construction-set-test:0.14.0")
@@ -38,9 +38,11 @@ testDependencies {
 }
 
 visualizersDependencies {
-   compile ihmc.sourceSetProject("main")
+   api(ihmc.sourceSetProject("main"))
 
-   api("us.ihmc:ihmc-javafx-toolkit:0.14.1")
+   api("us.ihmc:ihmc-javafx-toolkit:0.14.1") {
+      exclude(group = "org.slf4j", module = "slf4j-simple")
+   }
    api("us.ihmc:robot-environment-awareness-application:source")
    api("us.ihmc:ihmc-communication:source")
    api("us.ihmc:ihmc-path-planning-visualizers:source")

@@ -62,9 +62,11 @@ behaviorCleanRoomDependencies {
 }
 
 behaviorFxUiDependencies {
-   compile ihmc.sourceSetProject("main")
-   compile ihmc.sourceSetProject("behavior-clean-room")
-   api("us.ihmc:ihmc-javafx-toolkit:0.14.1")
+   api(ihmc.sourceSetProject("main"))
+   api(ihmc.sourceSetProject("behavior-clean-room"))
+   api("us.ihmc:ihmc-javafx-toolkit:0.14.1") {
+      exclude(group = "org.slf4j", module = "slf4j-simple")
+   }
    api("us.ihmc:ihmc-robot-models-visualizers:source")
    api("us.ihmc:ihmc-path-planning-visualizers:source")
    api("us.ihmc:robot-environment-awareness-visualizers:source")

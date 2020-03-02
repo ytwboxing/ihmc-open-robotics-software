@@ -1,3 +1,5 @@
+import java.io.FileWriter
+
 plugins {
    id("us.ihmc.ihmc-build") version "0.20.1"
    id("us.ihmc.ihmc-ci") version "5.3"
@@ -19,25 +21,29 @@ mainDependencies {
    api("us.ihmc:ihmc-commons:0.26.6")
    api("us.ihmc:euclid-frame:0.12.2")
    api("us.ihmc:euclid-shape:0.12.2")
-   api("us.ihmc:ihmc-javafx-toolkit:0.14.1")
+   api("us.ihmc:ihmc-javafx-toolkit:0.14.1") {
+      exclude(group = "org.slf4j", module = "slf4j-simple")
+   }
    api("us.ihmc:ihmc-yovariables:0.4.0")
    api("us.ihmc:ihmc-convex-optimization:0.13.0")
    api("us.ihmc:robot-environment-awareness:source")
 }
 
 visualizersDependencies {
-   compile ihmc.sourceSetProject("main")
-   compile ihmc.sourceSetProject("data-sets")
+   api(ihmc.sourceSetProject("main"))
+   api(ihmc.sourceSetProject("data-sets"))
 
-   api("us.ihmc:ihmc-javafx-toolkit:0.14.1")
+   api("us.ihmc:ihmc-javafx-toolkit:0.14.1") {
+      exclude(group = "org.slf4j", module = "slf4j-simple")
+   }
    api("us.ihmc:robot-environment-awareness-application:source")
    api("us.ihmc:ihmc-communication:source")
    api("us.ihmc:ihmc-robot-models-visualizers:source")
 }
 
 testDependencies {
-   compile ihmc.sourceSetProject("visualizers")
-   compile ihmc.sourceSetProject("data-sets")
+   api(ihmc.sourceSetProject("visualizers"))
+   api(ihmc.sourceSetProject("data-sets"))
 
    api("us.ihmc:ihmc-commons-testing:0.26.6")
    api("us.ihmc:simulation-construction-set:0.14.0")
@@ -45,36 +51,39 @@ testDependencies {
    api("us.ihmc:ihmc-robotics-toolkit-test:source")
 }
 
+//ihmc.sourceSetProject("data-sets").dependencies {
+//
+//}
 dataSetsDependencies {
-   compile ihmc.sourceSetProject("main")
+   api(ihmc.sourceSetProject("main"))
 
    api("us.ihmc:ihmc-commons-testing:0.26.6")
    api("us.ihmc:simulation-construction-set-tools:source")
    api("us.ihmc:robot-environment-awareness:source")
 }
 
-task updateDataSetList {
+tasks.create("updateDataSetList") {
    doFirst {
-      def resourcesDir = "src/data-sets/resources/us/ihmc/pathPlanning/dataSets"
-      def srcDir = "src/data-sets/java/us/ihmc/pathPlanning"
-      def className = "DataSetName"
+      var resourcesDir = "src/data-sets/resources/us/ihmc/pathPlanning/dataSets"
+      var srcDir = "src/data-sets/java/us/ihmc/pathPlanning"
+      var className = "DataSetName"
 
-      def dataSetDir = new File(resourcesDir)
-      def dataSetList = files { dataSetDir.listFiles().sort().reverse() }
+      var dataSetDir = File(resourcesDir)
+      var dataSetList = files(dataSetDir.listFiles().sort()) // how to do reverse here?
 
-      File classFile = new File(srcDir + "/" + className + ".java")
-      println classFile.getAbsolutePath()
+      var classFile = File(srcDir + "/" + className + ".java")
+      println(classFile.getAbsolutePath())
 
       if(classFile.exists())
          classFile.delete()
       classFile.createNewFile()
 
-      FileWriter fileWriter = new FileWriter(classFile, true)
+      var fileWriter = FileWriter(classFile, true)
       fileWriter.write("package us.ihmc.pathPlanning;\n\n")
       fileWriter.write("public enum " + className + "\n")
       fileWriter.write("{\n")
 
-      dataSetList.each {
+      dataSetList.forEach {
          fileWriter.write("\t_" + it.name + ",\n")
       }
 
