@@ -47,8 +47,7 @@ public class GridNettingSLAMTest
       slamViewer.addPointCloud(frameToTest.getPointCloud(), Color.BLUE);
 
       double windowMargin = 0.01;
-      ConvexPolygon2D mapWindowFromSensorPose = SLAMTools.computeWindowForMapToSensorPose(slam.getOctree(), windowMargin,
-                                                                                          frameToTest.getInitialSensorPoseToWorld());
+      ConvexPolygon2D mapWindowFromSensorPose = SLAMTools.computeMapConvexHullInSensorFrame(slam.getOctree(), frameToTest.getInitialSensorPoseToWorld());
 
       Point3DReadOnly[] newPointCloudToSensorPose = frameToTest.getOriginalPointCloudToSensorPose();
       double maxX = Double.NEGATIVE_INFINITY;
@@ -66,7 +65,7 @@ public class GridNettingSLAMTest
          {
             isInPreviousView[i] = true;
             numberOfPointsInWindow++;
-            
+
             if (maxX < point.getX())
                maxX = point.getX();
             if (minX > point.getX())
@@ -136,10 +135,10 @@ public class GridNettingSLAMTest
             pointsOnLineToSensor[j] = pointsOnVerticalLines.get(i).get(j);
          }
          Point3D[] pointsOnLineToWorld = SLAMTools.createConvertedPointsToWorld(frameToTest.getInitialSensorPoseToWorld(), pointsOnLineToSensor);
-         System.out.println("pointsOnLineToWorld "+pointsOnLineToWorld.length);
+         System.out.println("pointsOnLineToWorld " + pointsOnLineToWorld.length);
          slamViewer.addPointCloud(pointsOnLineToWorld, Color.BLACK);
       }
-      
+
       for (int i = gridResolution - 1; i < pointsOnVerticalLines.size(); i++)
       {
          Point3D[] pointsOnLineToSensor = new Point3D[pointsOnVerticalLines.get(i).size()];
@@ -148,7 +147,7 @@ public class GridNettingSLAMTest
             pointsOnLineToSensor[j] = pointsOnVerticalLines.get(i).get(j);
          }
          Point3D[] pointsOnLineToWorld = SLAMTools.createConvertedPointsToWorld(frameToTest.getInitialSensorPoseToWorld(), pointsOnLineToSensor);
-         System.out.println("pointsOnLineToWorld "+pointsOnLineToWorld.length);
+         System.out.println("pointsOnLineToWorld " + pointsOnLineToWorld.length);
          slamViewer.addPointCloud(pointsOnLineToWorld, Color.YELLOW);
       }
 
