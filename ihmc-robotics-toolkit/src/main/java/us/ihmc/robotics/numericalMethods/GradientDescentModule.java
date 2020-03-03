@@ -5,11 +5,12 @@ import us.ihmc.commons.Conversions;
 import us.ihmc.commons.MathTools;
 
 /**
- * The primary role of this solver is to calculate out closest manifold by searching configuration spaces of the manifold. 
+ * The primary role of this solver is to calculate out closest manifold by searching configuration
+ * spaces of the manifold.
  */
 public class GradientDescentModule
 {
-   private final boolean DEBUG = false;
+   private final boolean DEBUG = true;
 
    // internal
    private SingleQueryFunction function;
@@ -47,7 +48,7 @@ public class GradientDescentModule
          this.inputLowerLimit.add(Double.NEGATIVE_INFINITY);
       }
    }
-   
+
    public void redefineModule(SingleQueryFunction function)
    {
       this.function = function;
@@ -164,6 +165,7 @@ public class GradientDescentModule
          for (int j = 0; j < dimension; j++)
          {
             double input = pastInput.get(j) + gradient.get(j) * alpha;
+            System.out.println(j + " " + input + " " + gradient.get(j) + " " + alpha);
             optimalInput.add(MathTools.clamp(input, inputLowerLimit.get(j), inputUpperLimit.get(j)));
          }
 

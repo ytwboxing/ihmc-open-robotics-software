@@ -161,6 +161,11 @@ public class PointCloudGraphic extends Group
       addSensorPoseMesh(sensorPose, sensorPoseColor);
       addPointsMeshes(points, pointCloudColor);
    }
+   
+   public void addLineMesh(Point3DReadOnly from, Point3DReadOnly to, Color colorToViz, double thinkness)
+   {
+      meshBuilder.addMesh(MeshDataGenerator.Line(from, to, thinkness), new Point3D(), colorToViz);
+   }
 
    public void update()
    {

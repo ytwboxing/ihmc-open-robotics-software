@@ -73,6 +73,11 @@ public class SLAMViewer
       stereoVisionPointCloudGraphic.addPointsMeshes(SLAMTools.extractPointsFromMessage(message), pointCloudColor);
       stereoVisionPointCloudGraphic.addSensorPoseMesh(SLAMTools.extractSensorPoseFromMessage(message), sensorPoseColor);
    }
+   
+   public void addLineMesh(Point3DReadOnly from, Point3DReadOnly to, Color colorToViz, double thinkness)
+   {
+      stereoVisionPointCloudGraphic.addLineMesh(from, to, colorToViz, thinkness);
+   }
 
    public void addOctree(NormalOcTree octree, Color color, double octreeResolution)
    {
