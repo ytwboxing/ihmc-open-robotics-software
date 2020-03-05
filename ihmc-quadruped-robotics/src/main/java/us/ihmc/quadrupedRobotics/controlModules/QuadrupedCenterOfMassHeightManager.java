@@ -246,6 +246,9 @@ public class QuadrupedCenterOfMassHeightManager
    public void update()
    {
       centerOfMassHeightTrajectory.compute(controllerTime.getDoubleValue());
+      desiredPosition.setToZero(centerOfMassHeightTrajectory.getReferenceFrame());
+      desiredVelocity.setToZero(centerOfMassHeightTrajectory.getReferenceFrame());
+      desiredAcceleration.setToZero(centerOfMassHeightTrajectory.getReferenceFrame());
       centerOfMassHeightTrajectory.getLinearData(desiredPosition, desiredVelocity, desiredAcceleration);
 
       // get the potential XY translation in height
