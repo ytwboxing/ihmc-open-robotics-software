@@ -216,6 +216,7 @@ public class PelvisICPBasedTranslationManager
                streamTimestampOffset.setToNaN();
             }
          }
+         tempPosition.setToZero(positionTrajectoryGenerator.getReferenceFrame());
          positionTrajectoryGenerator.getPosition(tempPosition);
          tempPosition.changeFrame(desiredPelvisPosition.getReferenceFrame());
          desiredPelvisPosition.set(tempPosition);
