@@ -420,9 +420,14 @@ public class PelvisICPBasedTranslationManager
       if (se3Trajectory.getTrajectoryPoint(0).getTime() > 1.0e-5)
       {
          if (isRunning.getBooleanValue())
+         {
+            tempPosition.setToZero(positionTrajectoryGenerator.getReferenceFrame());
             positionTrajectoryGenerator.getPosition(tempPosition);
+         }
          else
+         {
             tempPosition.setToZero(pelvisZUpFrame);
+         }
          tempPosition.changeFrame(worldFrame);
          tempVelocity.setToZero(worldFrame);
 

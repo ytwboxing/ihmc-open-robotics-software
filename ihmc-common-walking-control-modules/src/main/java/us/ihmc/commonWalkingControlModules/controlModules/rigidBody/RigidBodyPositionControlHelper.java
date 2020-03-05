@@ -258,6 +258,10 @@ public class RigidBodyPositionControlHelper
 
       if (done)
          streamTimestampOffset.setToNaN();
+      
+      desiredPosition.setToZero(trajectoryGenerator.getReferenceFrame());
+      desiredVelocity.setToZero(trajectoryGenerator.getReferenceFrame());
+      feedForwardAcceleration.setToZero(trajectoryGenerator.getReferenceFrame());
 
       trajectoryGenerator.compute(timeInTrajectory);
       trajectoryGenerator.getLinearData(desiredPosition, desiredVelocity, feedForwardAcceleration);
