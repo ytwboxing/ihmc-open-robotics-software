@@ -277,6 +277,22 @@ public class StraightLinePoseTrajectoryGeneratorTest
       originalOrientation.initialize();
       trajToTest.initialize();
 
+      position1.setToZero(frameA);
+      velocity1.setToZero(frameA);
+      acceleration1.setToZero(frameA);
+
+      position2.setToZero(frameA);
+      velocity2.setToZero(frameA);
+      acceleration2.setToZero(frameA);
+
+      orientation1.setToZero(frameA);
+      angularVelocity1.setToZero(frameA);
+      angularAcceleration1.setToZero(frameA);
+
+      orientation2.setToZero(frameA);
+      angularVelocity2.setToZero(frameA);
+      angularAcceleration2.setToZero(frameA);
+
       for (double t = 0.0; t <= trajectoryTimeProvider.getValue(); t += dt)
       {
          originalPosition.compute(t);
