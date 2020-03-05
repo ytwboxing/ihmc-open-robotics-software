@@ -172,6 +172,11 @@ public class ControllerPelvisOrientationManager implements PelvisOrientationCont
    public void doAction(double timeInState)
    {
       double deltaTime = yoTime.getDoubleValue() - initialPelvisOrientationTime.getDoubleValue();
+
+      desiredPelvisOrientation.setToZero(pelvisOrientationTrajectoryGenerator.getReferenceFrame());
+      desiredPelvisAngularVelocity.setToZero(pelvisOrientationTrajectoryGenerator.getReferenceFrame());
+      desiredPelvisAngularAcceleration.setToZero(pelvisOrientationTrajectoryGenerator.getReferenceFrame());
+
       pelvisOrientationTrajectoryGenerator.compute(deltaTime);
       pelvisOrientationTrajectoryGenerator.getAngularData(desiredPelvisOrientation, desiredPelvisAngularVelocity, desiredPelvisAngularAcceleration);
 
@@ -179,6 +184,10 @@ public class ControllerPelvisOrientationManager implements PelvisOrientationCont
       desiredPelvisAngularVelocity.changeFrame(worldFrame);
       desiredPelvisAngularAcceleration.changeFrame(worldFrame);
       desiredPelvisFrame.update();
+
+      tempOrientation.setToZero(pelvisOrientationOffsetTrajectoryGenerator.getReferenceFrame());
+      tempAngularVelocity.setToZero(pelvisOrientationOffsetTrajectoryGenerator.getReferenceFrame());
+      tempAngularAcceleration.setToZero(pelvisOrientationOffsetTrajectoryGenerator.getReferenceFrame());
 
       double deltaTimeOffset = yoTime.getDoubleValue() - initialPelvisOrientationOffsetTime.getDoubleValue();
       pelvisOrientationOffsetTrajectoryGenerator.compute(deltaTimeOffset);
@@ -219,6 +228,7 @@ public class ControllerPelvisOrientationManager implements PelvisOrientationCont
    {
       initialPelvisOrientationOffsetTime.set(yoTime.getDoubleValue());
 
+      tempOrientation.setToZero(pelvisOrientationOffsetTrajectoryGenerator.getReferenceFrame());
       pelvisOrientationOffsetTrajectoryGenerator.getOrientation(tempOrientation);
 
       tempOrientation.changeFrame(desiredPelvisFrame);

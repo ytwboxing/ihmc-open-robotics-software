@@ -206,6 +206,10 @@ public class RigidBodyOrientationControlHelper
       if (done)
          streamTimestampOffset.setToNaN();
 
+      desiredOrientation.setToZero(trajectoryGenerator.getReferenceFrame());
+      desiredVelocity.setToZero(trajectoryGenerator.getReferenceFrame());
+      feedForwardAcceleration.setToZero(trajectoryGenerator.getReferenceFrame());
+
       trajectoryGenerator.compute(timeInTrajectory);
       trajectoryGenerator.getAngularData(desiredOrientation, desiredVelocity, feedForwardAcceleration);
 
