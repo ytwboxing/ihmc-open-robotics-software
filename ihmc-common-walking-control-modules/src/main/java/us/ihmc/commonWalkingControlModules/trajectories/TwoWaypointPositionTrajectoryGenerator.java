@@ -7,6 +7,8 @@ import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
@@ -179,19 +181,22 @@ public class TwoWaypointPositionTrajectoryGenerator implements PositionTrajector
 
    }
 
-   public void getPosition(FramePoint3D positionToPack)
+   @Override
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
-      positionToPack.setIncludingFrame(desiredPosition);
+      positionToPack.set(desiredPosition);
    }
 
-   public void getVelocity(FrameVector3D velocityToPack)
+   @Override
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
-      velocityToPack.setIncludingFrame(desiredVelocity);
+      velocityToPack.set(desiredVelocity);
    }
 
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   @Override
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
-      accelerationToPack.setIncludingFrame(desiredAcceleration);
+      accelerationToPack.set(desiredAcceleration);
    }
 
    private void setStepTime()
@@ -662,14 +667,6 @@ public class TwoWaypointPositionTrajectoryGenerator implements PositionTrajector
    public boolean isDone()
    {
       return timeIntoStep.getDoubleValue() >= stepTime.getDoubleValue();
-   }
-
-   @Override
-   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
-   {
-      getPosition(positionToPack);
-      getVelocity(velocityToPack);
-      getAcceleration(accelerationToPack);
    }
 
    @Override

@@ -11,6 +11,9 @@ import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
@@ -343,63 +346,39 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
-      positionToPack.setIncludingFrame(currentPosition);
+      positionToPack.set(currentPosition);
    }
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
-      velocityToPack.setIncludingFrame(currentVelocity);
+      velocityToPack.set(currentVelocity);
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
-      accelerationToPack.setIncludingFrame(currentAcceleration);
+      accelerationToPack.set(currentAcceleration);
    }
 
    @Override
-   public void getOrientation(FrameQuaternion orientationToPack)
+   public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
-      orientationToPack.setIncludingFrame(currentOrientation);
+      orientationToPack.set(currentOrientation);
    }
 
    @Override
-   public void getAngularVelocity(FrameVector3D angularVelocityToPack)
+   public void getAngularVelocity(FixedFrameVector3DBasics angularVelocityToPack)
    {
-      angularVelocityToPack.setIncludingFrame(currentAngularVelocity);
+      angularVelocityToPack.set(currentAngularVelocity);
    }
 
    @Override
-   public void getAngularAcceleration(FrameVector3D angularAccelerationToPack)
+   public void getAngularAcceleration(FixedFrameVector3DBasics angularAccelerationToPack)
    {
-      angularAccelerationToPack.setIncludingFrame(currentAngularAcceleration);
-   }
-
-   @Override
-   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
-   {
-      getPosition(positionToPack);
-      getVelocity(velocityToPack);
-      getAcceleration(accelerationToPack);
-   }
-
-   @Override
-   public void getAngularData(FrameQuaternion orientationToPack, FrameVector3D angularVelocityToPack, FrameVector3D angularAccelerationToPack)
-   {
-      getOrientation(orientationToPack);
-      getAngularVelocity(angularVelocityToPack);
-      getAngularAcceleration(angularAccelerationToPack);
-   }
-
-   @Override
-   public void getPose(FramePose3D framePoseToPack)
-   {
-      framePoseToPack.changeFrame(currentPosition.getReferenceFrame());
-      framePoseToPack.setPosition(currentPosition);
-      framePoseToPack.setOrientation(currentOrientation);
+      angularAccelerationToPack.set(currentAngularAcceleration);
    }
 
    @Override

@@ -1,9 +1,5 @@
 package us.ihmc.commonWalkingControlModules.trajectories;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.List;
-
 import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
@@ -13,6 +9,8 @@ import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolynomial3D;
@@ -22,11 +20,11 @@ import us.ihmc.robotics.math.trajectories.YoPolynomial;
 import us.ihmc.robotics.math.trajectories.YoPolynomial3D;
 import us.ihmc.robotics.math.trajectories.generators.TrajectoryPointOptimizer;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoFramePoint3D;
-import us.ihmc.yoVariables.variable.YoFrameVector3D;
-import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.*;
+
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
 
 /**
  * This class is a wrapper for the TrajectoryPointOptimizer. It was made for trajectories in 3d
@@ -111,21 +109,19 @@ public class PositionOptimizedTrajectoryGenerator
    {
       this.namePrefix = namePrefix;
 
-      coefficients = new RecyclingArrayList<>(0, () ->
-                                              {
-                                                 TDoubleArrayList ret = new TDoubleArrayList(TrajectoryPointOptimizer.coefficients);
-                                                 for (int i = 0; i < TrajectoryPointOptimizer.coefficients; i++)
-                                                    ret.add(0.0);
-                                                 return ret;
-                                              });
+      coefficients = new RecyclingArrayList<>(0, () -> {
+         TDoubleArrayList ret = new TDoubleArrayList(TrajectoryPointOptimizer.coefficients);
+         for (int i = 0; i < TrajectoryPointOptimizer.coefficients; i++)
+            ret.add(0.0);
+         return ret;
+      });
 
-      waypointPositions = new RecyclingArrayList<>(0, () ->
-                                                   {
-                                                      TDoubleArrayList ret = new TDoubleArrayList(dimensions);
-                                                      for (int i = 0; i < dimensions; i++)
-                                                         ret.add(0.0);
-                                                      return ret;
-                                                   });
+      waypointPositions = new RecyclingArrayList<>(0, () -> {
+         TDoubleArrayList ret = new TDoubleArrayList(dimensions);
+         for (int i = 0; i < dimensions; i++)
+            ret.add(0.0);
+         return ret;
+      });
 
       registry = new YoVariableRegistry(namePrefix + "Trajectory");
       optimizer = new TrajectoryPointOptimizer(namePrefix, dimensions, registry);
@@ -166,8 +162,8 @@ public class PositionOptimizedTrajectoryGenerator
 
       if (graphicsListRegistry != null)
       {
-         List<YoPolynomial3D> yoPolynomial3Ds = YoPolynomial3D.createYoPolynomial3DList(trajectories.get(Axis.X), trajectories.get(Axis.Y),
-                                                                                        trajectories.get(Axis.Z));
+         List<YoPolynomial3D> yoPolynomial3Ds = YoPolynomial3D
+               .createYoPolynomial3DList(trajectories.get(Axis.X), trajectories.get(Axis.Y), trajectories.get(Axis.Z));
          trajectoryViz = new YoGraphicPolynomial3D(namePrefix + "Trajectory", null, yoPolynomial3Ds, waypointTimes, 0.01, 25, 8, registry);
          graphicsListRegistry.registerYoGraphic(namePrefix + "Trajectory", trajectoryViz);
 
@@ -434,22 +430,22 @@ public class PositionOptimizedTrajectoryGenerator
       return isDone.getBooleanValue();
    }
 
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
-      positionToPack.setIncludingFrame(desiredPosition);
+      positionToPack.set(desiredPosition);
    }
 
-   public void getVelocity(FrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
-      velocityToPack.setIncludingFrame(desiredVelocity);
+      velocityToPack.set(desiredVelocity);
    }
 
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
-      accelerationToPack.setIncludingFrame(desiredAcceleration);
+      accelerationToPack.set(desiredAcceleration);
    }
 
-   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
+   public void getLinearData(FixedFramePoint3DBasics positionToPack, FixedFrameVector3DBasics velocityToPack, FixedFrameVector3DBasics accelerationToPack)
    {
       getPosition(positionToPack);
       getVelocity(velocityToPack);

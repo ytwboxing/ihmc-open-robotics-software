@@ -6,14 +6,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Disabled;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.robotics.trajectories.providers.ConstantDoubleProvider;
-import us.ihmc.robotics.trajectories.providers.ConstantPositionProvider;
 import us.ihmc.robotics.trajectories.providers.PositionProvider;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -43,8 +40,8 @@ public class StraightLinePositionTrajectoryGeneratorTest
       parentRegistry = new YoVariableRegistry("parentRegistryTEST");
       referenceFrame = ReferenceFrame.constructARootFrame("rootNameTEST");
       position = new FramePoint3D(referenceFrame, xValue, yValue, zValue);
-      initialPositionProvider = new ConstantPositionProvider(position);
-      finalPositionProvider = new ConstantPositionProvider(position);
+      initialPositionProvider = position -> position.set(this.position);
+      finalPositionProvider = position -> position.set(this.position);
       trajectoryTimeProvider = new ConstantDoubleProvider(10.0);
    }
 
@@ -75,14 +72,14 @@ public class StraightLinePositionTrajectoryGeneratorTest
    //   {
    //      smoother = new PositionTrajectorySmoother(namePrefix, positionTrajectoryInput, dt, parentRegistry);
    //   }
-   
+
 //   @Test
 //   public void testSetMaxAccelerationAndJerk()
 //   {
 //      smoother = new PositionTrajectorySmoother(namePrefix, positionTrajectoryInput, dt, parentRegistry);
 //      double maxAbsoluteAcceleration = 10.0;
 //      double maxAbsoluteJerk = 1.0;
-//      
+//
 //      smoother.setMaxAccelerationAndJerk(maxAbsoluteAcceleration, maxAbsoluteJerk);
 //   }
 

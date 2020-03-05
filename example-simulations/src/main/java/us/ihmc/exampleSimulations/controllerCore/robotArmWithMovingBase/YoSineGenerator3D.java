@@ -3,6 +3,8 @@ package us.ihmc.exampleSimulations.controllerCore.robotArmWithMovingBase;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameTuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.robotics.math.trajectories.PositionTrajectoryGenerator;
@@ -97,29 +99,21 @@ public class YoSineGenerator3D implements PositionTrajectoryGenerator
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
-      positionToPack.setIncludingFrame(position);
+      positionToPack.set(position);
    }
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
-      velocityToPack.setIncludingFrame(velocity);
+      velocityToPack.set(velocity);
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
-      accelerationToPack.setIncludingFrame(acceleration);
-   }
-
-   @Override
-   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
-   {
-      getPosition(positionToPack);
-      getVelocity(velocityToPack);
-      getAcceleration(accelerationToPack);
+      accelerationToPack.set(acceleration);
    }
 
    @Override

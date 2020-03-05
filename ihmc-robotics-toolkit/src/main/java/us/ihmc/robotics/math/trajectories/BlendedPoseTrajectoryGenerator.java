@@ -1,11 +1,7 @@
 package us.ihmc.robotics.math.trajectories;
 
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FramePose3D;
-import us.ihmc.euclid.referenceFrame.FrameQuaternion;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.interfaces.FramePose3DReadOnly;
+import us.ihmc.euclid.referenceFrame.*;
+import us.ihmc.euclid.referenceFrame.interfaces.*;
 import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
@@ -13,11 +9,6 @@ public class BlendedPoseTrajectoryGenerator implements PoseTrajectoryGenerator
 {
    private final BlendedPositionTrajectoryGenerator blendedPositionTrajectory;
    private final BlendedOrientationTrajectoryGenerator blendedOrientationTrajectory;
-
-   private final FramePoint3D tempPosition = new FramePoint3D();
-   private final FrameVector3D tempVelocity = new FrameVector3D();
-   private final FrameQuaternion tempOrientation = new FrameQuaternion();
-   private final FrameVector3D tempAngularVelocity = new FrameVector3D();
 
    private final PoseTrajectoryGenerator trajectory;
 
@@ -54,10 +45,8 @@ public class BlendedPoseTrajectoryGenerator implements PoseTrajectoryGenerator
 
    public void blendInitialConstraint(FramePose3DReadOnly initialPose, TwistReadOnly initialTwist, double initialTime, double blendDuration)
    {
-      tempVelocity.setIncludingFrame(initialTwist.getLinearPart());
-      tempAngularVelocity.setIncludingFrame(initialTwist.getAngularPart());
-      blendedPositionTrajectory.blendInitialConstraint(initialPose.getPosition(), tempVelocity, initialTime, blendDuration);
-      blendedOrientationTrajectory.blendInitialConstraint(initialPose.getOrientation(), tempAngularVelocity, initialTime, blendDuration);
+      blendedPositionTrajectory.blendInitialConstraint(initialPose.getPosition(), initialTwist.getLinearPart(), initialTime, blendDuration);
+      blendedOrientationTrajectory.blendInitialConstraint(initialPose.getOrientation(), initialTwist.getAngularPart(), initialTime, blendDuration);
    }
 
    public void blendFinalConstraint(FramePose3DReadOnly finalPose, double finalTime, double blendDuration)
@@ -68,10 +57,8 @@ public class BlendedPoseTrajectoryGenerator implements PoseTrajectoryGenerator
 
    public void blendFinalConstraint(FramePose3DReadOnly finalPose, TwistReadOnly finalTwist, double finalTime, double blendDuration)
    {
-      tempVelocity.setIncludingFrame(finalTwist.getLinearPart());
-      tempAngularVelocity.setIncludingFrame(finalTwist.getAngularPart());
-      blendedPositionTrajectory.blendFinalConstraint(finalPose.getPosition(), tempVelocity, finalTime, blendDuration);
-      blendedOrientationTrajectory.blendFinalConstraint(finalPose.getOrientation(), tempAngularVelocity, finalTime, blendDuration);
+      blendedPositionTrajectory.blendFinalConstraint(finalPose.getPosition(), finalTwist.getLinearPart(), finalTime, blendDuration);
+      blendedOrientationTrajectory.blendFinalConstraint(finalPose.getOrientation(), finalTwist.getAngularPart(), finalTime, blendDuration);
    }
 
    public void initializeTrajectory()
@@ -81,45 +68,44 @@ public class BlendedPoseTrajectoryGenerator implements PoseTrajectoryGenerator
 
 
    @Override
-   public void getPose(FramePose3D framePoseToPack)
+   public void getPose(FixedFramePose3DBasics framePoseToPack)
    {
-      blendedPositionTrajectory.getPosition(tempPosition);
-      blendedOrientationTrajectory.getOrientation(tempOrientation);
-      framePoseToPack.setIncludingFrame(tempPosition, tempOrientation);
+      blendedPositionTrajectory.getPosition(framePoseToPack.getPosition());
+      blendedOrientationTrajectory.getOrientation(framePoseToPack.getOrientation());
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       blendedPositionTrajectory.getPosition(positionToPack);
    }
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       blendedPositionTrajectory.getVelocity(velocityToPack);
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       blendedPositionTrajectory.getAcceleration(accelerationToPack);
    }
 
    @Override
-   public void getOrientation(FrameQuaternion orientationToPack)
+   public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
       blendedOrientationTrajectory.getOrientation(orientationToPack);
    }
 
    @Override
-   public void getAngularVelocity(FrameVector3D angularVelocityToPack)
+   public void getAngularVelocity(FixedFrameVector3DBasics angularVelocityToPack)
    {
       blendedOrientationTrajectory.getAngularVelocity(angularVelocityToPack);
    }
 
    @Override
-   public void getAngularAcceleration(FrameVector3D angularAccelerationToPack)
+   public void getAngularAcceleration(FixedFrameVector3DBasics angularAccelerationToPack)
    {
       blendedOrientationTrajectory.getAngularAcceleration(angularAccelerationToPack);
    }

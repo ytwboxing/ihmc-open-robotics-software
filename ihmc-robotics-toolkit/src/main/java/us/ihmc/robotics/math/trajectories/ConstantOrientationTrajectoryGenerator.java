@@ -4,6 +4,8 @@ import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.commons.MathTools;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoFrameQuaternion;
@@ -51,25 +53,20 @@ public class ConstantOrientationTrajectoryGenerator implements OrientationTrajec
       return time.getDoubleValue() > finalTime.getDoubleValue();
    }
 
-   public void getOrientation(FrameQuaternion orientationToPack)
+   public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
-      orientationToPack.setIncludingFrame(orientation);
+      orientationToPack.set(orientation);
    }
 
-   public void getAngularVelocity(FrameVector3D angularVelocityToPack)
+   public void getAngularVelocity(FixedFrameVector3DBasics angularVelocityToPack)
    {
-      angularVelocityToPack.setToZero(orientation.getReferenceFrame());
+      angularVelocityToPack.checkReferenceFrameMatch(orientation);
+      angularVelocityToPack.setToZero();
    }
 
-   public void getAngularAcceleration(FrameVector3D angularAccelerationToPack)
+   public void getAngularAcceleration(FixedFrameVector3DBasics angularAccelerationToPack)
    {
-      angularAccelerationToPack.setToZero(orientation.getReferenceFrame());
-   }
-
-   public void getAngularData(FrameQuaternion orientationToPack, FrameVector3D angularVelocityToPack, FrameVector3D angularAccelerationToPack)
-   {
-      getOrientation(orientationToPack);
-      getAngularVelocity(angularVelocityToPack);
-      getAngularAcceleration(angularAccelerationToPack);
+      angularAccelerationToPack.checkReferenceFrameMatch(orientation);
+      angularAccelerationToPack.setToZero();
    }
 }

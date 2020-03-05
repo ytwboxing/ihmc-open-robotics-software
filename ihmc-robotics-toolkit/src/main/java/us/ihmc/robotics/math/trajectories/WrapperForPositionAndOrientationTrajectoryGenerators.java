@@ -4,14 +4,17 @@ import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
-
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 
 public class WrapperForPositionAndOrientationTrajectoryGenerators implements PoseTrajectoryGenerator
 {
    private final PositionTrajectoryGenerator positionTrajectoryGenerator;
    private final OrientationTrajectoryGenerator orientationTrajectoryGenerator;
-   
-   public WrapperForPositionAndOrientationTrajectoryGenerators(PositionTrajectoryGenerator positionTrajectoryGenerator, OrientationTrajectoryGenerator orientationTrajectoryGenerator)
+
+   public WrapperForPositionAndOrientationTrajectoryGenerators(PositionTrajectoryGenerator positionTrajectoryGenerator,
+                                                               OrientationTrajectoryGenerator orientationTrajectoryGenerator)
    {
       this.positionTrajectoryGenerator = positionTrajectoryGenerator;
       this.orientationTrajectoryGenerator = orientationTrajectoryGenerator;
@@ -34,57 +37,34 @@ public class WrapperForPositionAndOrientationTrajectoryGenerators implements Pos
       return positionTrajectoryGenerator.isDone() && orientationTrajectoryGenerator.isDone();
    }
 
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionTrajectoryGenerator.getPosition(positionToPack);
    }
 
-   public void getVelocity(FrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       positionTrajectoryGenerator.getVelocity(velocityToPack);
    }
 
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       positionTrajectoryGenerator.getAcceleration(accelerationToPack);
    }
 
-   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
-   {
-      positionTrajectoryGenerator.getLinearData(positionToPack, velocityToPack, accelerationToPack);
-   }
-
-   public void getOrientation(FrameQuaternion orientationToPack)
+   public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
       orientationTrajectoryGenerator.getOrientation(orientationToPack);
    }
-   
-   public void getAngularVelocity(FrameVector3D angularVelocityToPack)
+
+   public void getAngularVelocity(FixedFrameVector3DBasics angularVelocityToPack)
    {
       orientationTrajectoryGenerator.getAngularVelocity(angularVelocityToPack);
    }
 
-   public void getAngularAcceleration(FrameVector3D angularAccelerationToPack)
+   public void getAngularAcceleration(FixedFrameVector3DBasics angularAccelerationToPack)
    {
       orientationTrajectoryGenerator.getAngularAcceleration(angularAccelerationToPack);
-   }
-
-   public void getAngularData(FrameQuaternion orientationToPack, FrameVector3D angularVelocityToPack, FrameVector3D angularAccelerationToPack)
-   {
-      orientationTrajectoryGenerator.getAngularData(orientationToPack, angularVelocityToPack, angularAccelerationToPack);
-   }
-   
-   private final FramePoint3D tempPosition = new FramePoint3D();
-   private final FrameQuaternion tempOrientation = new FrameQuaternion();
-   
-   public void getPose(FramePose3D framePoseToPack)
-   {
-      positionTrajectoryGenerator.getPosition(tempPosition);
-      framePoseToPack.changeFrame(tempPosition.getReferenceFrame());
-      framePoseToPack.setPosition(tempPosition);
-
-      orientationTrajectoryGenerator.getOrientation(tempOrientation);
-      framePoseToPack.setOrientation(tempOrientation);
    }
 
    public void showVisualization()

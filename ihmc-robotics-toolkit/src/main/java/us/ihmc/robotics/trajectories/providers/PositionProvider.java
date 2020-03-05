@@ -1,8 +1,8 @@
 package us.ihmc.robotics.trajectories.providers;
 
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 
 public interface PositionProvider
 {
-   public abstract void getPosition(FramePoint3D positionToPack);
+   void getPosition(FixedFramePoint3DBasics positionToPack);
 }

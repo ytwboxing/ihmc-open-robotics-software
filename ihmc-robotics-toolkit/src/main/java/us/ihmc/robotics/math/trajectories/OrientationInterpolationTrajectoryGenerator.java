@@ -4,6 +4,8 @@ import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.robotics.math.interpolators.OrientationInterpolationCalculator;
 import us.ihmc.robotics.trajectories.providers.OrientationProvider;
 import us.ihmc.yoVariables.providers.DoubleProvider;
@@ -21,7 +23,7 @@ public class OrientationInterpolationTrajectoryGenerator implements OrientationT
    private final YoPolynomial parameterPolynomial;
    private final YoFrameQuaternion initialOrientation;
    private final YoFrameQuaternion finalOrientation;
-   
+
    private final YoFrameQuaternion desiredOrientation;
    private final YoFrameVector3D desiredAngularVelocity;
    private final YoFrameVector3D desiredAngularAcceleration;
@@ -31,10 +33,10 @@ public class OrientationInterpolationTrajectoryGenerator implements OrientationT
    private final OrientationProvider finalOrientationProvider;
 
    private final YoBoolean continuouslyUpdateFinalOrientation;
-   
+
    private final FrameQuaternion tempInitialOrientation;
    private final FrameQuaternion tempFinalOrientation;
-   
+
    private final OrientationInterpolationCalculator orientationInterpolationCalculator = new OrientationInterpolationCalculator();
 
    public OrientationInterpolationTrajectoryGenerator(String namePrefix, ReferenceFrame referenceFrame, DoubleProvider trajectoryTimeProvider,
@@ -45,11 +47,11 @@ public class OrientationInterpolationTrajectoryGenerator implements OrientationT
       this.trajectoryTime = new YoDouble(namePrefix + "TrajectoryTime", registry);
       this.currentTime = new YoDouble(namePrefix + "Time", registry);
       this.parameterPolynomial = new YoPolynomial(namePrefix + "ParameterPolynomial", 6, registry);
-      
+
       this.initialOrientation = new YoFrameQuaternion(namePrefix + "InitialOrientation", referenceFrame, registry);
       this.finalOrientation = new YoFrameQuaternion(namePrefix + "FinalOrientation", referenceFrame, registry);
       this.continuouslyUpdateFinalOrientation = new YoBoolean(namePrefix + "ContinuouslyUpdate", registry);
-      
+
       this.desiredOrientation = new YoFrameQuaternion(namePrefix + "desiredOrientation", referenceFrame, registry);
       this.desiredAngularVelocity = new YoFrameVector3D(namePrefix + "desiredAngularVelocity", referenceFrame, registry);
       this.desiredAngularAcceleration = new YoFrameVector3D(namePrefix + "desiredAngularAcceleration", referenceFrame, registry);
@@ -76,7 +78,7 @@ public class OrientationInterpolationTrajectoryGenerator implements OrientationT
       this.trajectoryTime.set(trajectoryTime);
       currentTime.set(0.0);
       parameterPolynomial.setQuintic(0.0, trajectoryTime, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
-      
+
       updateInitialOrientation();
       updateFinalOrientation();
 
@@ -87,7 +89,7 @@ public class OrientationInterpolationTrajectoryGenerator implements OrientationT
 
    private void updateInitialOrientation()
    {
-      initialOrientationProvider.getOrientation(tempInitialOrientation);      
+      initialOrientationProvider.getOrientation(tempInitialOrientation);
       tempInitialOrientation.changeFrame(initialOrientation.getReferenceFrame());
       initialOrientation.set(tempInitialOrientation);
       initialOrientation.checkIfUnitary();
@@ -109,7 +111,7 @@ public class OrientationInterpolationTrajectoryGenerator implements OrientationT
       this.currentTime.set(time);
       time = MathTools.clamp(time, 0.0, trajectoryTime.getDoubleValue());
       parameterPolynomial.compute(time);
-      
+
       double parameter = isDone() ? 1.0 : parameterPolynomial.getPosition();
       desiredOrientation.interpolate(initialOrientation, finalOrientation, parameter);
       double parameterd = isDone() ? 0.0 : parameterPolynomial.getVelocity();
@@ -123,25 +125,21 @@ public class OrientationInterpolationTrajectoryGenerator implements OrientationT
       return currentTime.getDoubleValue() >= trajectoryTime.getDoubleValue();
    }
 
-   public void getOrientation(FrameQuaternion orientationToPack)
+   @Override
+   public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
-      orientationToPack.setIncludingFrame(desiredOrientation);
+      orientationToPack.set(desiredOrientation);
    }
 
-   public void getAngularVelocity(FrameVector3D velocityToPack)
+   @Override
+   public void getAngularVelocity(FixedFrameVector3DBasics velocityToPack)
    {
-      velocityToPack.setIncludingFrame(desiredAngularVelocity);
+      velocityToPack.set(desiredAngularVelocity);
    }
 
-   public void getAngularAcceleration(FrameVector3D accelerationToPack)
+   @Override
+   public void getAngularAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
-      accelerationToPack.setIncludingFrame(desiredAngularAcceleration);
-   }
-
-   public void getAngularData(FrameQuaternion orientationToPack, FrameVector3D angularVelocityToPack, FrameVector3D angularAccelerationToPack)
-   {
-      getOrientation(orientationToPack);
-      getAngularVelocity(angularVelocityToPack);
-      getAngularAcceleration(angularAccelerationToPack);
+      accelerationToPack.set(desiredAngularAcceleration);
    }
 }

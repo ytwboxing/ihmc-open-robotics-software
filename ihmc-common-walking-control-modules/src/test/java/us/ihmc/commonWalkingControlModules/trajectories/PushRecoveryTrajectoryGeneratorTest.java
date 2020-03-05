@@ -8,8 +8,6 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Disabled;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -18,10 +16,7 @@ import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoFramePoint3D;
 import us.ihmc.robotics.math.trajectories.PositionTrajectoryGenerator;
-import us.ihmc.robotics.math.trajectories.providers.YoPositionProvider;
 import us.ihmc.robotics.math.trajectories.providers.YoVariableDoubleProvider;
-import us.ihmc.robotics.trajectories.providers.ConstantPositionProvider;
-import us.ihmc.robotics.trajectories.providers.ConstantVectorProvider;
 import us.ihmc.robotics.trajectories.providers.PositionProvider;
 import us.ihmc.robotics.trajectories.providers.TrajectoryParameters;
 import us.ihmc.robotics.trajectories.providers.TrajectoryParametersProvider;
@@ -50,8 +45,8 @@ public class PushRecoveryTrajectoryGeneratorTest
       YoVariableDoubleProvider stepTimeProvider = new YoVariableDoubleProvider("", new YoVariableRegistry(""));
       stepTimeProvider.set(0.8);
       YoVariableDoubleProvider timeRemainingProvider = new YoVariableDoubleProvider("", new YoVariableRegistry(""));
-      PositionProvider initialPositionProvider = new ConstantPositionProvider(new FramePoint3D(worldFrame, new double[] {-0.1, 2.3, 0.0}));
-      VectorProvider initialVelocityProvider = new ConstantVectorProvider(new FrameVector3D(worldFrame, new double[] {0.2, 0.0, -0.05}));
+      PositionProvider initialPositionProvider = (position) -> position.set(worldFrame, -0.1, 2.3, 0.0);
+      VectorProvider initialVelocityProvider = (vector) -> vector.set(worldFrame, 0.2, 0.0, -0.05);
 
       Point3D firstIntermediatePosition = new Point3D(new double[] {0.12, 2.4, 0.2});
       Point3D secondIntermediatePosition = new Point3D(new double[] {0.16, 2.3, 0.15});
@@ -61,8 +56,8 @@ public class PushRecoveryTrajectoryGeneratorTest
 
       YoFramePoint3D finalPosition = new YoFramePoint3D("", worldFrame, new YoVariableRegistry(""));
       finalPosition.set(new FramePoint3D(worldFrame, new double[] {0.2, 2.35, 0.03}));
-      YoPositionProvider finalPositionProvider = new YoPositionProvider(finalPosition);
-      VectorProvider finalVelocityProvider = new ConstantVectorProvider(new FrameVector3D(worldFrame, new double[] {0, 0, -0.02}));
+      PositionProvider finalPositionProvider = point -> point.set(finalPosition);
+      VectorProvider finalVelocityProvider = frameVectorToPack -> frameVectorToPack.set(worldFrame, 0, 0, -0.02);
 
       TrajectoryParameters trajectoryParameters = new TrajectoryParameters();
       TrajectoryParametersProvider trajectoryParametersProvider = new TrajectoryParametersProvider(trajectoryParameters);
@@ -112,8 +107,8 @@ public class PushRecoveryTrajectoryGeneratorTest
       trajectory.getPosition(intermediatePosition);
       trajectory.getVelocity(intermediateVelocity);
 
-      PositionProvider intermediatePositionProvider = new ConstantPositionProvider(intermediatePosition);
-      VectorProvider intermediateVelocityProvider = new ConstantVectorProvider(intermediateVelocity);
+      PositionProvider intermediatePositionProvider = (position) -> position.set(intermediatePosition);
+      VectorProvider intermediateVelocityProvider = (vector) -> vector.set(intermediateVelocity);
 
       PositionTrajectoryGenerator pushRecoveryTrajectoryGenerator = new PushRecoveryTrajectoryGenerator("", worldFrame, stepTimeProvider, timeRemainingProvider,
             intermediatePositionProvider, intermediateVelocityProvider, finalPositionProvider, new YoVariableRegistry(""), null, trajectory);

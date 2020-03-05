@@ -6,6 +6,7 @@ import java.util.List;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.robotics.math.trajectories.FrameTrajectory3D;
@@ -310,51 +311,21 @@ public class ReferenceCoMTrajectoryGenerator implements PositionTrajectoryGenera
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
-   {
-      positionToPack.set(comPositionDesiredCurrent);
-   }
-
-   public void getPosition(YoFramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(comPositionDesiredCurrent);
    }
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
-   {
-      velocityToPack.set(comVelocityDesiredCurrent);
-   }
-
-   public void getVelocity(YoFrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       velocityToPack.set(comVelocityDesiredCurrent);
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       accelerationToPack.set(comAccelerationDesiredCurrent);
-   }
-
-   public void getAcceleration(YoFrameVector3D accelerationToPack)
-   {
-      accelerationToPack.set(comAccelerationDesiredCurrent);
-   }
-
-   @Override
-   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
-   {
-      getPosition(positionToPack);
-      getVelocity(velocityToPack);
-      getAcceleration(accelerationToPack);
-   }
-
-   public void getLinearData(YoFramePoint3D positionToPack, YoFrameVector3D velocityToPack, YoFrameVector3D accelerationToPack)
-   {
-      getPosition(positionToPack);
-      getVelocity(velocityToPack);
-      getAcceleration(accelerationToPack);
    }
 
    @Override

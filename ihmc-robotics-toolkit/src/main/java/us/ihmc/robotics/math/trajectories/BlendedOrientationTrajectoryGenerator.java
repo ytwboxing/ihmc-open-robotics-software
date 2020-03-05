@@ -6,6 +6,8 @@ import org.ejml.ops.CommonOps;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameQuaternionReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -113,7 +115,7 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
       computeInitialConstraintTrajectory(initialTime, blendDuration);
    }
 
-   public void blendInitialConstraint(FrameQuaternionReadOnly initialPose, FrameVector3D initialAngularVelocity, double initialTime, double blendDuration)
+   public void blendInitialConstraint(FrameQuaternionReadOnly initialPose, FrameVector3DReadOnly initialAngularVelocity, double initialTime, double blendDuration)
    {
       clearInitialConstraint();
       computeInitialConstraintError(initialPose, initialAngularVelocity, initialTime);
@@ -135,21 +137,21 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
    }
 
    @Override
-   public void getOrientation(FrameQuaternion orientationToPack)
+   public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
-      orientationToPack.setIncludingFrame(orientation);
+      orientationToPack.set(orientation);
    }
 
    @Override
-   public void getAngularVelocity(FrameVector3D angularVelocityToPack)
+   public void getAngularVelocity(FixedFrameVector3DBasics angularVelocityToPack)
    {
-      angularVelocityToPack.setIncludingFrame(angularVelocity);
+      angularVelocityToPack.set(angularVelocity);
    }
 
    @Override
-   public void getAngularAcceleration(FrameVector3D angularAccelerationToPack)
+   public void getAngularAcceleration(FixedFrameVector3DBasics angularAccelerationToPack)
    {
-      angularAccelerationToPack.setIncludingFrame(angularAcceleration);
+      angularAccelerationToPack.set(angularAcceleration);
    }
 
    @Override

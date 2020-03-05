@@ -3,6 +3,8 @@ package us.ihmc.robotics.trajectories.providers;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
 
 /**
 * @author twan
@@ -27,14 +29,16 @@ public class ChangeableConfigurationProvider implements SE3ConfigurationProvider
       framePose.setIncludingFrame(configuration);
    }
 
-   public void getPosition(FramePoint3D positionToPack)
+   @Override
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
-      positionToPack.setIncludingFrame(configuration.getPosition());
+      positionToPack.set(configuration.getPosition());
    }
 
-   public void getOrientation(FrameQuaternion orientationToPack)
+   @Override
+   public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
-      orientationToPack.setIncludingFrame(configuration.getOrientation());
+      orientationToPack.set(configuration.getOrientation());
    }
 
    public void set(FramePose3D newPose)

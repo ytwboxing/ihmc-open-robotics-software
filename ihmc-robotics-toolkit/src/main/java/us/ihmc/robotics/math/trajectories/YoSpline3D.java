@@ -6,6 +6,8 @@ import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.commons.MathTools;
@@ -418,7 +420,7 @@ public class YoSpline3D
    {
       return new FrameVector3D(velocity);
    }
-   
+
    /**
     * @deprecated Creates garbage.
     */
@@ -427,32 +429,17 @@ public class YoSpline3D
       return new FrameVector3D(acceleration);
    }
 
-   public void getPosition(FramePoint3D positionToPack)
-   {
-      positionToPack.setIncludingFrame(position);
-   }
-
-   public void getVelocity(FrameVector3D velocityToPack)
-   {
-      velocityToPack.setIncludingFrame(velocity);
-   }
-
-   public void getAcceleration(FrameVector3D accelerationToPack)
-   {
-      accelerationToPack.setIncludingFrame(acceleration);
-   }
-
-   public void getPosition(YoFramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(position);
    }
 
-   public void getVelocity(YoFrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       velocityToPack.set(velocity);
    }
 
-   public void getAcceleration(YoFrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       accelerationToPack.set(acceleration);
    }
@@ -474,7 +461,7 @@ public class YoSpline3D
    {
       pi.setToZero(referenceFrame);
       piPlusOne.setToZero(referenceFrame);
-      
+
       arcLengths[0].set(0.0);
       double tiPlusOne = t0.getDoubleValue();
       compute(t0.getDoubleValue());

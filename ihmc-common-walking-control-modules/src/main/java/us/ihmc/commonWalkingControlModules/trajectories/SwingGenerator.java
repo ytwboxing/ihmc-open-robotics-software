@@ -1,12 +1,12 @@
 package us.ihmc.commonWalkingControlModules.trajectories;
 
-import us.ihmc.commons.lists.RecyclingArrayList;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.robotics.math.trajectories.PositionTrajectoryGenerator;
 import us.ihmc.robotics.math.trajectories.trajectorypoints.FrameEuclideanTrajectoryPoint;
 import us.ihmc.robotics.trajectories.TrajectoryType;
+
+import java.util.List;
 
 public interface SwingGenerator extends PositionTrajectoryGenerator
 {
@@ -23,7 +23,7 @@ public interface SwingGenerator extends PositionTrajectoryGenerator
       setTrajectoryType(trajectoryType, null);
    }
 
-   void setTrajectoryType(TrajectoryType trajectoryType, RecyclingArrayList<FramePoint3D> waypoints);
+   void setTrajectoryType(TrajectoryType trajectoryType, List<? extends FramePoint3DReadOnly> waypoints);
 
    void setStanceFootPosition(FramePoint3DReadOnly stanceFootPosition);
 

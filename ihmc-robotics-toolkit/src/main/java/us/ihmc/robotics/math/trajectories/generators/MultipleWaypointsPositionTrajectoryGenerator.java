@@ -11,10 +11,7 @@ import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DBasics;
-import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DBasics;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
+import us.ihmc.euclid.referenceFrame.interfaces.*;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.robotics.math.trajectories.PositionTrajectoryGeneratorInMultipleFrames;
@@ -336,21 +333,21 @@ public class MultipleWaypointsPositionTrajectoryGenerator extends PositionTrajec
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
-      positionToPack.setIncludingFrame(currentPosition);
+      positionToPack.set(currentPosition);
    }
 
    @Override
-   public void getVelocity(FrameVector3D linearVelocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics linearVelocityToPack)
    {
-      linearVelocityToPack.setIncludingFrame(currentVelocity);
+      linearVelocityToPack.set(currentVelocity);
    }
 
    @Override
-   public void getAcceleration(FrameVector3D linearAccelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics linearAccelerationToPack)
    {
-      linearAccelerationToPack.setIncludingFrame(currentAcceleration);
+      linearAccelerationToPack.set(currentAcceleration);
    }
 
    public int getCurrentNumberOfWaypoints()

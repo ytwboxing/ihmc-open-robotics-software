@@ -4,6 +4,8 @@ import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
 
 public class CurrentConfigurationProvider implements SE3ConfigurationProvider
 {
@@ -15,19 +17,16 @@ public class CurrentConfigurationProvider implements SE3ConfigurationProvider
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
-      positionToPack.setToZero(endEffectorFrame);
+      positionToPack.checkReferenceFrameMatch(endEffectorFrame);
+      positionToPack.setToZero();
    }
 
    @Override
-   public void getOrientation(FrameQuaternion orientationToPack)
+   public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
-      orientationToPack.setToZero(endEffectorFrame);
-   }
-
-   public void getPose(FramePose3D lastFootstepPose)
-   {
-      lastFootstepPose.setToZero(endEffectorFrame);
+      orientationToPack.checkReferenceFrameMatch(endEffectorFrame);
+      orientationToPack.setToZero();
    }
 }

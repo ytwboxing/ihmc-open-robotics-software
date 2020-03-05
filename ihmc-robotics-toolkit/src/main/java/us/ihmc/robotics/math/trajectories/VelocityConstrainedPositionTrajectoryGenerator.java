@@ -6,10 +6,7 @@ import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DBasics;
-import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DBasics;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
+import us.ihmc.euclid.referenceFrame.interfaces.*;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.robotics.math.trajectories.trajectorypoints.FrameEuclideanTrajectoryPoint;
@@ -252,12 +249,7 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
-   {
-      positionToPack.setIncludingFrame(currentPosition);
-   }
-
-   public void get(YoFramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(currentPosition);
    }
@@ -273,12 +265,7 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
    }
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
-   {
-      velocityToPack.setIncludingFrame(currentVelocity);
-   }
-
-   public void getVelocity(YoFrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       velocityToPack.set(currentVelocity);
    }
@@ -289,33 +276,13 @@ public class VelocityConstrainedPositionTrajectoryGenerator extends PositionTraj
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
-   {
-      accelerationToPack.setIncludingFrame(currentAcceleration);
-   }
-
-   public void getAcceleration(YoFrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       accelerationToPack.set(currentAcceleration);
    }
 
    public void getAcceleration(Vector3D accelerationToPack)
    {
-      accelerationToPack.set(currentAcceleration);
-   }
-
-   @Override
-   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
-   {
-      getPosition(positionToPack);
-      getVelocity(velocityToPack);
-      getAcceleration(accelerationToPack);
-   }
-
-   public void getLinearData(YoFramePoint3D positionToPack, YoFrameVector3D velocityToPack, YoFrameVector3D accelerationToPack)
-   {
-      positionToPack.set(currentPosition);
-      velocityToPack.set(currentVelocity);
       accelerationToPack.set(currentAcceleration);
    }
 

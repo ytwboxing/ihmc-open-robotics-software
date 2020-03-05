@@ -1,5 +1,8 @@
 package us.ihmc.robotics.math.trajectories.providers;
 
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FramePose3DReadOnly;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoFramePoint3D;
 import us.ihmc.yoVariables.variable.YoFrameQuaternion;
@@ -16,8 +19,8 @@ import us.ihmc.robotics.trajectories.providers.SE3ConfigurationProvider;
  */
 public class YoSE3ConfigurationProvider implements SE3ConfigurationProvider
 {
-   private final YoFramePoint3D position;
-   private final YoFrameQuaternion orientation;
+   private final FixedFramePoint3DBasics position;
+   private final FixedFrameQuaternionBasics orientation;
 
    public YoSE3ConfigurationProvider(String name, ReferenceFrame frame, YoVariableRegistry registry)
    {
@@ -25,17 +28,17 @@ public class YoSE3ConfigurationProvider implements SE3ConfigurationProvider
       orientation = new YoFrameQuaternion(name, frame, registry);
    }
 
-   public void getOrientation(FrameQuaternion orientationToPack)
+   public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
-      orientationToPack.setIncludingFrame(orientation);
+      orientationToPack.set(orientation);
    }
 
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
-      positionToPack.setIncludingFrame(position);
+      positionToPack.set(position);
    }
 
-   public void setPose(FramePose3D pose)
+   public void setPose(FramePose3DReadOnly pose)
    {
       this.position.setMatchingFrame(pose.getPosition());
       this.orientation.setMatchingFrame(pose.getOrientation());

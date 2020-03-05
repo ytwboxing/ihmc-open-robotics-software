@@ -1,16 +1,17 @@
 package us.ihmc.robotics.math.trajectories;
 
-import us.ihmc.euclid.referenceFrame.FrameQuaternion;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.robotics.trajectories.providers.OrientationProvider;
 
 public interface OrientationTrajectoryGenerator extends TrajectoryGenerator, OrientationProvider
 {
-   public abstract void getAngularVelocity(FrameVector3D angularVelocityToPack);
+   void getAngularVelocity(FixedFrameVector3DBasics angularVelocityToPack);
 
-   public abstract void getAngularAcceleration(FrameVector3D angularAccelerationToPack);
+   void getAngularAcceleration(FixedFrameVector3DBasics angularAccelerationToPack);
 
-   public default void getAngularData(FrameQuaternion orientationToPack, FrameVector3D angularVelocityToPack, FrameVector3D angularAccelerationToPack)
+   default void getAngularData(FixedFrameQuaternionBasics orientationToPack, FixedFrameVector3DBasics angularVelocityToPack,
+                                      FixedFrameVector3DBasics angularAccelerationToPack)
    {
       getOrientation(orientationToPack);
       getAngularVelocity(angularVelocityToPack);

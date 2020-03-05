@@ -4,6 +4,8 @@ import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.robotics.math.trajectories.PositionTrajectoryGenerator;
@@ -30,23 +32,23 @@ public class SoftTouchdownPositionTrajectoryGenerator implements PositionTraject
    {
       registry = new YoVariableRegistry(namePrefix + getClass().getSimpleName());
       parentRegistry.addChild(registry);
-      
+
       positionTouchdownTrajectory = new YoSpline3D(3, 3, worldFrame, registry, namePrefix + "Trajectory");
       timeInitial = new YoDouble(namePrefix + "TimeInitial", registry);
       timeFinal = new YoDouble(namePrefix + "TimeFinal", registry);
       timeIntoTouchdown = new YoDouble(namePrefix + "TimeIntoTouchdown", registry);
-      
+
       timeFinal.set(Double.POSITIVE_INFINITY);
    }
-   
+
    public void setLinearTrajectory(double initialTime, FramePoint3DReadOnly initialPosition, FrameVector3DReadOnly initialVelocity, FrameVector3DReadOnly initialAcceleration)
    {
       this.timeInitial.set(initialTime);
-      
+
       this.initialPosition.setIncludingFrame(initialPosition);
       this.initialVelocity.setIncludingFrame(initialVelocity);
       this.initialAcceleration.setIncludingFrame(initialAcceleration);
-      
+
       this.initialPosition.changeFrame(worldFrame);
       this.initialVelocity.changeFrame(worldFrame);
       this.initialAcceleration.changeFrame(worldFrame);
@@ -75,19 +77,19 @@ public class SoftTouchdownPositionTrajectoryGenerator implements PositionTraject
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionTouchdownTrajectory.getPosition(positionToPack);
    }
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       positionTouchdownTrajectory.getVelocity(velocityToPack);
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       positionTouchdownTrajectory.getAcceleration(accelerationToPack);
    }

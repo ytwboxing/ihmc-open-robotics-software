@@ -3,6 +3,8 @@ package us.ihmc.robotics.math.trajectories;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -101,7 +103,7 @@ public class BlendedPositionTrajectoryGenerator implements PositionTrajectoryGen
       computeInitialConstraintPolynomial(initialTime, blendDuration);
    }
 
-   public void blendInitialConstraint(FramePoint3DReadOnly initialPosition, FrameVector3D initialVelocity, double initialTime, double blendDuration)
+   public void blendInitialConstraint(FramePoint3DReadOnly initialPosition, FrameVector3DReadOnly initialVelocity, double initialTime, double blendDuration)
    {
       clearInitialConstraint();
       computeInitialConstraintError(initialPosition, initialVelocity, initialTime);
@@ -128,21 +130,21 @@ public class BlendedPositionTrajectoryGenerator implements PositionTrajectoryGen
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
-      positionToPack.setIncludingFrame(position);
+      positionToPack.set(position);
    }
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
-      velocityToPack.setIncludingFrame(velocity);
+      velocityToPack.set(velocity);
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
-      accelerationToPack.setIncludingFrame(acceleration);
+      accelerationToPack.set(acceleration);
    }
 
    @Override

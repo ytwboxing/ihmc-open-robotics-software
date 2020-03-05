@@ -1,6 +1,7 @@
 package us.ihmc.commonWalkingControlModules.trajectories;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import us.ihmc.commons.MathTools;
 import us.ihmc.commons.PrintTools;
@@ -8,6 +9,8 @@ import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
@@ -116,7 +119,7 @@ public class OneWaypointSwingGenerator implements SwingGenerator
    }
 
    @Override
-   public void setTrajectoryType(TrajectoryType trajectoryType, RecyclingArrayList<FramePoint3D> waypoints)
+   public void setTrajectoryType(TrajectoryType trajectoryType, List<? extends FramePoint3DReadOnly> waypoints)
    {
       if (trajectoryType == TrajectoryType.CUSTOM && waypoints == null)
       {
@@ -252,33 +255,26 @@ public class OneWaypointSwingGenerator implements SwingGenerator
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       trajectory.getPosition(positionToPack);
    }
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       trajectory.getVelocity(velocityToPack);
       velocityToPack.scale(1.0 / stepTime.getDoubleValue());
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       trajectory.getAcceleration(accelerationToPack);
       accelerationToPack.scale(1.0 / stepTime.getDoubleValue());
       accelerationToPack.scale(1.0 / stepTime.getDoubleValue());
    }
 
-   @Override
-   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
-   {
-      getPosition(positionToPack);
-      getVelocity(velocityToPack);
-      getAcceleration(accelerationToPack);
-   }
 
    @Override
    public void showVisualization()

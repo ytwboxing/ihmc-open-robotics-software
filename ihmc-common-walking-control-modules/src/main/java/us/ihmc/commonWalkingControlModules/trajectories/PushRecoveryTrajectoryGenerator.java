@@ -3,6 +3,8 @@ package us.ihmc.commonWalkingControlModules.trajectories;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.math.trajectories.PositionTrajectoryGenerator;
@@ -183,32 +185,28 @@ public class PushRecoveryTrajectoryGenerator implements PositionTrajectoryGenera
       desiredPosition.setZ(nominalTrajectoryPosition.getZ());
    }
 
-   public void getPosition(FramePoint3D positionToPack)
+   @Override
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
-      positionToPack.setIncludingFrame(desiredPosition);
+      positionToPack.set(desiredPosition);
    }
 
-   public void getVelocity(FrameVector3D velocityToPack)
+   @Override
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
-      velocityToPack.setIncludingFrame(desiredVelocity);
+      velocityToPack.set(desiredVelocity);
    }
 
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   @Override
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
-      accelerationToPack.setIncludingFrame(desiredAcceleration);
+      accelerationToPack.set(desiredAcceleration);
    }
 
    @Override
    public boolean isDone()
    {
       return timeIntoStep.getDoubleValue() >= swingTime.getDoubleValue();
-   }
-
-   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
-   {
-      getPosition(positionToPack);
-      getVelocity(velocityToPack);
-      getAcceleration(accelerationToPack);
    }
 
    @Override

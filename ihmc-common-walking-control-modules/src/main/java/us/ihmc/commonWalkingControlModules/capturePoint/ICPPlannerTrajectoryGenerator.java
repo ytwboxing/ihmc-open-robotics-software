@@ -1,5 +1,7 @@
 package us.ihmc.commonWalkingControlModules.capturePoint;
 
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoFramePoint3D;
@@ -111,51 +113,30 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       doubleSupportCapturePointTrajectory.getPosition(positionToPack);
    }
 
-   public void get(YoFramePoint3D positionToPack)
+   public void get(FixedFramePoint3DBasics positionToPack)
    {
-      doubleSupportCapturePointTrajectory.get(positionToPack);
+      getPosition(positionToPack);
    }
 
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
-   {
-      doubleSupportCapturePointTrajectory.getVelocity(velocityToPack);
-   }
-
-   public void getVelocity(YoFrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       doubleSupportCapturePointTrajectory.getVelocity(velocityToPack);
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       doubleSupportCapturePointTrajectory.getAcceleration(accelerationToPack);
    }
 
-   public void getAcceleration(YoFrameVector3D accelerationToPack)
-   {
-      doubleSupportCapturePointTrajectory.getAcceleration(accelerationToPack);
-   }
-
-   @Override
-   public void getLinearData(FramePoint3D positionToPack, FrameVector3D velocityToPack, FrameVector3D accelerationToPack)
-   {
-      doubleSupportCapturePointTrajectory.getLinearData(positionToPack, velocityToPack, accelerationToPack);
-   }
-
-   public void getLinearData(YoFramePoint3D positionToPack, YoFrameVector3D velocityToPack, YoFrameVector3D accelerationToPack)
-   {
-      doubleSupportCapturePointTrajectory.getLinearData(positionToPack, velocityToPack, accelerationToPack);
-   }
-
-   public void getCoMPosition(YoFramePoint3D positionToPack)
+   public void getCoMPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(desiredCoMPosition);
    }

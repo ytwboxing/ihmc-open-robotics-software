@@ -1,10 +1,10 @@
 package us.ihmc.robotics.math.trajectories.generators;
 
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FramePose3D;
-import us.ihmc.euclid.referenceFrame.FrameQuaternion;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.*;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePose3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.robotics.math.trajectories.PoseTrajectoryGenerator;
 import us.ihmc.robotics.math.trajectories.trajectorypoints.FrameEuclideanTrajectoryPoint;
 import us.ihmc.robotics.math.trajectories.trajectorypoints.FrameSE3TrajectoryPoint;
@@ -18,9 +18,6 @@ public class MultipleWaypointsPoseTrajectoryGenerator implements PoseTrajectoryG
    private final MultipleWaypointsOrientationTrajectoryGenerator orientationTrajectory;
 
    private ReferenceFrame activeFrame;
-
-   private final FramePoint3D desiredPosition = new FramePoint3D();
-   private final FrameQuaternion desiredOrientation = new FrameQuaternion();
 
    public MultipleWaypointsPoseTrajectoryGenerator(String namePrefix, int maxNumberOfWaypoints, YoVariableRegistry parentRegistry)
    {
@@ -106,47 +103,39 @@ public class MultipleWaypointsPoseTrajectoryGenerator implements PoseTrajectoryG
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionTrajectory.getPosition(positionToPack);
    }
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       positionTrajectory.getVelocity(velocityToPack);
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       positionTrajectory.getAcceleration(accelerationToPack);
    }
 
    @Override
-   public void getOrientation(FrameQuaternion orientationToPack)
+   public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
       orientationTrajectory.getOrientation(orientationToPack);
    }
 
    @Override
-   public void getAngularVelocity(FrameVector3D angularVelocityToPack)
+   public void getAngularVelocity(FixedFrameVector3DBasics angularVelocityToPack)
    {
       orientationTrajectory.getAngularVelocity(angularVelocityToPack);
    }
 
    @Override
-   public void getAngularAcceleration(FrameVector3D angularAccelerationToPack)
+   public void getAngularAcceleration(FixedFrameVector3DBasics angularAccelerationToPack)
    {
       orientationTrajectory.getAngularAcceleration(angularAccelerationToPack);
-   }
-
-   @Override
-   public void getPose(FramePose3D framePoseToPack)
-   {
-      getPosition(desiredPosition);
-      getOrientation(desiredOrientation);
-      framePoseToPack.set(desiredPosition, desiredOrientation);
    }
 
    @Override

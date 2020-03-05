@@ -6,15 +6,12 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Disabled;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.EuclidFrameRandomTools;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.robotics.trajectories.providers.ConstantDoubleProvider;
-import us.ihmc.robotics.trajectories.providers.ConstantOrientationProvider;
 import us.ihmc.robotics.trajectories.providers.OrientationProvider;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -35,12 +32,12 @@ public class SimpleOrientationTrajectoryGeneratorTest
       YoVariableRegistry registry = new YoVariableRegistry("youpiloup");
       SimpleOrientationTrajectoryGenerator trajToTest = new SimpleOrientationTrajectoryGenerator("blop", worldFrame, registry);
 
-      DoubleProvider trajectoryTimeProvider = new ConstantDoubleProvider(10.0);
+      DoubleProvider trajectoryTimeProvider = () -> (10.0);
 
       FrameQuaternion initialOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider initialOrientationProvider = new ConstantOrientationProvider(initialOrientation);
+      OrientationProvider initialOrientationProvider = orientation -> orientation.set(initialOrientation);
       FrameQuaternion finalOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider finalOrientationProvider = new ConstantOrientationProvider(finalOrientation);
+      OrientationProvider finalOrientationProvider = orientation -> orientation.set(finalOrientation);
 
       OrientationInterpolationTrajectoryGenerator originalOrientation = new OrientationInterpolationTrajectoryGenerator("orientation", worldFrame,
             trajectoryTimeProvider, initialOrientationProvider, finalOrientationProvider, registry);
@@ -150,10 +147,10 @@ public class SimpleOrientationTrajectoryGeneratorTest
 
       DoubleProvider trajectoryTimeProvider = new ConstantDoubleProvider(10.0);
 
-      FrameQuaternion initialOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider initialOrientationProvider = new ConstantOrientationProvider(initialOrientation);
-      FrameQuaternion finalOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider finalOrientationProvider = new ConstantOrientationProvider(finalOrientation);
+      final FrameQuaternion initialOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
+      OrientationProvider initialOrientationProvider = orientation -> orientation.set(initialOrientation);
+      final FrameQuaternion finalOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
+      OrientationProvider finalOrientationProvider = orientationToPack ->  orientationToPack.set(finalOrientation);
 
       OrientationInterpolationTrajectoryGenerator originalOrientation = new OrientationInterpolationTrajectoryGenerator("orientation1", worldFrame,
             trajectoryTimeProvider, initialOrientationProvider, finalOrientationProvider, registry);
@@ -190,10 +187,8 @@ public class SimpleOrientationTrajectoryGeneratorTest
 
       // Do the same in another frame
 
-      initialOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, frameA);
-      initialOrientationProvider = new ConstantOrientationProvider(initialOrientation);
-      finalOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, frameA);
-      finalOrientationProvider = new ConstantOrientationProvider(finalOrientation);
+      initialOrientation.setIncludingFrame(EuclidFrameRandomTools.nextFrameQuaternion(random, frameA));
+      finalOrientation.setIncludingFrame(EuclidFrameRandomTools.nextFrameQuaternion(random, frameA));
 
       originalOrientation = new OrientationInterpolationTrajectoryGenerator("orientation2", frameA,
             trajectoryTimeProvider, initialOrientationProvider, finalOrientationProvider, registry);
