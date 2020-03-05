@@ -109,7 +109,7 @@ public class ConstantPoseTrajectoryGenerator implements PoseTrajectoryGenerator
    @Override
    public void getAngularAcceleration(FixedFrameVector3DBasics angularAccelerationToPack)
    {
-      angularAccelerationToPack.checkReferenceFrameMatch(angularAccelerationToPack);
+      angularAccelerationToPack.checkReferenceFrameMatch(orientation);
       angularAccelerationToPack.setToZero();
    }
 

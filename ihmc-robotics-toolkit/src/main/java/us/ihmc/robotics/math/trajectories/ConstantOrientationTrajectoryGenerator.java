@@ -37,10 +37,7 @@ public class ConstantOrientationTrajectoryGenerator implements OrientationTrajec
    public void initialize()
    {
       time.set(0.0);
-      FrameQuaternion orientationToPack = new FrameQuaternion(ReferenceFrame.getWorldFrame());
-      orientationProvider.getOrientation(orientationToPack);
-      orientationToPack.changeFrame(orientation.getReferenceFrame());
-      orientation.set(orientationToPack);
+      orientationProvider.getOrientation(orientation);
    }
 
    public void compute(double time)

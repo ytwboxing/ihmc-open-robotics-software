@@ -37,10 +37,7 @@ public class ConstantPositionTrajectoryGenerator implements PositionTrajectoryGe
    public void initialize()
    {
       time.set(0.0);
-      FramePoint3D positionToPack = new FramePoint3D();
-      positionProvider.getPosition(positionToPack);
-      positionToPack.changeFrame(position.getReferenceFrame());
-      position.set(positionToPack);
+      positionProvider.getPosition(position);
    }
 
    public void compute(double time)

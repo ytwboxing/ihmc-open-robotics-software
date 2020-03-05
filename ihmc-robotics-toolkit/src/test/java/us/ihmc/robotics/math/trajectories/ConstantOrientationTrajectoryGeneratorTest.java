@@ -10,6 +10,7 @@ import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.robotics.trajectories.providers.OrientationProvider;
 
@@ -31,7 +32,14 @@ public class ConstantOrientationTrajectoryGeneratorTest
    @BeforeEach
    public void setUp()
    {
-      referenceFrame = ReferenceFrame.constructARootFrame("rootNameTEST");
+      referenceFrame = new ReferenceFrame("rootNameTEST", ReferenceFrame.getWorldFrame())
+      {
+         @Override
+         protected void updateTransformToParent(RigidBodyTransform transformToParent)
+         {
+
+         }
+      };
       orientation = new FrameQuaternion(referenceFrame);
       orientationProvider = orientation -> orientation.set(this.orientation);
       parentRegistry = new YoVariableRegistry("parentRegistryTEST");
@@ -78,7 +86,7 @@ public class ConstantOrientationTrajectoryGeneratorTest
    public void testGet()
    {
       generator = new ConstantOrientationTrajectoryGenerator(namePrefix, referenceFrame, orientationProvider, finalTime, parentRegistry);
-      FrameQuaternion orientationToPack = new FrameQuaternion();
+      FrameQuaternion orientationToPack = new FrameQuaternion(referenceFrame);
 
       generator.getOrientation(orientationToPack);
 
@@ -93,6 +101,7 @@ public class ConstantOrientationTrajectoryGeneratorTest
 
       assertFalse(referenceFrame.equals(angularVelocityToPack.getReferenceFrame()));
 
+      angularVelocityToPack.changeFrame(referenceFrame);
       generator.getAngularVelocity(angularVelocityToPack);
 
       assertEquals(0.0, angularVelocityToPack.getX(), EPSILON);
@@ -108,6 +117,7 @@ public class ConstantOrientationTrajectoryGeneratorTest
       FrameVector3D angularAccelerationToPack = new FrameVector3D(ReferenceFrame.getWorldFrame(), 10.0, 10.0, 10.0);
 
       assertFalse(referenceFrame.equals(angularAccelerationToPack.getReferenceFrame()));
+      angularAccelerationToPack.changeFrame(referenceFrame);
 
       generator.getAngularAcceleration(angularAccelerationToPack);
 
@@ -137,9 +147,11 @@ public class ConstantOrientationTrajectoryGeneratorTest
 
       assertFalse(referenceFrame.equals(angularVelocityToPack.getReferenceFrame()));
       assertTrue(ReferenceFrame.getWorldFrame().equals(angularVelocityToPack.getReferenceFrame()));
+      angularVelocityToPack.changeFrame(referenceFrame);
 
       assertFalse(referenceFrame.equals(angularAccelerationToPack.getReferenceFrame()));
       assertTrue(ReferenceFrame.getWorldFrame().equals(angularAccelerationToPack.getReferenceFrame()));
+      angularAccelerationToPack.changeFrame(referenceFrame);
 
       generator.getAngularData(orientationToPack, angularVelocityToPack, angularAccelerationToPack);
 

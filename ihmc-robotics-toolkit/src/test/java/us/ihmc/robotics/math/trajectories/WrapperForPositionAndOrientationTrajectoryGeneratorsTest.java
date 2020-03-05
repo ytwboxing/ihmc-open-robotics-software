@@ -99,7 +99,7 @@ public class WrapperForPositionAndOrientationTrajectoryGeneratorsTest
    public void testGet()
    {
       generator = new WrapperForPositionAndOrientationTrajectoryGenerators(positionTrajectoryGenerator, orientationTrajectoryGenerator);
-      FramePoint3D positionToPack = new FramePoint3D();
+      FramePoint3D positionToPack = new FramePoint3D(referenceFrame);
 
       generator.getPosition(positionToPack);
 
@@ -110,7 +110,7 @@ public class WrapperForPositionAndOrientationTrajectoryGeneratorsTest
    public void testGet_Orientation()
    {
       generator = new WrapperForPositionAndOrientationTrajectoryGenerators(positionTrajectoryGenerator, orientationTrajectoryGenerator);
-      FrameQuaternion orientationToPack = new FrameQuaternion();
+      FrameQuaternion orientationToPack = new FrameQuaternion(referenceFrame);
 
       generator.getOrientation(orientationToPack);
 
@@ -121,9 +121,9 @@ public class WrapperForPositionAndOrientationTrajectoryGeneratorsTest
    public void testPackVelocity()
    {
       generator = new WrapperForPositionAndOrientationTrajectoryGenerators(positionTrajectoryGenerator, orientationTrajectoryGenerator);
-      FrameVector3D velocityToPack = new FrameVector3D(ReferenceFrame.getWorldFrame(), 10.0, 10.0, 10.0);
+      FrameVector3D velocityToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(velocityToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(velocityToPack.getReferenceFrame()));
 
       generator.getVelocity(velocityToPack);
 
@@ -137,9 +137,9 @@ public class WrapperForPositionAndOrientationTrajectoryGeneratorsTest
    public void testPackAcceleration()
    {
       generator = new WrapperForPositionAndOrientationTrajectoryGenerators(positionTrajectoryGenerator, orientationTrajectoryGenerator);
-      FrameVector3D accelerationToPack = new FrameVector3D(ReferenceFrame.getWorldFrame(), 10.0, 10.0, 10.0);
+      FrameVector3D accelerationToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(accelerationToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(accelerationToPack.getReferenceFrame()));
 
       generator.getAcceleration(accelerationToPack);
 
@@ -164,14 +164,14 @@ public class WrapperForPositionAndOrientationTrajectoryGeneratorsTest
 
       assertEquals(referenceFrame, positionToPack.getReferenceFrame());
 
-      FrameVector3D velocityToPack = new FrameVector3D(ReferenceFrame.getWorldFrame(), 10.0, 10.0, 10.0);
-      FrameVector3D accelerationToPack = new FrameVector3D(ReferenceFrame.getWorldFrame(), 10.0, 10.0, 10.0);
+      FrameVector3D velocityToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
+      FrameVector3D accelerationToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(velocityToPack.getReferenceFrame()));
-      assertTrue(ReferenceFrame.getWorldFrame().equals(velocityToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(velocityToPack.getReferenceFrame()));
+      assertFalse(ReferenceFrame.getWorldFrame().equals(velocityToPack.getReferenceFrame()));
 
-      assertFalse(referenceFrame.equals(accelerationToPack.getReferenceFrame()));
-      assertTrue(ReferenceFrame.getWorldFrame().equals(accelerationToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(accelerationToPack.getReferenceFrame()));
+      assertFalse(ReferenceFrame.getWorldFrame().equals(accelerationToPack.getReferenceFrame()));
 
       generator.getLinearData(positionToPack, velocityToPack, accelerationToPack);
 
@@ -195,9 +195,9 @@ public class WrapperForPositionAndOrientationTrajectoryGeneratorsTest
    public void testPackAngularVelocity()
    {
       generator = new WrapperForPositionAndOrientationTrajectoryGenerators(positionTrajectoryGenerator, orientationTrajectoryGenerator);
-      FrameVector3D angularVelocityToPack = new FrameVector3D(ReferenceFrame.getWorldFrame(), 10.0, 10.0, 10.0);
+      FrameVector3D angularVelocityToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(angularVelocityToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(angularVelocityToPack.getReferenceFrame()));
 
       generator.getAngularVelocity(angularVelocityToPack);
 
@@ -211,9 +211,9 @@ public class WrapperForPositionAndOrientationTrajectoryGeneratorsTest
    public void testPackAngularAcceleration()
    {
       generator = new WrapperForPositionAndOrientationTrajectoryGenerators(positionTrajectoryGenerator, orientationTrajectoryGenerator);
-      FrameVector3D angularAccelerationToPack = new FrameVector3D(ReferenceFrame.getWorldFrame(), 10.0, 10.0, 10.0);
+      FrameVector3D angularAccelerationToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(angularAccelerationToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(angularAccelerationToPack.getReferenceFrame()));
 
       generator.getAngularAcceleration(angularAccelerationToPack);
 
@@ -238,14 +238,14 @@ public class WrapperForPositionAndOrientationTrajectoryGeneratorsTest
 
       assertEquals(referenceFrame, orientationToPack.getReferenceFrame());
 
-      FrameVector3D velocityToPack = new FrameVector3D(ReferenceFrame.getWorldFrame(), 10.0, 10.0, 10.0);
-      FrameVector3D accelerationToPack = new FrameVector3D(ReferenceFrame.getWorldFrame(), 10.0, 10.0, 10.0);
+      FrameVector3D velocityToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
+      FrameVector3D accelerationToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(velocityToPack.getReferenceFrame()));
-      assertTrue(ReferenceFrame.getWorldFrame().equals(velocityToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(velocityToPack.getReferenceFrame()));
+      assertFalse(ReferenceFrame.getWorldFrame().equals(velocityToPack.getReferenceFrame()));
 
-      assertFalse(referenceFrame.equals(accelerationToPack.getReferenceFrame()));
-      assertTrue(ReferenceFrame.getWorldFrame().equals(accelerationToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(accelerationToPack.getReferenceFrame()));
+      assertFalse(ReferenceFrame.getWorldFrame().equals(accelerationToPack.getReferenceFrame()));
 
       generator.getAngularData(orientationToPack, velocityToPack, accelerationToPack);
 

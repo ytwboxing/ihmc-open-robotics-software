@@ -29,7 +29,13 @@ public class ConstantPoseTrajectoryGeneratorTest
    private ReferenceFrame referenceFrame;
    private FramePoint3DBasics positionMultipleFrames;
    private FrameQuaternionBasics orientationMultipleFrames;
-   private ReferenceFrame rootFrame1 = ReferenceFrame.constructARootFrame("root1");
+   private ReferenceFrame rootFrame1 = new ReferenceFrame("rootFrame1", ReferenceFrame.getWorldFrame())
+   {
+      @Override
+      protected void updateTransformToParent(RigidBodyTransform transformToParent)
+      {
+      }
+   };
    private ConstantPoseTrajectoryGenerator generator;
 
    @BeforeEach
@@ -80,11 +86,11 @@ public class ConstantPoseTrajectoryGeneratorTest
 	@Test
    public void testGet()
    {
-      FramePoint3D positionToPack = new FramePoint3D();
+      FramePoint3D positionToPack = new FramePoint3D(referenceFrame);
       generator.getPosition(positionToPack);
       assertEquals(referenceFrame, positionToPack.getReferenceFrame());
 
-      FrameQuaternion orientationToPack = new FrameQuaternion();
+      FrameQuaternion orientationToPack = new FrameQuaternion(referenceFrame);
       generator.getOrientation(orientationToPack);
       assertEquals(referenceFrame, orientationToPack.getReferenceFrame());
    }
@@ -92,9 +98,9 @@ public class ConstantPoseTrajectoryGeneratorTest
 	@Test
    public void testPackVelocity()
    {
-      FrameVector3D velocityToPack = new FrameVector3D(ReferenceFrame.constructARootFrame("root"), 10.0, 10.0, 10.0);
+      FrameVector3D velocityToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(velocityToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(velocityToPack.getReferenceFrame()));
 
       generator.getVelocity(velocityToPack);
 
@@ -107,9 +113,9 @@ public class ConstantPoseTrajectoryGeneratorTest
 	@Test
    public void testPackAcceleration()
    {
-      FrameVector3D accelerationToPack = new FrameVector3D(ReferenceFrame.constructARootFrame("root"), 10.0, 10.0, 10.0);
+      FrameVector3D accelerationToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(accelerationToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(accelerationToPack.getReferenceFrame()));
 
       generator.getAcceleration(accelerationToPack);
 
@@ -122,9 +128,9 @@ public class ConstantPoseTrajectoryGeneratorTest
 	@Test
    public void testPackAngularVelocity()
    {
-      FrameVector3D angularVelocityToPack = new FrameVector3D(ReferenceFrame.constructARootFrame("root"), 10.0, 10.0, 10.0);
+      FrameVector3D angularVelocityToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(angularVelocityToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(angularVelocityToPack.getReferenceFrame()));
 
       generator.getAngularVelocity(angularVelocityToPack);
 
@@ -137,9 +143,9 @@ public class ConstantPoseTrajectoryGeneratorTest
 	@Test
    public void testPackAngularAcceleration()
    {
-      FrameVector3D angularAccelerationToPack = new FrameVector3D(ReferenceFrame.constructARootFrame("root"), 10.0, 10.0, 10.0);
+      FrameVector3D angularAccelerationToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(angularAccelerationToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(angularAccelerationToPack.getReferenceFrame()));
 
       generator.getAngularAcceleration(angularAccelerationToPack);
 
@@ -163,13 +169,13 @@ public class ConstantPoseTrajectoryGeneratorTest
 
       assertEquals(referenceFrame, positionToPack.getReferenceFrame());
 
-      FrameVector3D velocityToPack = new FrameVector3D(ReferenceFrame.constructARootFrame("root"), 10.0, 10.0, 10.0);
-      FrameVector3D accelerationToPack = new FrameVector3D(ReferenceFrame.constructARootFrame("root"), 10.0, 10.0, 10.0);
+      FrameVector3D velocityToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
+      FrameVector3D accelerationToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(velocityToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(velocityToPack.getReferenceFrame()));
       assertFalse(ReferenceFrame.getWorldFrame().equals(velocityToPack.getReferenceFrame()));
 
-      assertFalse(referenceFrame.equals(accelerationToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(accelerationToPack.getReferenceFrame()));
       assertFalse(ReferenceFrame.getWorldFrame().equals(accelerationToPack.getReferenceFrame()));
 
       generator.getLinearData(positionToPack, velocityToPack, accelerationToPack);
@@ -204,13 +210,13 @@ public class ConstantPoseTrajectoryGeneratorTest
 
       assertEquals(referenceFrame, orientationToPack.getReferenceFrame());
 
-      FrameVector3D angularVelocityToPack = new FrameVector3D(ReferenceFrame.constructARootFrame("root"), 10.0, 10.0, 10.0);
-      FrameVector3D angularAccelerationToPack = new FrameVector3D(ReferenceFrame.constructARootFrame("root"), 10.0, 10.0, 10.0);
+      FrameVector3D angularVelocityToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
+      FrameVector3D angularAccelerationToPack = new FrameVector3D(referenceFrame, 10.0, 10.0, 10.0);
 
-      assertFalse(referenceFrame.equals(angularVelocityToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(angularVelocityToPack.getReferenceFrame()));
       assertFalse(ReferenceFrame.getWorldFrame().equals(angularVelocityToPack.getReferenceFrame()));
 
-      assertFalse(referenceFrame.equals(angularAccelerationToPack.getReferenceFrame()));
+      assertTrue(referenceFrame.equals(angularAccelerationToPack.getReferenceFrame()));
       assertFalse(ReferenceFrame.getWorldFrame().equals(angularAccelerationToPack.getReferenceFrame()));
 
       generator.getAngularData(orientationToPack, angularVelocityToPack, angularAccelerationToPack);

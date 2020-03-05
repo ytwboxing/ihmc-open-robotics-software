@@ -201,6 +201,14 @@ public class SimpleOrientationTrajectoryGeneratorTest
       originalOrientation.initialize();
       trajToTest.initialize();
 
+      orientation1.setToZero(frameA);
+      angularVelocity1.setToZero(frameA);
+      angularAcceleration1.setToZero(frameA);
+
+      orientation2.setToZero(frameA);
+      angularVelocity2.setToZero(frameA);
+      angularAcceleration2.setToZero(frameA);
+
       for (double t = 0.0; t <= trajectoryTimeProvider.getValue(); t += dt)
       {
          originalOrientation.compute(t);

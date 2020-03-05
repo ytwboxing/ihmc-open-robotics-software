@@ -13,6 +13,7 @@ import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class YoSE3ConfigurationProviderTest
@@ -27,7 +28,14 @@ public class YoSE3ConfigurationProviderTest
    @BeforeEach
    public void setUp()
    {
-      referenceFrame = ReferenceFrame.constructARootFrame("rootNameTEST");
+      referenceFrame = new ReferenceFrame("test", ReferenceFrame.getWorldFrame())
+      {
+         @Override
+         protected void updateTransformToParent(RigidBodyTransform transformToParent)
+         {
+
+         }
+      };
       registry = new YoVariableRegistry("registryTEST");
    }
 
@@ -50,34 +58,14 @@ public class YoSE3ConfigurationProviderTest
    public void testGet()
    {
       provider = new YoSE3ConfigurationProvider(name, referenceFrame, registry);
-      FrameQuaternion orientationToPack = new FrameQuaternion();
+      FrameQuaternion orientationToPack = new FrameQuaternion(referenceFrame);
       provider.getOrientation(orientationToPack);
 
       assertEquals(referenceFrame, orientationToPack.getReferenceFrame());
 
-      FramePoint3D framePointToPack = new FramePoint3D();
+      FramePoint3D framePointToPack = new FramePoint3D(referenceFrame);
       provider.getPosition(framePointToPack);
 
       assertEquals(referenceFrame, framePointToPack.getReferenceFrame());
-   }
-
-	@Test
-   public void testSetPose()
-   {
-      provider = new YoSE3ConfigurationProvider(name, referenceFrame, registry);
-      FramePose3D framePose;
-      try
-      {
-         framePose = new FramePose3D();
-         provider.setPose(framePose);
-         fail();
-      }
-      catch (RuntimeException rte)
-      {
-      }
-
-      framePose = new FramePose3D(referenceFrame);
-
-      provider.setPose(framePose);
    }
 }
