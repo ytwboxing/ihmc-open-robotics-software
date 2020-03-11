@@ -72,7 +72,8 @@ public class WalkThroughDoorBehavior extends StateMachineBehavior<WalkThroughDoo
    //do you want to tuck in the arms before walking through the door
    private final boolean setUpArms = true;
 
-   //this is the predefined walk to points relative to the door reference frame, these should eventualy be replaced by a behavior that finds the best location to walk up to given an arm task space 
+   //this is the predefined walk to points relative to the door reference frame, these should eventualy be replaced by a behavior
+   //that finds the best location to walk up to given an arm task space
    private Vector3D32 doorOffsetPoint1 = new Vector3D32(0.5f, -0.9f, 0f);
    private Vector3D32 doorOffsetPoint2 = new Vector3D32(0.5f, -0.6f, 0f);
 
@@ -85,7 +86,8 @@ public class WalkThroughDoorBehavior extends StateMachineBehavior<WalkThroughDoo
    //this hold all the primitive behaviors that get used across most behaviors.
    private final AtlasPrimitiveActions atlasPrimitiveActions;
    private SleepBehavior sleepBehavior;
-   //sends out a door location packet for use in debugging. not really necesary until the door is found from a behavior instead of the user supplying its location
+   //sends out a door location packet for use in debugging. not really necesary until the door is found from a behavior instead of
+   //the user supplying its location
    private final FiducialDetectorBehaviorService fiducialDetectorBehaviorService;
    private IHMCROS2Publisher<DoorLocationPacket> doorToBehaviorPublisher;
    private IHMCROS2Publisher<DoorLocationPacket> doorToUIPublisher;
