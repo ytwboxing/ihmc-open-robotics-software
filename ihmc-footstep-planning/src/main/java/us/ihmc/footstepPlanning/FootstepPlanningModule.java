@@ -290,7 +290,7 @@ public class FootstepPlanningModule implements CloseableAndDisposable
          recordIterationData(iterationData);
          iterationCallback.accept(iterationData);
          iterations++;
-         
+
          if (iterationData.getParentNode() == null)
          {
             result = FootstepPlanningResult.NO_PATH_EXISTS;

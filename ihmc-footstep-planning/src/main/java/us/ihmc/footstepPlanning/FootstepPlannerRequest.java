@@ -48,6 +48,7 @@ public class FootstepPlannerRequest
    /**
     * If true, the planner will plan a body path. If false, it will try to follow a straight line to the goal.
     */
+
    private boolean planBodyPath;
 
    /**

@@ -1,10 +1,10 @@
 package controller_msgs.msg.dds;
 
 /**
-* 
-* Topic data type of the struct "FootstepPlanningRequestPacket" defined in "FootstepPlanningRequestPacket_.idl". Use this class to provide the TopicDataType to a Participant. 
 *
-* This file was automatically generated from FootstepPlanningRequestPacket_.idl by us.ihmc.idl.generator.IDLGenerator. 
+* Topic data type of the struct "FootstepPlanningRequestPacket" defined in "FootstepPlanningRequestPacket_.idl". Use this class to provide the TopicDataType to a Participant.
+*
+* This file was automatically generated from FootstepPlanningRequestPacket_.idl by us.ihmc.idl.generator.IDLGenerator.
 * Do not update this file directly, edit FootstepPlanningRequestPacket_.idl instead.
 *
 */
@@ -107,6 +107,7 @@ public class FootstepPlanningRequestPacketPubSubType implements us.ihmc.pubsub.T
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
 
+      current_alignment += geometry_msgs.msg.dds.PosePubSubType.getCdrSerializedSize(data.getStartRightFootPose(), current_alignment);
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
 
@@ -199,39 +200,39 @@ public class FootstepPlanningRequestPacketPubSubType implements us.ihmc.pubsub.T
    public static void read(controller_msgs.msg.dds.FootstepPlanningRequestPacket data, us.ihmc.idl.CDR cdr)
    {
       data.setSequenceId(cdr.read_type_4());
-      	
-      geometry_msgs.msg.dds.PosePubSubType.read(data.getStartLeftFootPose(), cdr);	
-      geometry_msgs.msg.dds.PosePubSubType.read(data.getStartRightFootPose(), cdr);	
-      geometry_msgs.msg.dds.PosePubSubType.read(data.getGoalLeftFootPose(), cdr);	
-      geometry_msgs.msg.dds.PosePubSubType.read(data.getGoalRightFootPose(), cdr);	
+
+      geometry_msgs.msg.dds.PosePubSubType.read(data.getStartLeftFootPose(), cdr);
+      geometry_msgs.msg.dds.PosePubSubType.read(data.getStartRightFootPose(), cdr);
+      geometry_msgs.msg.dds.PosePubSubType.read(data.getGoalLeftFootPose(), cdr);
+      geometry_msgs.msg.dds.PosePubSubType.read(data.getGoalRightFootPose(), cdr);
       data.setRequestedInitialStanceSide(cdr.read_type_9());
-      	
+
       data.setSnapGoalSteps(cdr.read_type_7());
-      	
+
       data.setAbortIfGoalStepSnappingFails(cdr.read_type_7());
-      	
+
       data.setRequestedFootstepPlannerType(cdr.read_type_9());
-      	
+
       data.setGoalDistanceProximity(cdr.read_type_6());
-      	
+
       data.setGoalYawProximity(cdr.read_type_6());
-      	
+
       data.setTimeout(cdr.read_type_6());
-      	
+
       data.setMaxIterations(cdr.read_type_2());
-      	
+
       data.setBestEffortTimeout(cdr.read_type_6());
-      	
+
       data.setHorizonLength(cdr.read_type_6());
-      	
-      controller_msgs.msg.dds.PlanarRegionsListMessagePubSubType.read(data.getPlanarRegionsListMessage(), cdr);	
+
+      controller_msgs.msg.dds.PlanarRegionsListMessagePubSubType.read(data.getPlanarRegionsListMessage(), cdr);
       data.setAssumeFlatGround(cdr.read_type_7());
-      	
+
       data.setPlannerRequestId(cdr.read_type_2());
-      	
-      cdr.read_type_e(data.getBodyPathWaypoints());	
+
+      cdr.read_type_e(data.getBodyPathWaypoints());
       data.setGenerateLog(cdr.read_type_7());
-      	
+
 
    }
 
@@ -316,7 +317,7 @@ public class FootstepPlanningRequestPacketPubSubType implements us.ihmc.pubsub.T
    {
       return name;
    }
-   
+
    public void serialize(controller_msgs.msg.dds.FootstepPlanningRequestPacket data, us.ihmc.idl.CDR cdr)
    {
       write(data, cdr);
@@ -326,7 +327,7 @@ public class FootstepPlanningRequestPacketPubSubType implements us.ihmc.pubsub.T
    {
       read(data, cdr);
    }
-   
+
    public void copy(controller_msgs.msg.dds.FootstepPlanningRequestPacket src, controller_msgs.msg.dds.FootstepPlanningRequestPacket dest)
    {
       staticCopy(src, dest);
