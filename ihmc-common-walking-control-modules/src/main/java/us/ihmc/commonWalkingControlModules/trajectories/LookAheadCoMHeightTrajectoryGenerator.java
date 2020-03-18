@@ -1,6 +1,6 @@
 package us.ihmc.commonWalkingControlModules.trajectories;
 
-import static us.ihmc.communication.packets.Packet.*;
+import static us.ihmc.communication.packets.Packet.INVALID_MESSAGE_ID;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,21 +12,14 @@ import us.ihmc.communication.packets.ExecutionMode;
 import us.ihmc.communication.packets.Packet;
 import us.ihmc.euclid.geometry.Line2D;
 import us.ihmc.euclid.geometry.LineSegment2D;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FrameQuaternion;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.*;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.humanoidRobotics.communication.controllerAPI.command.EuclideanTrajectoryControllerCommand;
-import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PelvisHeightTrajectoryCommand;
-import us.ihmc.humanoidRobotics.communication.controllerAPI.command.PelvisTrajectoryCommand;
-import us.ihmc.humanoidRobotics.communication.controllerAPI.command.SE3TrajectoryControllerCommand;
-import us.ihmc.humanoidRobotics.communication.controllerAPI.command.StopAllTrajectoryCommand;
+import us.ihmc.humanoidRobotics.communication.controllerAPI.command.*;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotics.geometry.StringStretcher2d;
@@ -39,11 +32,7 @@ import us.ihmc.yoVariables.listener.VariableChangedListener;
 import us.ihmc.yoVariables.parameters.BooleanParameter;
 import us.ihmc.yoVariables.providers.BooleanProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoFramePoint3D;
-import us.ihmc.yoVariables.variable.YoLong;
-import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.variable.*;
 
 /**
  * TODO There is not enough HumanoidReferenceFrames in that class, it is pretty fragile
@@ -252,6 +241,10 @@ public class LookAheadCoMHeightTrajectoryGenerator
       }
    }
 
+   private final FramePose3D initialiseAnklePose = new FramePose3D();
+   private final SideDependentList<Footstep> feetAsFootsteps = new SideDependentList<>(robotSide -> new Footstep(robotSide));
+   private final TransferToAndNextFootstepsData initializeData = new TransferToAndNextFootstepsData();
+
    public void reset()
    {
       hasBeenInitializedWithNextStep.set(false);
@@ -264,6 +257,18 @@ public class LookAheadCoMHeightTrajectoryGenerator
       offsetHeightTrajectoryGenerator.clear();
       offsetHeightTrajectoryGenerator.appendWaypoint(0.0, 0.0, 0.0);
       offsetHeightTrajectoryGenerator.initialize();
+
+      for (RobotSide robotSide : RobotSide.values)
+      {
+         initialiseAnklePose.setToZero(ankleZUpFrames.get(robotSide));
+         initialiseAnklePose.changeFrame(worldFrame);
+         Footstep footstep = feetAsFootsteps.get(robotSide);
+         footstep.setFromAnklePose(initialiseAnklePose, transformsFromAnkleToSole.get(robotSide));
+      }
+      initializeData.setTransferToSide(RobotSide.LEFT);
+      initializeData.setTransferFromFootstep(feetAsFootsteps.get(RobotSide.RIGHT));
+      initializeData.setTransferToFootstep(feetAsFootsteps.get(RobotSide.LEFT));
+      initialize(initializeData, 0.0);
    }
 
    public void setMinimumHeightAboveGround(double minimumHeightAboveGround)
