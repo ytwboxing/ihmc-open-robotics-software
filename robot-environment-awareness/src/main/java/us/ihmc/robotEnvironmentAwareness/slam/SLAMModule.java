@@ -6,9 +6,12 @@ import java.util.LinkedList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import controller_msgs.msg.dds.PlanarRegionsListMessage;
+import controller_msgs.msg.dds.RobotConfigurationData;
+import controller_msgs.msg.dds.StampedPosePacket;
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import javafx.scene.paint.Color;
 import us.ihmc.communication.IHMCROS2Publisher;
@@ -52,6 +55,7 @@ public class SLAMModule
    private final Topic<PlanarRegionsListMessage> planarRegionsStateTopicToSubmit;
    private final AtomicReference<StereoVisionPointCloudMessage> newPointCloud = new AtomicReference<>(null);
    private final LinkedList<StereoVisionPointCloudMessage> pointCloudQueue = new LinkedList<StereoVisionPointCloudMessage>();
+   private final LinkedList<Boolean> stationaryFlagQueue = new LinkedList<Boolean>();
 
    private final RandomICPSLAM slam = new RandomICPSLAM(DEFAULT_OCTREE_RESOLUTION);
 
@@ -65,7 +69,10 @@ public class SLAMModule
    private static final String PLANAR_REGIONS_LIST_TOPIC_SURFIX = "_slam";
    private final IHMCROS2Publisher<PlanarRegionsListMessage> planarRegionPublisher;
 
-   private final Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
+   protected final Ros2Node ros2Node = ROS2Tools.createRos2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA.getNodeName());
+
+   private final AtomicLong latestRobotTimeStamp = new AtomicLong();
+   protected final AtomicReference<StampedPosePacket> sensorPosePacketToPublish = new AtomicReference<>(null);
 
    public SLAMModule(Messager messager, File configurationFile)
    {
@@ -84,7 +91,8 @@ public class SLAMModule
 
       reaMessager.submitMessage(REAModuleAPI.StereoVisionBufferEnable, true);
       reaMessager.submitMessage(REAModuleAPI.DepthCloudBufferEnable, true);
-      
+      reaMessager.submitMessage(REAModuleAPI.UISensorPoseHistoryFrames, 1000);
+
       enable = reaMessager.createInput(REAModuleAPI.SLAMEnable, true);
       planarRegionsStateTopicToSubmit = REAModuleAPI.SLAMPlanarRegionsState;
 
@@ -143,6 +151,19 @@ public class SLAMModule
       return Thread.interrupted() || scheduledSLAM == null || scheduledSLAM.isCancelled();
    }
 
+   protected boolean isStationaryStatus(Subscriber<RobotConfigurationData> subscriber)
+   {
+      RobotConfigurationData robotConfigurationData = subscriber.takeNextData();
+      latestRobotTimeStamp.set(robotConfigurationData.getMonotonicTime());
+
+      if (robotConfigurationData.getPelvisLinearVelocity().lengthSquared() < 0.01)
+      {
+         reaMessager.submitMessage(REAModuleAPI.RobotStatus, true);
+      }
+
+      return false;
+   }
+
    public void updateSLAM()
    {
       if (isSLAMThreadInterrupted())
@@ -154,6 +175,7 @@ public class SLAMModule
       updateSLAMParameters();
 
       StereoVisionPointCloudMessage pointCloudToCompute = pointCloudQueue.getFirst();
+      boolean stationaryFlag = stationaryFlagQueue.getFirst();
 
       String stringToReport = "";
       boolean success;
@@ -164,9 +186,18 @@ public class SLAMModule
       }
       else
       {
-         success = slam.addFrame(pointCloudToCompute);
+         if (stationaryFlag)
+         {
+            slam.addKeyFrame(pointCloudToCompute);
+            success = true;
+         }
+         else
+         {
+            success = slam.addFrame(pointCloudToCompute);
+         }
       }
       pointCloudQueue.removeFirst();
+      stationaryFlagQueue.removeFirst();
       reaMessager.submitMessage(REAModuleAPI.QueuedBuffers, pointCloudQueue.size() + " [" + slam.getSensorPoses().size() + "]");
       stringToReport = stringToReport + success + " " + slam.getSensorPoses().size() + " " + slam.getComputationTimeForLatestFrame() + " (sec) ";
       reaMessager.submitMessage(REAModuleAPI.SLAMStatus, stringToReport);
@@ -195,6 +226,21 @@ public class SLAMModule
          latestStereoMessage.getSensorPosition().set(latestFrame.getSensorPose().getTranslation());
          latestStereoMessage.getSensorOrientation().set(latestFrame.getSensorPose().getRotation());
          reaMessager.submitMessage(REAModuleAPI.IhmcSLAMFrameState, latestStereoMessage);
+
+         StampedPosePacket posePacket = new StampedPosePacket();
+         posePacket.setTimestamp(latestRobotTimeStamp.get());
+         int maximumBufferOfQueue = 10;
+         if (pointCloudQueue.size() >= maximumBufferOfQueue)
+         {
+            posePacket.setConfidenceFactor(0.0);
+         }
+         else
+         {
+            //posePacket.setConfidenceFactor(1.0 - (double) pointCloudQueue.size() / maximumBufferOfQueue);
+            posePacket.setConfidenceFactor(1.0);
+         }
+         posePacket.getPose().set(latestFrame.getSensorPose());
+         sensorPosePacketToPublish.set(posePacket);
       }
    }
 
@@ -248,10 +294,11 @@ public class SLAMModule
    public void clearSLAM()
    {
       pointCloudQueue.clear();
+      stationaryFlagQueue.clear();
       slam.clear();
       newPointCloud.set(null);
    }
-   
+
    private void handlePointCloud(Subscriber<StereoVisionPointCloudMessage> subscriber)
    {
       StereoVisionPointCloudMessage message = subscriber.takeNextData();
