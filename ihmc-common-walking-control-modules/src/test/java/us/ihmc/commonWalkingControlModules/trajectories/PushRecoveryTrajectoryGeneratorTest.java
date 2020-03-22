@@ -12,6 +12,7 @@ import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -60,7 +61,20 @@ public class PushRecoveryTrajectoryGeneratorTest
             return worldFrame;
          }
       };
-      VectorProvider initialVelocityProvider = (vector) -> vector.set(worldFrame, 0.2, 0.0, -0.05);
+      VectorProvider initialVelocityProvider = new VectorProvider()
+      {
+         @Override
+         public void get(FixedFrameVector3DBasics frameVectorToPack)
+         {
+            frameVectorToPack.set(worldFrame, 0.2, 0.0, -0.05);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       Point3D firstIntermediatePosition = new Point3D(new double[] {0.12, 2.4, 0.2});
       Point3D secondIntermediatePosition = new Point3D(new double[] {0.16, 2.3, 0.15});
@@ -84,7 +98,20 @@ public class PushRecoveryTrajectoryGeneratorTest
             return worldFrame;
          }
       };
-      VectorProvider finalVelocityProvider = frameVectorToPack -> frameVectorToPack.set(worldFrame, 0, 0, -0.02);
+      VectorProvider finalVelocityProvider = new VectorProvider()
+      {
+         @Override
+         public void get(FixedFrameVector3DBasics frameVectorToPack)
+         {
+            frameVectorToPack.set(worldFrame, 0, 0, -0.02);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       TrajectoryParameters trajectoryParameters = new TrajectoryParameters();
       TrajectoryParametersProvider trajectoryParametersProvider = new TrajectoryParametersProvider(trajectoryParameters);
@@ -148,7 +175,20 @@ public class PushRecoveryTrajectoryGeneratorTest
             return worldFrame;
          }
       };
-      VectorProvider intermediateVelocityProvider = (vector) -> vector.set(intermediateVelocity);
+      VectorProvider intermediateVelocityProvider = new VectorProvider()
+      {
+         @Override
+         public void get(FixedFrameVector3DBasics frameVectorToPack)
+         {
+            frameVectorToPack.set(intermediateVelocity);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       PositionTrajectoryGenerator pushRecoveryTrajectoryGenerator = new PushRecoveryTrajectoryGenerator("", worldFrame, stepTimeProvider, timeRemainingProvider,
             intermediatePositionProvider, intermediateVelocityProvider, finalPositionProvider, new YoVariableRegistry(""), null, trajectory);

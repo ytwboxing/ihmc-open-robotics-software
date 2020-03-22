@@ -99,6 +99,13 @@ public class YoSineGenerator3D implements PositionTrajectoryGenerator
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return offset.getReferenceFrame();
+   }
+
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(position);

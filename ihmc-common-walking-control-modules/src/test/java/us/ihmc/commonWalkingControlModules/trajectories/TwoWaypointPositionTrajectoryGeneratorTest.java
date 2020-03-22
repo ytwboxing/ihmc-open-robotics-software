@@ -12,6 +12,7 @@ import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -64,7 +65,20 @@ public class TwoWaypointPositionTrajectoryGeneratorTest
             return worldFrame;
          }
       };
-      VectorProvider initialVelocityProvider = frameVectorToPack -> frameVectorToPack.set(worldFrame, 0.2, 0.0, -0.05);
+      VectorProvider initialVelocityProvider = new VectorProvider()
+      {
+         @Override
+         public void get(FixedFrameVector3DBasics frameVectorToPack)
+         {
+            frameVectorToPack.set(worldFrame, 0.2, 0.0, -0.05);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       Point3D firstIntermediatePosition = new Point3D(new double[] {0.12, 2.4, 0.2});
       Point3D secondIntermediatePosition = new Point3D(new double[] {0.16, 2.3, 0.15});
@@ -88,7 +102,20 @@ public class TwoWaypointPositionTrajectoryGeneratorTest
             return worldFrame;
          }
       };
-      VectorProvider finalVelocityProvider = frameVectorToPack -> frameVectorToPack.set(worldFrame, 0.1, 0.01, -0.02);
+      VectorProvider finalVelocityProvider = new VectorProvider()
+      {
+         @Override
+         public void get(FixedFrameVector3DBasics frameVectorToPack)
+         {
+            frameVectorToPack.set(worldFrame, 0.1, 0.01, -0.02);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       TrajectoryParameters trajectoryParameters = new TrajectoryParameters();
       TrajectoryParametersProvider trajectoryParametersProvider = new TrajectoryParametersProvider(trajectoryParameters);
