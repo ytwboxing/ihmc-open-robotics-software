@@ -536,6 +536,12 @@ public class ReferenceICPTrajectoryGenerator implements PositionTrajectoryGenera
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return ReferenceFrame.getWorldFrame();
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(icpPositionDesiredCurrent);

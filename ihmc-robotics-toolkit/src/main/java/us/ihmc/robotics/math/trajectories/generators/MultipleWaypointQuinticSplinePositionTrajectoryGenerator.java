@@ -66,7 +66,7 @@ public class MultipleWaypointQuinticSplinePositionTrajectoryGenerator implements
    public void clearAndSetTrajectoryFrame(ReferenceFrame trajectoryFrame)
    {
       this.trajectoryFrame = trajectoryFrame;
-      
+
       numberOfPoints = 0;
       v0.setToZero(trajectoryFrame);
       a0.setToZero(trajectoryFrame);
@@ -126,7 +126,13 @@ public class MultipleWaypointQuinticSplinePositionTrajectoryGenerator implements
    }
 
    @Override
-   public void getPosition(FramePoint3D positionToPack)
+   public ReferenceFrame getReferenceFrame()
+   {
+      return trajectoryFrame;
+   }
+
+   @Override
+   public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       trajectoryFrame.checkReferenceFrameMatch(positionToPack);
 
@@ -136,7 +142,7 @@ public class MultipleWaypointQuinticSplinePositionTrajectoryGenerator implements
    }
 
    @Override
-   public void getVelocity(FrameVector3D velocityToPack)
+   public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       trajectoryFrame.checkReferenceFrameMatch(velocityToPack);
 
@@ -146,7 +152,7 @@ public class MultipleWaypointQuinticSplinePositionTrajectoryGenerator implements
    }
 
    @Override
-   public void getAcceleration(FrameVector3D accelerationToPack)
+   public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       trajectoryFrame.checkReferenceFrameMatch(accelerationToPack);
 

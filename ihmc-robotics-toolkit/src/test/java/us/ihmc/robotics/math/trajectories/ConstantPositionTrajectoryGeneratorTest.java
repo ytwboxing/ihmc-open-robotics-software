@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -42,7 +43,20 @@ public class ConstantPositionTrajectoryGeneratorTest
          }
       };
       position = new FramePoint3D(referenceFrame, xValue, yValue, zValue);
-      positionProvider = (pos) -> pos.set(position);
+      positionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(position);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return referenceFrame;
+         }
+      };
       parentRegistry = new YoVariableRegistry("registry");
    }
 

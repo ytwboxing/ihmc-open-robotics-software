@@ -391,6 +391,12 @@ public class TwoWaypointSwingGenerator implements SwingGenerator
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return worldFrame;
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       trajectory.getPosition(positionToPack);

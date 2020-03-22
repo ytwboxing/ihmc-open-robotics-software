@@ -122,6 +122,12 @@ public class StraightLinePositionTrajectoryGenerator implements PositionTrajecto
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return currentPosition.getReferenceFrame();
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(currentPosition);

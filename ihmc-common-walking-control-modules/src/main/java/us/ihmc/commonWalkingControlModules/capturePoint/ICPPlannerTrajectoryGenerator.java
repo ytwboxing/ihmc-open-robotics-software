@@ -27,6 +27,7 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
    private final FramePoint3D finalPositionInSpecificFrame = new FramePoint3D();
    private final FrameVector3D finalVelocityInSpecificFrame = new FrameVector3D();
 
+   private ReferenceFrame attachedFrame;
    private final FramePoint3D initialCoMPositionInSpecificFrame = new FramePoint3D();
    private final FramePoint3D desiredCoMPosition = new FramePoint3D();
 
@@ -45,6 +46,7 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
 
    public void setInitialConditions(FramePoint3DReadOnly initialPosition, FrameVector3DReadOnly initialVelocity, ReferenceFrame attachedFrame)
    {
+      this.attachedFrame = attachedFrame;
       initialPositionInSpecificFrame.setIncludingFrame(initialPosition);
       initialVelocityInSpecificFrame.setIncludingFrame(initialVelocity);
       initialPositionInSpecificFrame.changeFrame(attachedFrame);
@@ -53,12 +55,14 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
 
    public void setInitialCoMPosition(FramePoint3DReadOnly initialCoMPosition, ReferenceFrame attachedFrame)
    {
+      this.attachedFrame = attachedFrame;
       initialCoMPositionInSpecificFrame.setIncludingFrame(initialCoMPosition);
       initialCoMPositionInSpecificFrame.changeFrame(attachedFrame);
    }
 
    public void setFinalConditions(FramePoint3DReadOnly finalPosition, FrameVector3DReadOnly finalVelocity, ReferenceFrame attachedFrame)
    {
+      this.attachedFrame = attachedFrame;
       finalPositionInSpecificFrame.setIncludingFrame(finalPosition);
       finalVelocityInSpecificFrame.setIncludingFrame(finalVelocity);
       finalPositionInSpecificFrame.changeFrame(attachedFrame);
@@ -110,6 +114,12 @@ public class ICPPlannerTrajectoryGenerator implements PositionTrajectoryGenerato
    public boolean isDone()
    {
       return doubleSupportCapturePointTrajectory.isDone();
+   }
+
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return attachedFrame;
    }
 
    @Override

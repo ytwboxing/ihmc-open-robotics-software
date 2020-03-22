@@ -1,15 +1,13 @@
 package us.ihmc.robotics.math.trajectories;
 
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.commons.MathTools;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
+import us.ihmc.robotics.trajectories.providers.PositionProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoFramePoint3D;
-import us.ihmc.robotics.trajectories.providers.PositionProvider;
 
 public class ConstantPositionTrajectoryGenerator implements PositionTrajectoryGenerator
 {
@@ -50,17 +48,26 @@ public class ConstantPositionTrajectoryGenerator implements PositionTrajectoryGe
       return time.getDoubleValue() > finalTime.getDoubleValue();
    }
 
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return position.getReferenceFrame();
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(position);
    }
 
+   @Override
    public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       velocityToPack.checkReferenceFrameMatch(position);
       velocityToPack.setToZero();
    }
 
+   @Override
    public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       accelerationToPack.checkReferenceFrameMatch(position);

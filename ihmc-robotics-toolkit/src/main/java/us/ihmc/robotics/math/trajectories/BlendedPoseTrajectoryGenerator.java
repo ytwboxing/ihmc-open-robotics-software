@@ -66,6 +66,11 @@ public class BlendedPoseTrajectoryGenerator implements PoseTrajectoryGenerator
       trajectory.initialize();
    }
 
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return trajectory.getReferenceFrame();
+   }
 
    @Override
    public void getPose(FixedFramePose3DBasics framePoseToPack)

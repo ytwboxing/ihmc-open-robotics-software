@@ -1,8 +1,5 @@
 package us.ihmc.robotics.trajectories.providers;
 
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FramePose3D;
-import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
@@ -14,6 +11,12 @@ public class CurrentConfigurationProvider implements SE3ConfigurationProvider
    public CurrentConfigurationProvider(ReferenceFrame endEffectorFrame)
    {
       this.endEffectorFrame = endEffectorFrame;
+   }
+
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return endEffectorFrame;
    }
 
    @Override

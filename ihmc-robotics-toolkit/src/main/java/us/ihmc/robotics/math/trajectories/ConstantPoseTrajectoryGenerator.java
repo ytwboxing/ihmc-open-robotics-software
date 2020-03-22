@@ -15,16 +15,20 @@ public class ConstantPoseTrajectoryGenerator implements PoseTrajectoryGenerator
 {
    private final FramePoint3DBasics position;
    private final FrameQuaternionBasics orientation;
+   private final ReferenceFrame referenceFrame;
 
    public ConstantPoseTrajectoryGenerator(FramePoint3DBasics position, FrameQuaternionBasics orientation)
    {
       position.checkReferenceFrameMatch(orientation);
+      this.referenceFrame = position.getReferenceFrame();
       this.position = position;
       this.orientation = orientation;
    }
 
    public ConstantPoseTrajectoryGenerator(String namePrefix, ReferenceFrame referenceFrame, YoVariableRegistry parentRegistry)
    {
+      this.referenceFrame = referenceFrame;
+
       YoVariableRegistry registry = new YoVariableRegistry(namePrefix + getClass().getSimpleName());
       position = new YoMutableFramePoint3D(namePrefix + "ConstantPosition", "", registry, referenceFrame);
       orientation = new YoMutableFrameQuaternion(namePrefix + "ConstantOrientation", "", registry, referenceFrame);
@@ -71,6 +75,12 @@ public class ConstantPoseTrajectoryGenerator implements PoseTrajectoryGenerator
    public boolean isDone()
    {
       return true;
+   }
+
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return referenceFrame;
    }
 
    @Override

@@ -103,6 +103,12 @@ public class MultipleWaypointsPoseTrajectoryGenerator implements PoseTrajectoryG
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return positionTrajectory.getReferenceFrame();
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionTrajectory.getPosition(positionToPack);

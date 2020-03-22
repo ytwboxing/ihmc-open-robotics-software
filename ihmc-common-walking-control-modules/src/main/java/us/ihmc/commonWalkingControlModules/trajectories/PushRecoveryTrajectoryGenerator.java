@@ -58,11 +58,14 @@ public class PushRecoveryTrajectoryGenerator implements PositionTrajectoryGenera
    private FrameVector3D nominalTrajectoryVelocity = new FrameVector3D();
    private FrameVector3D nominalTrajectoryAcceleration = new FrameVector3D();
 
+   private final ReferenceFrame referenceFrame;
+
    public PushRecoveryTrajectoryGenerator(String namePrefix, ReferenceFrame referenceFrame, DoubleProvider swingTimeProvider,
          DoubleProvider swingTimeRemainingProvider, PositionProvider initialPositionProvider, VectorProvider initialVelocityProvider,
          PositionProvider finalPositionProvider, YoVariableRegistry parentRegistry, YoGraphicsListRegistry yoGraphicsListRegistry,
          PositionTrajectoryGenerator nominalTrajectoryGenerator)
    {
+      this.referenceFrame = referenceFrame;
       registry = new YoVariableRegistry(namePrefix + namePostFix);
       parentRegistry.addChild(registry);
 
@@ -183,6 +186,12 @@ public class PushRecoveryTrajectoryGenerator implements PositionTrajectoryGenera
       desiredPosition.setX(xPolynomial.getPosition());
       desiredPosition.setY(yPolynomial.getPosition());
       desiredPosition.setZ(nominalTrajectoryPosition.getZ());
+   }
+
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return referenceFrame;
    }
 
    @Override

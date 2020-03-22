@@ -67,7 +67,7 @@ public class SmoothCMPBasedICPPlanner implements ICPPlannerInterface
    private static final double ZERO_TIME = 0.0;
 
    protected final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
-   protected final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
+   protected static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
    protected final String namePrefix = "icpPlanner";
 

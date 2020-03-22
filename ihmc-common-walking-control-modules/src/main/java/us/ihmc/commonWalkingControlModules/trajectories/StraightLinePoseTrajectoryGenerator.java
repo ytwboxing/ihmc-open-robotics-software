@@ -346,6 +346,12 @@ public class StraightLinePoseTrajectoryGenerator implements PoseTrajectoryGenera
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return currentPosition.getReferenceFrame();
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(currentPosition);

@@ -464,6 +464,12 @@ public class ICPPlannerSegmentedTrajectoryGenerator implements PositionTrajector
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return trajectoryFrame;
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(desiredICPOutput);

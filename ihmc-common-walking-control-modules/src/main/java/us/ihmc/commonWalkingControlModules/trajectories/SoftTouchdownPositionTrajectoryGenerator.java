@@ -77,6 +77,12 @@ public class SoftTouchdownPositionTrajectoryGenerator implements PositionTraject
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return worldFrame;
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionTouchdownTrajectory.getPosition(positionToPack);

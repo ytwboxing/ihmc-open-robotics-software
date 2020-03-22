@@ -5,6 +5,7 @@ import java.util.List;
 
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
@@ -308,6 +309,12 @@ public class ReferenceCoMTrajectoryGenerator implements PositionTrajectoryGenera
       {
          getPositionDesiredFinalFromSegment(comPositionDesiredFinalToPack, numberOfSegmentsSwing0 + numberOfSegmentsTransfer0 - 1);
       }
+   }
+
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return ReferenceFrame.getWorldFrame();
    }
 
    @Override

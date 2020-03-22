@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.trajectories.providers.ConstantDoubleProvider;
@@ -48,8 +49,34 @@ public class StraightLinePositionTrajectoryGeneratorTest
          }
       };
       position = new FramePoint3D(referenceFrame, xValue, yValue, zValue);
-      initialPositionProvider = position -> position.set(this.position);
-      finalPositionProvider = position -> position.set(this.position);
+      initialPositionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(position);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return referenceFrame;
+         }
+      };
+      finalPositionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(position);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return referenceFrame;
+         }
+      };
       trajectoryTimeProvider = new ConstantDoubleProvider(10.0);
    }
 

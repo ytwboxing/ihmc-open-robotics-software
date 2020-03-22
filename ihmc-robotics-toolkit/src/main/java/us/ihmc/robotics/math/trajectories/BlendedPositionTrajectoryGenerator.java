@@ -130,6 +130,12 @@ public class BlendedPositionTrajectoryGenerator implements PositionTrajectoryGen
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return trajectoryFrame;
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(position);

@@ -2,12 +2,14 @@ package us.ihmc.robotics.math.trajectories.waypoints;
 
 import static us.ihmc.robotics.Assert.*;
 
+import javafx.geometry.Pos;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.robotics.math.trajectories.StraightLinePositionTrajectoryGenerator;
 import us.ihmc.robotics.math.trajectories.generators.MultipleWaypointsPositionTrajectoryGenerator;
@@ -43,8 +45,34 @@ public class MultipleWaypointsPositionTrajectoryGeneratorTest
 
 
       DoubleProvider trajectoryTimeProvider = new ConstantDoubleProvider(trajectoryTime);
-      PositionProvider initialPositionProvider = (position) -> position.set(worldFrame, 1.0, 0.0, 1.0);
-      PositionProvider finalPositionProvider = (position) -> position.set(worldFrame,   0.2, 1.0, 0.4);
+      PositionProvider initialPositionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(worldFrame, 1.0, 0.0, 1.0);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return ReferenceFrame.getWorldFrame();
+         }
+      };
+      PositionProvider finalPositionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(worldFrame, 0.2, 1.0, 0.4);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return ReferenceFrame.getWorldFrame();
+         }
+      };
       simpleTrajectory = new StraightLinePositionTrajectoryGenerator("simpleTraj", worldFrame, trajectoryTimeProvider, initialPositionProvider, finalPositionProvider, registry);
       simpleTrajectory.initialize();
 

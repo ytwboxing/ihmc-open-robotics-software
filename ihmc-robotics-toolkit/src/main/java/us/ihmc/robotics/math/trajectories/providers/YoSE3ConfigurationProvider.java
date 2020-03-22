@@ -21,11 +21,18 @@ public class YoSE3ConfigurationProvider implements SE3ConfigurationProvider
 {
    private final FixedFramePoint3DBasics position;
    private final FixedFrameQuaternionBasics orientation;
+   private final ReferenceFrame frame;
 
    public YoSE3ConfigurationProvider(String name, ReferenceFrame frame, YoVariableRegistry registry)
    {
+      this.frame = frame;
       position = new YoFramePoint3D(name, frame, registry);
       orientation = new YoFrameQuaternion(name, frame, registry);
+   }
+
+   public ReferenceFrame getReferenceFrame()
+   {
+      return frame;
    }
 
    public void getOrientation(FixedFrameQuaternionBasics orientationToPack)

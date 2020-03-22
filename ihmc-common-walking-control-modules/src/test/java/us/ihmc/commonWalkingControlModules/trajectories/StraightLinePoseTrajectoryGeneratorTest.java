@@ -11,6 +11,7 @@ import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.tools.EuclidFrameRandomTools;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.robotics.math.trajectories.OrientationInterpolationTrajectoryGenerator;
@@ -39,9 +40,35 @@ public class StraightLinePoseTrajectoryGeneratorTest
 
       DoubleProvider trajectoryTimeProvider = new ConstantDoubleProvider(10.0);
       FramePoint3D initialPosition = EuclidFrameRandomTools.nextFramePoint3D(random, worldFrame, 100.0, 100.0, 100.0);
-      PositionProvider initialPositionProvider = (position) -> position.set(initialPosition);
+      PositionProvider initialPositionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(initialPosition);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
       FramePoint3D finalPosition = EuclidFrameRandomTools.nextFramePoint3D(random, worldFrame, 100.0, 100.0, 100.0);
-      PositionProvider finalPositionProvider = (position) -> position.set(finalPosition);
+      PositionProvider finalPositionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(finalPosition);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       FrameQuaternion initialOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
       OrientationProvider initialOrientationProvider = orientationToPack -> orientationToPack.set(initialOrientation);
@@ -195,9 +222,35 @@ public class StraightLinePoseTrajectoryGeneratorTest
 
       DoubleProvider trajectoryTimeProvider = new ConstantDoubleProvider(10.0);
       final FramePoint3D initialPosition = EuclidFrameRandomTools.nextFramePoint3D(random, worldFrame, 100.0, 100.0, 100.0);
-      PositionProvider initialPositionProvider = (position) -> position.set(initialPosition);
+      PositionProvider initialPositionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(initialPosition);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
       final FramePoint3D finalPosition = EuclidFrameRandomTools.nextFramePoint3D(random, worldFrame, 100.0, 100.0, 100.0);
-      PositionProvider finalPositionProvider = position -> position.set(finalPosition);
+      PositionProvider finalPositionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(finalPosition);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       final FrameQuaternion initialOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
       OrientationProvider initialOrientationProvider = orientationToPack -> orientationToPack.set(initialOrientation);
@@ -254,9 +307,35 @@ public class StraightLinePoseTrajectoryGeneratorTest
 
       // Do the same in another frame
       initialPosition.setIncludingFrame(EuclidFrameRandomTools.nextFramePoint3D(random, frameA, 100.0, 100.0, 100.0));
-      initialPositionProvider = position -> position.set(initialPosition);
+      initialPositionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(initialPosition);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return frameA;
+         }
+      };
       finalPosition.setIncludingFrame(EuclidFrameRandomTools.nextFramePoint3D(random, frameA, 100.0, 100.0, 100.0));
-      finalPositionProvider = position -> position.set(finalPosition);
+      finalPositionProvider = new PositionProvider()
+      {
+         @Override
+         public void getPosition(FixedFramePoint3DBasics positionToPack)
+         {
+            positionToPack.set(finalPosition);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return frameA;
+         }
+      };
 
       initialOrientation.setIncludingFrame(EuclidFrameRandomTools.nextFrameQuaternion(random, frameA));
       initialOrientationProvider = initialOrientationToPack -> initialOrientationToPack.set(initialOrientation);

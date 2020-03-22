@@ -3,6 +3,7 @@ package us.ihmc.robotics.trajectories.providers;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
 
@@ -27,6 +28,12 @@ public class ChangeableConfigurationProvider implements SE3ConfigurationProvider
    public void get(FramePose3D framePose)
    {
       framePose.setIncludingFrame(configuration);
+   }
+
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return configuration.getReferenceFrame();
    }
 
    @Override

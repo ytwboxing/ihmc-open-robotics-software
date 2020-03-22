@@ -521,6 +521,12 @@ public class SteeringPoseTrajectoryGenerator implements PoseTrajectoryGenerator
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return trajectoryFrame;
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionToPack.set(yoCurrentAdjustedPositionWorld);

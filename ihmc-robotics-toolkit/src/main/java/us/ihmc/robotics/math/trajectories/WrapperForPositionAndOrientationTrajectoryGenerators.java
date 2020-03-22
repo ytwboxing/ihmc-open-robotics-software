@@ -1,9 +1,6 @@
 package us.ihmc.robotics.math.trajectories;
 
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FramePose3D;
-import us.ihmc.euclid.referenceFrame.FrameQuaternion;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
@@ -37,31 +34,43 @@ public class WrapperForPositionAndOrientationTrajectoryGenerators implements Pos
       return positionTrajectoryGenerator.isDone() && orientationTrajectoryGenerator.isDone();
    }
 
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return positionTrajectoryGenerator.getReferenceFrame();
+   }
+
+   @Override
    public void getPosition(FixedFramePoint3DBasics positionToPack)
    {
       positionTrajectoryGenerator.getPosition(positionToPack);
    }
 
+   @Override
    public void getVelocity(FixedFrameVector3DBasics velocityToPack)
    {
       positionTrajectoryGenerator.getVelocity(velocityToPack);
    }
 
+   @Override
    public void getAcceleration(FixedFrameVector3DBasics accelerationToPack)
    {
       positionTrajectoryGenerator.getAcceleration(accelerationToPack);
    }
 
+   @Override
    public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
       orientationTrajectoryGenerator.getOrientation(orientationToPack);
    }
 
+   @Override
    public void getAngularVelocity(FixedFrameVector3DBasics angularVelocityToPack)
    {
       orientationTrajectoryGenerator.getAngularVelocity(angularVelocityToPack);
    }
 
+   @Override
    public void getAngularAcceleration(FixedFrameVector3DBasics angularAccelerationToPack)
    {
       orientationTrajectoryGenerator.getAngularAcceleration(angularAccelerationToPack);

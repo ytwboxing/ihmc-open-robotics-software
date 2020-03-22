@@ -18,7 +18,6 @@ public class SoftTouchdownPoseTrajectoryGenerator implements PoseTrajectoryGener
    private final YoVariableRegistry registry;
 
    private final YoSpline3D positionTouchdownTrajectory;
-   private final FramePoint3D desiredPosition = new FramePoint3D();
 
    private final YoDouble timeInitial;
    private final YoDouble timeFinal;
@@ -92,6 +91,12 @@ public class SoftTouchdownPoseTrajectoryGenerator implements PoseTrajectoryGener
    public boolean isDone()
    {
       return false;
+   }
+
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return worldFrame;
    }
 
    @Override
