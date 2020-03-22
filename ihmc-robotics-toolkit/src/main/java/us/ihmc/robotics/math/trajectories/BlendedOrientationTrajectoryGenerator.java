@@ -137,6 +137,12 @@ public class BlendedOrientationTrajectoryGenerator implements OrientationTraject
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return trajectoryFrame;
+
+   }
+   @Override
    public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
       orientationToPack.set(orientation);

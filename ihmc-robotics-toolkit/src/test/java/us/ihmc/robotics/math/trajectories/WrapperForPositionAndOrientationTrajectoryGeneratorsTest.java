@@ -12,6 +12,7 @@ import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
 import us.ihmc.euclid.referenceFrame.tools.EuclidFrameRandomTools;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -38,7 +39,20 @@ public class WrapperForPositionAndOrientationTrajectoryGeneratorsTest
 
       orientation = new FrameQuaternion(referenceFrame);
       positionTrajectoryGenerator = new ConstantPoseTrajectoryGenerator("positionTGenPrefix", referenceFrame, parentRegistry);
-      orientationProvider = orientationToPack -> orientationToPack.set(orientation);
+      orientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(orientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return referenceFrame;
+         }
+      };
       orientationTrajectoryGenerator = new ConstantOrientationTrajectoryGenerator("orientationPrefix", referenceFrame, orientationProvider, finalTime,
             parentRegistry);
    }

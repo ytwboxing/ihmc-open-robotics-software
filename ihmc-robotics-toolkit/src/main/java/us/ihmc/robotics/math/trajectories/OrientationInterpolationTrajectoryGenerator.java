@@ -126,6 +126,12 @@ public class OrientationInterpolationTrajectoryGenerator implements OrientationT
    }
 
    @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return initialOrientation.getReferenceFrame();
+   }
+
+   @Override
    public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
       orientationToPack.set(desiredOrientation);

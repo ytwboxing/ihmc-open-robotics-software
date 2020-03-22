@@ -191,7 +191,6 @@ public class RigidBodyOrientationControlHelper
       }
       else
       {
-         orientationToPack.setToZero(trajectoryGenerator.getReferenceFrame());
          trajectoryGenerator.getOrientation(orientationToPack);
       }
    }
@@ -213,10 +212,6 @@ public class RigidBodyOrientationControlHelper
 
       trajectoryGenerator.compute(timeInTrajectory);
       trajectoryGenerator.getAngularData(desiredOrientation, desiredVelocity, feedForwardAcceleration);
-
-      desiredOrientation.changeFrame(ReferenceFrame.getWorldFrame());
-      desiredVelocity.changeFrame(ReferenceFrame.getWorldFrame());
-      feedForwardAcceleration.changeFrame(ReferenceFrame.getWorldFrame());
 
       feedbackControlCommand.setInverseDynamics(desiredOrientation, desiredVelocity, feedForwardAcceleration);
       feedbackControlCommand.setGains(gains);

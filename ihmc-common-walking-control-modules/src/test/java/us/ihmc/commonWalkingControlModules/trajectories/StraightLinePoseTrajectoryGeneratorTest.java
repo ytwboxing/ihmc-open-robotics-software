@@ -12,6 +12,7 @@ import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
 import us.ihmc.euclid.referenceFrame.tools.EuclidFrameRandomTools;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.robotics.math.trajectories.OrientationInterpolationTrajectoryGenerator;
@@ -71,9 +72,35 @@ public class StraightLinePoseTrajectoryGeneratorTest
       };
 
       FrameQuaternion initialOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider initialOrientationProvider = orientationToPack -> orientationToPack.set(initialOrientation);
+      OrientationProvider initialOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(initialOrientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
       FrameQuaternion finalOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider finalOrientationProvider = orientationToPack -> orientationToPack.set(finalOrientation);
+      OrientationProvider finalOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(finalOrientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       StraightLinePositionTrajectoryGenerator originalPosition = new StraightLinePositionTrajectoryGenerator("position", worldFrame, trajectoryTimeProvider,
             initialPositionProvider, finalPositionProvider, registry);
@@ -253,9 +280,35 @@ public class StraightLinePoseTrajectoryGeneratorTest
       };
 
       final FrameQuaternion initialOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider initialOrientationProvider = orientationToPack -> orientationToPack.set(initialOrientation);
+      OrientationProvider initialOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(initialOrientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
       final FrameQuaternion finalOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider finalOrientationProvider = orientationToPack -> orientationToPack.set(finalOrientation);
+      OrientationProvider finalOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(finalOrientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       StraightLinePositionTrajectoryGenerator originalPosition = new StraightLinePositionTrajectoryGenerator("position1", worldFrame, trajectoryTimeProvider,
             initialPositionProvider, finalPositionProvider, registry);
@@ -338,9 +391,36 @@ public class StraightLinePoseTrajectoryGeneratorTest
       };
 
       initialOrientation.setIncludingFrame(EuclidFrameRandomTools.nextFrameQuaternion(random, frameA));
-      initialOrientationProvider = initialOrientationToPack -> initialOrientationToPack.set(initialOrientation);
+      initialOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(initialOrientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return frameA;
+         }
+      }
+      ;
       finalOrientation.setIncludingFrame(EuclidFrameRandomTools.nextFrameQuaternion(random, frameA));
-      finalOrientationProvider = finalOrientationToPack -> finalOrientationToPack.set(finalOrientation);
+      finalOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(finalOrientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return frameA;
+         }
+      };
 
       originalPosition = new StraightLinePositionTrajectoryGenerator("position2", frameA, trajectoryTimeProvider, initialPositionProvider,
             finalPositionProvider, registry);

@@ -50,17 +50,26 @@ public class ConstantOrientationTrajectoryGenerator implements OrientationTrajec
       return time.getDoubleValue() > finalTime.getDoubleValue();
    }
 
+   @Override
+   public ReferenceFrame getReferenceFrame()
+   {
+      return orientation.getReferenceFrame();
+   }
+
+   @Override
    public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
    {
       orientationToPack.set(orientation);
    }
 
+   @Override
    public void getAngularVelocity(FixedFrameVector3DBasics angularVelocityToPack)
    {
       angularVelocityToPack.checkReferenceFrameMatch(orientation);
       angularVelocityToPack.setToZero();
    }
 
+   @Override
    public void getAngularAcceleration(FixedFrameVector3DBasics angularAccelerationToPack)
    {
       angularAccelerationToPack.checkReferenceFrameMatch(orientation);

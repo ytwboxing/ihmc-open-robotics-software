@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
 import us.ihmc.euclid.referenceFrame.tools.EuclidFrameRandomTools;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.robotics.trajectories.providers.ConstantDoubleProvider;
@@ -35,9 +36,35 @@ public class SimpleOrientationTrajectoryGeneratorTest
       DoubleProvider trajectoryTimeProvider = () -> (10.0);
 
       FrameQuaternion initialOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider initialOrientationProvider = orientation -> orientation.set(initialOrientation);
+      OrientationProvider initialOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(initialOrientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
       FrameQuaternion finalOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider finalOrientationProvider = orientation -> orientation.set(finalOrientation);
+      OrientationProvider finalOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(finalOrientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       OrientationInterpolationTrajectoryGenerator originalOrientation = new OrientationInterpolationTrajectoryGenerator("orientation", worldFrame,
             trajectoryTimeProvider, initialOrientationProvider, finalOrientationProvider, registry);
@@ -148,9 +175,35 @@ public class SimpleOrientationTrajectoryGeneratorTest
       DoubleProvider trajectoryTimeProvider = new ConstantDoubleProvider(10.0);
 
       final FrameQuaternion initialOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider initialOrientationProvider = orientation -> orientation.set(initialOrientation);
+      OrientationProvider initialOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(initialOrientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
       final FrameQuaternion finalOrientation = EuclidFrameRandomTools.nextFrameQuaternion(random, worldFrame);
-      OrientationProvider finalOrientationProvider = orientationToPack ->  orientationToPack.set(finalOrientation);
+      OrientationProvider finalOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(finalOrientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return worldFrame;
+         }
+      };
 
       OrientationInterpolationTrajectoryGenerator originalOrientation = new OrientationInterpolationTrajectoryGenerator("orientation1", worldFrame,
             trajectoryTimeProvider, initialOrientationProvider, finalOrientationProvider, registry);

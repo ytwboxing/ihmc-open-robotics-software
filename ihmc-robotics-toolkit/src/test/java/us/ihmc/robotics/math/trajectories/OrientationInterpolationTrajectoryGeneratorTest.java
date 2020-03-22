@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.trajectories.providers.OrientationProvider;
@@ -46,8 +47,34 @@ public class OrientationInterpolationTrajectoryGeneratorTest
       orientation = new FrameQuaternion(referenceFrame);
 
       trajectoryTimeProvider = new SettableDoubleProvider(trajectoryTime);
-      initialOrientationProvider = orientation -> orientation.set(this.orientation);
-      finalOrientationProvider = orientation -> orientation.set(this.orientation);
+      initialOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(orientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return referenceFrame;
+         }
+      };
+      finalOrientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(orientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return referenceFrame;
+         }
+      };
       parentRegistry = new YoVariableRegistry("registry");
    }
 

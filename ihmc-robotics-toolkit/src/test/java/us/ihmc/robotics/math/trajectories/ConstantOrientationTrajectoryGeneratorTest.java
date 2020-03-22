@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameQuaternionBasics;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -41,7 +42,20 @@ public class ConstantOrientationTrajectoryGeneratorTest
          }
       };
       orientation = new FrameQuaternion(referenceFrame);
-      orientationProvider = orientation -> orientation.set(this.orientation);
+      orientationProvider = new OrientationProvider()
+      {
+         @Override
+         public void getOrientation(FixedFrameQuaternionBasics orientationToPack)
+         {
+            orientationToPack.set(orientation);
+         }
+
+         @Override
+         public ReferenceFrame getReferenceFrame()
+         {
+            return referenceFrame;
+         }
+      };
       parentRegistry = new YoVariableRegistry("parentRegistryTEST");
    }
 
