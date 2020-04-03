@@ -10,10 +10,17 @@ import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.networkProcessor.DRCNetworkModuleParameters;
 import us.ihmc.avatar.networkProcessor.DRCNetworkProcessor;
 import us.ihmc.communication.configuration.NetworkParameters;
+import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
+import us.ihmc.valkyrie.configuration.ValkyrieRobotVersion;
+import us.ihmc.valkyrie.planner.ValkyrieAStarFootstepPlanner;
+import us.ihmc.valkyrieRosControl.ValkyrieRosControlController;
+
+import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
+import us.ihmc.valkyrie.externalForceEstimation.ValkyrieExternalForceEstimationModule; 
 
 public class ValkyrieNetworkProcessor
 {
-   private static final DRCRobotModel model = new ValkyrieRobotModel(RobotTarget.REAL_ROBOT, true);
+   private static final ValkyrieRobotModel model = new ValkyrieRobotModel(RobotTarget.REAL_ROBOT);
    public static final boolean launchFootstepPlannerModule = true;
    
    public static void main(String[] args) throws URISyntaxException, JSAPException
@@ -21,8 +28,6 @@ public class ValkyrieNetworkProcessor
       DRCNetworkModuleParameters networkModuleParams = new DRCNetworkModuleParameters();
       boolean startREA = false;
       
-      networkModuleParams.enableControllerCommunicator(true);
-      networkModuleParams.enableLocalControllerCommunicator(false);
       networkModuleParams.enableRobotEnvironmentAwerenessModule(true);
       networkModuleParams.enableKinematicsToolbox(true);
       networkModuleParams.enableKinematicsStreamingToolbox(true, ValkyrieKinematicsStreamingToolboxModule.class);
@@ -32,6 +37,8 @@ public class ValkyrieNetworkProcessor
       networkModuleParams.enableBipedalSupportPlanarRegionPublisher(true);
       networkModuleParams.enableWalkingPreviewToolbox(true);
       networkModuleParams.enableAutoREAStateUpdater(true);
+
+      new ValkyrieExternalForceEstimationModule(model, false, PubSubImplementation.FAST_RTPS);
 
 //      uncomment these for the sensors
       URI rosuri = NetworkParameters.getROSURI();
@@ -43,7 +50,9 @@ public class ValkyrieNetworkProcessor
          networkModuleParams.enableSensorModule(true);
          System.out.println("ROS_MASTER_URI="+rosuri);
       }
-      
-      new DRCNetworkProcessor(model, networkModuleParams);
+
+      new ValkyrieAStarFootstepPlanner(model).setupWithRos(PubSubImplementation.FAST_RTPS);
+
+      new DRCNetworkProcessor(model, networkModuleParams, PubSubImplementation.FAST_RTPS);
    }
 }
