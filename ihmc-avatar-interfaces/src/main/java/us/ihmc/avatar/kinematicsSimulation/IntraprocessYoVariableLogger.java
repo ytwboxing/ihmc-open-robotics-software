@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
@@ -40,10 +41,11 @@ import java.util.*;
 
 public class IntraprocessYoVariableLogger
 {
+   public static final boolean USE_COMPRESSION = false;
    private static final String INTRAPROCESS_LOG_POSTFIX = "_IntraprocessLogger";
    public static final String PROPERTY_FILE = "robotData.log";
    public static final String HANDSHAKE_FILENAME = "handshake.yaml";
-   public static final String DATA_FILENAME = "robotData.bsz";
+   public static final String DATA_FILENAME = "robotData." + (USE_COMPRESSION ? "bsz" : "bin");
    public static final String MODEL_FILENAME = "model.sdf";
    public static final String MODEL_RESOURCE_BUNDLE = "resources.zip";
    public static final String INDEX_FILENAME = "robotData.dat";
@@ -64,9 +66,9 @@ public class IntraprocessYoVariableLogger
    private ConcurrentRingBuffer<VariableChangedMessage> variableChanged = new ConcurrentRingBuffer<>(new VariableChangedMessage.Builder(),
                                                                                                      CHANGED_BUFFER_CAPACITY);
 
-   public IntraprocessYoVariableLogger(String logName, YoVariableRegistry registry, double dt)
+   public IntraprocessYoVariableLogger(String logName, YoVariableRegistry registry, int maxTicksToRecord, double dt, Path incomingLogsFolder)
    {
-      this(logName, null, registry, null, new YoGraphicsListRegistry(), dt);
+      this(logName, null, registry, null, new YoGraphicsListRegistry(), maxTicksToRecord, dt, incomingLogsFolder);
    }
 
    public IntraprocessYoVariableLogger(String logName,
@@ -108,7 +110,7 @@ public class IntraprocessYoVariableLogger
       LogPropertiesWriter logProperties = new LogPropertiesWriter(createFileInLogFolder(PROPERTY_FILE));
       logProperties.getVariables().setHandshake(HANDSHAKE_FILENAME);
       logProperties.getVariables().setData(DATA_FILENAME);
-      logProperties.getVariables().setCompressed(true);
+      logProperties.getVariables().setCompressed(USE_COMPRESSION);
       logProperties.getVariables().setTimestamped(true);
       logProperties.getVariables().setIndex(INDEX_FILENAME);
       logProperties.getVariables().setHandshakeFileType(HandshakeFileType.IDL_YAML);
@@ -157,7 +159,6 @@ public class IntraprocessYoVariableLogger
          e.printStackTrace();
       }
 
-
       int numberOfJointStates = 0;
       for (int i = 0; i < handshake.getJoints().size(); i++)
       {
@@ -171,7 +172,10 @@ public class IntraprocessYoVariableLogger
       LogTools.info("Number of YoVariables: {}", registry.getNumberOfYoVariables());
       LogTools.info("Number of joint states: {}", numberOfJointStates);
 
-      compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
+      if (USE_COMPRESSION)
+      {
+         compressedBuffer = ByteBuffer.allocate(SnappyUtils.maxCompressedLength(bufferSize));
+      }
       dataBuffer = ByteBuffer.allocate(bufferSize);
       dataBufferAsLong = dataBuffer.asLongBuffer();
       variables = registry.getAllVariables();
@@ -199,7 +203,14 @@ public class IntraprocessYoVariableLogger
    {
       try
       {
+         dataChannel.force(true);
+         indexChannel.force(true);
          dataChannel.close();
+         indexChannel.close();
+      }
+      catch (ClosedChannelException e)
+      {
+         // this is okay, the user probably already called shutdown
       }
       catch (IOException e)
       {
@@ -242,17 +253,27 @@ public class IntraprocessYoVariableLogger
       try
       {
          dataBuffer.clear();
-         compressedBuffer.clear();
-         SnappyUtils.compress(dataBuffer, compressedBuffer);
-         compressedBuffer.flip();
+         if (USE_COMPRESSION)
+         {
+            compressedBuffer.clear();
+            SnappyUtils.compress(dataBuffer, compressedBuffer);
+            compressedBuffer.flip();
+         }
 
          indexBuffer.clear();
          indexBuffer.putLong(timestamp);
-         indexBuffer.putLong(dataChannel.position());
+         indexBuffer.putLong(dataChannel.position()); // <-- could be issue, might need to use compressedBuffer
          indexBuffer.flip();
 
          indexChannel.write(indexBuffer);
-         dataChannel.write(compressedBuffer);
+         if (USE_COMPRESSION)
+         {
+            dataChannel.write(compressedBuffer);
+         }
+         else
+         {
+            dataChannel.write(dataBuffer);
+         }
       }
       catch (IOException e)
       {
