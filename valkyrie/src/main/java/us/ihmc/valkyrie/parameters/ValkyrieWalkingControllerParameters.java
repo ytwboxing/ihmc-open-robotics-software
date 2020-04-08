@@ -119,18 +119,6 @@ public class ValkyrieWalkingControllerParameters extends WalkingControllerParame
    }
    
    @Override
-   public boolean allowUpperBodyMotionDuringLocomotion()
-   {
-      return true;
-   }
-
-   @Override
-   public boolean doPrepareManipulationForLocomotion()
-   {
-      return false;
-   }
-
-   @Override
    public double getMinimumSwingTimeForDisturbanceRecovery()
    {
       return target != RobotTarget.SCS ? 0.70 : 0.30;
