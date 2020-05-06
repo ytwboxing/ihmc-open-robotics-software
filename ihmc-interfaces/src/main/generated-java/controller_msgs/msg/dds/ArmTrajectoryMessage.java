@@ -7,9 +7,12 @@ import java.util.function.Supplier;
 import us.ihmc.pubsub.TopicDataType;
 
 /**
-       * This message is part of the IHMC whole-body controller API.
-       * This message commands the controller to move an arm in jointspace to the desired joint angles while going through the specified trajectory points.
-       */
+   
+ * This message is part of the IHMC whole-body controller API.
+   
+ * This message commands the controller to move an arm in jointspace to the desired joint angles while going through the specified trajectory points.
+   
+ */
 public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage> implements Settable<ArmTrajectoryMessage>, EpsilonComparable<ArmTrajectoryMessage>
 {
 
@@ -18,23 +21,40 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage> implement
    public static final byte ROBOT_SIDE_RIGHT = (byte) 1;
 
    /**
-            * Unique ID used to identify this message, should preferably be consecutively increasing.
-            */
+       
+    * Unique ID used to identify this message, should preferably be consecutively increasing.
+       
+    */
    public long sequence_id_;
 
    /**
-            * Specifies the side of the robot that will execute the trajectory.
-            */
+       
+    * When the robot is walking, restrictions on upper-body motion may be applied.
+       
+    * To by-pass the safety check and force the execution of this message, set this field to true.
+       
+    */
+   public boolean force_execution_;
+
+   /**
+       
+    * Specifies the side of the robot that will execute the trajectory.
+       
+    */
    public byte robot_side_ = (byte) 255;
 
    /**
-            * Trajectories for each joint.
-            * The indexing for the joints goes increasingly from the first shoulder joint to the last arm joint.
-            */
+       
+    * Trajectories for each joint.
+       
+    * The indexing for the joints goes increasingly from the first shoulder joint to the last arm joint.
+       
+    */
    public controller_msgs.msg.dds.JointspaceTrajectoryMessage jointspace_trajectory_;
 
    public ArmTrajectoryMessage()
    {
+
 
 
 
@@ -54,6 +74,9 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage> implement
       sequence_id_ = other.sequence_id_;
 
 
+      force_execution_ = other.force_execution_;
+
+
       robot_side_ = other.robot_side_;
 
 
@@ -62,15 +85,19 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage> implement
 
 
    /**
-            * Unique ID used to identify this message, should preferably be consecutively increasing.
-            */
+       
+    * Unique ID used to identify this message, should preferably be consecutively increasing.
+       
+    */
    public void setSequenceId(long sequence_id)
    {
       sequence_id_ = sequence_id;
    }
    /**
-            * Unique ID used to identify this message, should preferably be consecutively increasing.
-            */
+       
+    * Unique ID used to identify this message, should preferably be consecutively increasing.
+       
+    */
    public long getSequenceId()
    {
       return sequence_id_;
@@ -78,15 +105,43 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage> implement
 
 
    /**
-            * Specifies the side of the robot that will execute the trajectory.
-            */
+       
+    * When the robot is walking, restrictions on upper-body motion may be applied.
+       
+    * To by-pass the safety check and force the execution of this message, set this field to true.
+       
+    */
+   public void setForceExecution(boolean force_execution)
+   {
+      force_execution_ = force_execution;
+   }
+   /**
+       
+    * When the robot is walking, restrictions on upper-body motion may be applied.
+       
+    * To by-pass the safety check and force the execution of this message, set this field to true.
+       
+    */
+   public boolean getForceExecution()
+   {
+      return force_execution_;
+   }
+
+
+   /**
+       
+    * Specifies the side of the robot that will execute the trajectory.
+       
+    */
    public void setRobotSide(byte robot_side)
    {
       robot_side_ = robot_side;
    }
    /**
-            * Specifies the side of the robot that will execute the trajectory.
-            */
+       
+    * Specifies the side of the robot that will execute the trajectory.
+       
+    */
    public byte getRobotSide()
    {
       return robot_side_;
@@ -95,9 +150,12 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage> implement
 
 
    /**
-            * Trajectories for each joint.
-            * The indexing for the joints goes increasingly from the first shoulder joint to the last arm joint.
-            */
+       
+    * Trajectories for each joint.
+       
+    * The indexing for the joints goes increasingly from the first shoulder joint to the last arm joint.
+       
+    */
    public controller_msgs.msg.dds.JointspaceTrajectoryMessage getJointspaceTrajectory()
    {
       return jointspace_trajectory_;
@@ -125,6 +183,9 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage> implement
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.sequence_id_, other.sequence_id_, epsilon)) return false;
 
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsBoolean(this.force_execution_, other.force_execution_, epsilon)) return false;
+
+
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.robot_side_, other.robot_side_, epsilon)) return false;
 
 
@@ -146,6 +207,9 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage> implement
       if(this.sequence_id_ != otherMyClass.sequence_id_) return false;
 
 
+      if(this.force_execution_ != otherMyClass.force_execution_) return false;
+
+
       if(this.robot_side_ != otherMyClass.robot_side_) return false;
 
 
@@ -163,6 +227,9 @@ public class ArmTrajectoryMessage extends Packet<ArmTrajectoryMessage> implement
 
       builder.append("sequence_id=");
       builder.append(this.sequence_id_);      builder.append(", ");
+
+      builder.append("force_execution=");
+      builder.append(this.force_execution_);      builder.append(", ");
 
       builder.append("robot_side=");
       builder.append(this.robot_side_);      builder.append(", ");

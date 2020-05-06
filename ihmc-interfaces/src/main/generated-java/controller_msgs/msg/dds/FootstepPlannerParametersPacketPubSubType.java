@@ -215,6 +215,12 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
       current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
 
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
+
+      current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
+
+
       return current_alignment - initial_alignment;
    }
 
@@ -460,6 +466,14 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
 
 
 
+      current_alignment += 4 + us.ihmc.idl.CDR.alignment(current_alignment, 4);
+
+
+
+      current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
+
+
+
       return current_alignment - initial_alignment;
    }
 
@@ -544,7 +558,7 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
       cdr.write_type_6(data.getMinimumSurfaceInclineRadians());
 
 
-      cdr.write_type_7(data.getWiggleIntoConvexHullOfPlanarRegions());
+      cdr.write_type_7(data.getEnableConcaveHullWiggler());
 
 
       cdr.write_type_7(data.getRejectIfCannotFullyWiggleInside());
@@ -639,6 +653,12 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
 
       cdr.write_type_6(data.getDeltaYawFromReferenceTolerance());
 
+
+      cdr.write_type_2(data.getMaximumBranchFactor());
+
+
+      cdr.write_type_7(data.getEnableExpansionMask());
+
    }
 
    public static void read(controller_msgs.msg.dds.FootstepPlannerParametersPacket data, us.ihmc.idl.CDR cdr)
@@ -722,7 +742,7 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
       data.setMinimumSurfaceInclineRadians(cdr.read_type_6());
       	
 
-      data.setWiggleIntoConvexHullOfPlanarRegions(cdr.read_type_7());
+      data.setEnableConcaveHullWiggler(cdr.read_type_7());
       	
 
       data.setRejectIfCannotFullyWiggleInside(cdr.read_type_7());
@@ -818,6 +838,12 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
       data.setDeltaYawFromReferenceTolerance(cdr.read_type_6());
       	
 
+      data.setMaximumBranchFactor(cdr.read_type_2());
+      	
+
+      data.setEnableExpansionMask(cdr.read_type_7());
+      	
+
    }
 
    @Override
@@ -876,7 +902,7 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
 
       ser.write_type_6("minimum_surface_incline_radians", data.getMinimumSurfaceInclineRadians());
 
-      ser.write_type_7("wiggle_into_convex_hull_of_planar_regions", data.getWiggleIntoConvexHullOfPlanarRegions());
+      ser.write_type_7("enable_concave_hull_wiggler", data.getEnableConcaveHullWiggler());
 
       ser.write_type_7("reject_if_cannot_fully_wiggle_inside", data.getRejectIfCannotFullyWiggleInside());
 
@@ -939,6 +965,10 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
       ser.write_type_6("distance_from_path_tolerance", data.getDistanceFromPathTolerance());
 
       ser.write_type_6("delta_yaw_from_reference_tolerance", data.getDeltaYawFromReferenceTolerance());
+
+      ser.write_type_2("maximum_branch_factor", data.getMaximumBranchFactor());
+
+      ser.write_type_7("enable_expansion_mask", data.getEnableExpansionMask());
    }
 
    @Override
@@ -997,7 +1027,7 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
 
       data.setMinimumSurfaceInclineRadians(ser.read_type_6("minimum_surface_incline_radians"));
 
-      data.setWiggleIntoConvexHullOfPlanarRegions(ser.read_type_7("wiggle_into_convex_hull_of_planar_regions"));
+      data.setEnableConcaveHullWiggler(ser.read_type_7("enable_concave_hull_wiggler"));
 
       data.setRejectIfCannotFullyWiggleInside(ser.read_type_7("reject_if_cannot_fully_wiggle_inside"));
 
@@ -1060,6 +1090,10 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
       data.setDistanceFromPathTolerance(ser.read_type_6("distance_from_path_tolerance"));
 
       data.setDeltaYawFromReferenceTolerance(ser.read_type_6("delta_yaw_from_reference_tolerance"));
+
+      data.setMaximumBranchFactor(ser.read_type_2("maximum_branch_factor"));
+
+      data.setEnableExpansionMask(ser.read_type_7("enable_expansion_mask"));
    }
 
    public static void staticCopy(controller_msgs.msg.dds.FootstepPlannerParametersPacket src, controller_msgs.msg.dds.FootstepPlannerParametersPacket dest)
