@@ -23,6 +23,7 @@ import us.ihmc.humanoidBehaviors.BehaviorInterface;
 import us.ihmc.humanoidBehaviors.tools.BehaviorHelper;
 import us.ihmc.humanoidBehaviors.tools.HumanoidRobotState;
 import us.ihmc.humanoidBehaviors.tools.RemoteHumanoidRobotInterface;
+import us.ihmc.humanoidRobotics.frames.HumanoidReferenceFrames;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.MessagerAPIFactory;
 import us.ihmc.messager.MessagerAPIFactory.Category;
@@ -34,7 +35,7 @@ import us.ihmc.robotics.stateMachine.core.State;
 import us.ihmc.robotics.stateMachine.core.StateMachine;
 import us.ihmc.robotics.stateMachine.extra.EnumBasedStateMachineFactory;
 import us.ihmc.tools.thread.PausablePeriodicThread;
-import us.ihmc.tools.thread.TypedNotification;
+import us.ihmc.commons.thread.TypedNotification;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,7 @@ public class LookAndStepBehavior implements BehaviorInterface
    private final Notification takeStepNotification;
    private final Notification rePlanNotification;
    private final Stopwatch planFailedWait = new Stopwatch();
-   private FramePose3D goalPoseBetweenFeet = null;
+   private final FramePose3D goalPoseBetweenFeet = new FramePose3D();
 
    public LookAndStepBehavior(BehaviorHelper helper)
    {
@@ -139,17 +140,11 @@ public class LookAndStepBehavior implements BehaviorInterface
       initialPoseBetweenFeet.changeFrame(ReferenceFrame.getWorldFrame());
       double midFeetZ = initialPoseBetweenFeet.getZ();
 
-      if (goalPoseBetweenFeet == null)
-      {
-         goalPoseBetweenFeet = new FramePose3D();
-         goalPoseBetweenFeet.setToZero(latestHumanoidRobotState.getPelvisFrame());
-         goalPoseBetweenFeet.changeFrame(ReferenceFrame.getWorldFrame());
-      }
-
-      double trailingBy = goalPoseBetweenFeet.getX() - initialPoseBetweenFeet.getX();
-
-      goalPoseBetweenFeet.appendTranslation(lookAndStepParameters.get(LookAndStepBehaviorParameters.stepLength) - trailingBy, 0.0, 0.0);
+      goalPoseBetweenFeet.setIncludingFrame(robot.quickPollPoseReadOnly(HumanoidReferenceFrames::getPelvisFrame));
       goalPoseBetweenFeet.setZ(midFeetZ);
+      double trailingBy = goalPoseBetweenFeet.getPositionDistance(initialPoseBetweenFeet);
+      goalPoseBetweenFeet.setOrientationYawPitchRoll(lookAndStepParameters.get(LookAndStepBehaviorParameters.direction), 0.0, 0.0);
+      goalPoseBetweenFeet.appendTranslation(lookAndStepParameters.get(LookAndStepBehaviorParameters.stepLength) - trailingBy, 0.0, 0.0);
 
       RobotSide initialStanceFootSide = null;
       FramePose3D initialStanceFootPose = null;
@@ -183,7 +178,6 @@ public class LookAndStepBehavior implements BehaviorInterface
 
       footstepPlannerParameters.setIdealFootstepLength(lookAndStepParameters.get(LookAndStepBehaviorParameters.idealFootstepLengthOverride));
       footstepPlannerParameters.setWiggleInsideDelta(lookAndStepParameters.get(LookAndStepBehaviorParameters.wiggleInsideDeltaOverride));
-      footstepPlannerParameters.setReturnBestEffortPlan(lookAndStepParameters.get(LookAndStepBehaviorParameters.returnBestEffortPlanOverride));
       footstepPlannerParameters.setCliffHeightToAvoid(lookAndStepParameters.get(LookAndStepBehaviorParameters.cliffHeightToAvoidOverride));
 
       footstepPlanningModule.getFootstepPlannerParameters().set(footstepPlannerParameters);
@@ -200,8 +194,9 @@ public class LookAndStepBehavior implements BehaviorInterface
 
    private void footstepPlanningThread(FootstepPlannerRequest footstepPlannerRequest)
    {
+      footstepPlanningModule.addCustomTerminationCondition((plannerTime, iterations, bestPathFinalStep, bestPathSize) -> bestPathSize >= 1);
       FootstepPlannerOutput footstepPlannerOutput = footstepPlanningModule.handleRequest(footstepPlannerRequest);
-      footstepPlannerOutputNotification.add(footstepPlannerOutput);
+      footstepPlannerOutputNotification.set(footstepPlannerOutput);
 
       latestFootstepPlannerOutput.set(footstepPlannerOutput);
 
@@ -214,9 +209,9 @@ public class LookAndStepBehavior implements BehaviorInterface
 
    private LookAndStepBehaviorState transitionFromPlan(double timeInState)
    {
-      if (footstepPlannerOutputNotification.hasNext())
+      if (footstepPlannerOutputNotification.hasValue())
       {
-         if (footstepPlannerOutputNotification.peek().getFootstepPlan().getNumberOfSteps() > 0) // at least 1 footstep
+         if (footstepPlannerOutputNotification.read().getFootstepPlan().getNumberOfSteps() > 0) // at least 1 footstep
          {
             if (operatorReviewEnabledInput.get())
             {
@@ -284,7 +279,7 @@ public class LookAndStepBehavior implements BehaviorInterface
 
    private boolean transitionFromStep(double timeInState)
    {
-      return walkingStatusNotification.hasNext(); // use rea.isRobotWalking?
+      return walkingStatusNotification.hasValue(); // use rea.isRobotWalking?
    }
 
    private void pollInterrupts(double timeInState)

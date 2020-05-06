@@ -7,11 +7,11 @@ import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.footstepPlanning.BodyPathPlanningResult;
 import us.ihmc.footstepPlanning.FootstepPlanHeading;
-import us.ihmc.footstepPlanning.FootstepPlannerStatus;
 import us.ihmc.footstepPlanning.FootstepPlanningResult;
 import us.ihmc.footstepPlanning.graphSearch.graph.FootstepNode;
-import us.ihmc.footstepPlanning.graphSearch.graph.visualization.*;
+import us.ihmc.footstepPlanning.graphSearch.graph.visualization.PlannerOccupancyMap;
 import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParametersReadOnly;
 import us.ihmc.footstepPlanning.log.FootstepPlannerEdgeData;
 import us.ihmc.footstepPlanning.log.FootstepPlannerIterationData;
@@ -21,6 +21,7 @@ import us.ihmc.messager.MessagerAPIFactory.Category;
 import us.ihmc.messager.MessagerAPIFactory.CategoryTheme;
 import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
+import us.ihmc.pathPlanning.DataSet;
 import us.ihmc.pathPlanning.DataSetName;
 import us.ihmc.pathPlanning.graph.structure.GraphEdge;
 import us.ihmc.pathPlanning.visibilityGraphs.dataStructure.VisibilityMapWithNavigableRegion;
@@ -59,7 +60,7 @@ public class FootstepPlannerMessagerAPI
    public static final Topic<Boolean> AutoPostProcess = topic("AutoPostProcess");
    public static final Topic<Boolean> GlobalReset = topic("GlobalReset");
    public static final Topic<Boolean> ComputePath = topic("ComputePath");
-   public static final Topic<Boolean> AbortPlanning = topic("AbortPlanning");
+   public static final Topic<Boolean> HaltPlanning = topic("HaltPlanning");
    public static final Topic<Boolean> PostProcessPlan = topic("PostProcessPlan");
    public static final Topic<Boolean> BindStartToRobot = topic("BindStartToRobot");
 
@@ -135,8 +136,8 @@ public class FootstepPlannerMessagerAPI
    public static final Topic<Quaternion> LowLevelGoalOrientation = topic("LowLevelGoalOrientation");
    public static final Topic<PlannerOccupancyMap> OccupancyMap = topic("OccupancyMap");
    public static final Topic<FootstepPlanningTimingsMessage> PlannerTimings = topic("PlannerTimings");
-   public static final Topic<FootstepPlanningResult> PlanningResult = topic("PlanningResult");
-   public static final Topic<FootstepPlannerStatus> PlannerStatus = topic("PlannerStatus");
+   public static final Topic<BodyPathPlanningResult> BodyPathPlanningResultTopic = topic("BodyPathPlanningResult");
+   public static final Topic<FootstepPlanningResult> FootstepPlanningResultTopic = topic("FootstepPlanningResult");
    public static final Topic<Integer> ReceivedPlanId = topic("ReceivedPlanId");
    public static final Topic<String> PlannerExceptionStackTrace = topic("PlannerExceptionStackTrace");
 
@@ -149,6 +150,10 @@ public class FootstepPlannerMessagerAPI
    public static final Topic<Pair<RigidBodyTransform, ConvexPolygon2D>> parentDebugStep = topic("ParentDebugStep");
    public static final Topic<Pair<RigidBodyTransform, ConvexPolygon2D>> childDebugStep = topic("ChildDebugStep");
    public static final Topic<RigidBodyTransform> idealDebugStep = topic("IdealDebugStep");
+
+   // Test dashboard, only shown if launched from test class
+   public static final Topic<List<DataSet>> testDataSets = topic("testDataSets");
+   public static final Topic<DataSet> testDataSetSelected = topic("testDataSetSelected");
 
    // Walking preview
    public static final Topic<WalkingControllerPreviewInputMessage> RequestWalkingPreview = topic("RequestWalkingPreview");

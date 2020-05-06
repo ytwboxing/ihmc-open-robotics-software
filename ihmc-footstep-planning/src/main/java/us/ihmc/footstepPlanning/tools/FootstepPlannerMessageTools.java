@@ -75,15 +75,13 @@ public class FootstepPlannerMessageTools
       packet.setTranslationScaleFromGrandparentNode(parameters.getTranslationScaleFromGrandparentNode());
       packet.setMinimumFootholdPercent(parameters.getMinimumFootholdPercent());
       packet.setMinimumSurfaceInclineRadians(parameters.getMinimumSurfaceInclineRadians());
-      packet.setWiggleIntoConvexHullOfPlanarRegions(parameters.getWiggleIntoConvexHullOfPlanarRegions());
+      packet.setEnableConcaveHullWiggler(parameters.getEnableConcaveHullWiggler());
       packet.setMaximumXyWiggleDistance(parameters.getMaximumXYWiggleDistance());
       packet.setMaximumYawWiggle(parameters.getMaximumYawWiggle());
       packet.setMaximumZPenetrationOnValleyRegions(parameters.getMaximumZPenetrationOnValleyRegions());
       packet.setMaximumStepWidth(parameters.getMaximumStepWidth());
       packet.setMinimumDistanceFromCliffBottoms(parameters.getMinimumDistanceFromCliffBottoms());
       packet.setCliffHeightToAvoid(parameters.getCliffHeightToAvoid());
-      packet.setReturnBestEffortPlan(parameters.getReturnBestEffortPlan());
-      packet.setMinimumStepsForBestEffortPlan(parameters.getMinimumStepsForBestEffortPlan());
       packet.setBodyBoxHeight(parameters.getBodyBoxHeight());
       packet.setBodyBoxDepth(parameters.getBodyBoxDepth());
       packet.setBodyBoxWidth(parameters.getBodyBoxWidth());
@@ -93,17 +91,10 @@ public class FootstepPlannerMessageTools
       packet.setMinXClearanceFromStance(parameters.getMinXClearanceFromStance());
       packet.setMinYClearanceFromStance(parameters.getMinYClearanceFromStance());
       packet.setFinalTurnProximity(parameters.getFinalTurnProximity());
-      packet.setFinalTurnBodyPathProximity(parameters.getFinalTurnBodyPathProximity());
-      packet.setFinalTurnProximityBlendFactor(parameters.getFinalTurnProximityBlendFactor());
-
-      packet.setUseQuadraticDistanceCost(parameters.useQuadraticDistanceCost());
-      packet.setUseQuadraticHeightCost(parameters.useQuadraticHeightCost());
+      packet.setMaximumBranchFactor(parameters.getMaximumBranchFactor());
+      packet.setEnableExpansionMask(parameters.getEnabledExpansionMask());
 
       packet.setAStarHeuristicsWeight(parameters.getAStarHeuristicsWeight().getValue());
-      packet.setVisGraphWithAStarHeuristicsWeight(parameters.getVisGraphWithAStarHeuristicsWeight().getValue());
-      packet.setDepthFirstHeuristicsWeight(parameters.getDepthFirstHeuristicsWeight().getValue());
-      packet.setBodyPathBasedHeuristicsWeight(parameters.getBodyPathBasedHeuristicsWeight().getValue());
-
       packet.setYawWeight(parameters.getYawWeight());
       packet.setPitchWeight(parameters.getPitchWeight());
       packet.setRollWeight(parameters.getRollWeight());
@@ -112,12 +103,9 @@ public class FootstepPlannerMessageTools
       packet.setForwardWeight(parameters.getForwardWeight());
       packet.setLateralWeight(parameters.getLateralWeight());
       packet.setCostPerStep(parameters.getCostPerStep());
-      packet.setBoundingBoxCost(parameters.getBoundingBoxCost());
       packet.setNumberOfBoundingBoxChecks(parameters.getNumberOfBoundingBoxChecks());
       packet.setMaximum2dDistanceFromBoundingBoxToPenalize(parameters.getMaximum2dDistanceFromBoundingBoxToPenalize());
-      packet.setLongStepWeight(parameters.getLongStepWeight());
       packet.setFootholdAreaWeight(parameters.getFootholdAreaWeight());
-      packet.setBodyPathViolationWeight(parameters.getBodyPathViolationWeight());
       packet.setDistanceFromPathTolerance(parameters.getDistanceFromPathTolerance());
       packet.setDeltaYawFromReferenceTolerance(parameters.getDeltaYawFromReferenceTolerance());
    }

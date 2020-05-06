@@ -5,16 +5,14 @@ import controller_msgs.msg.dds.*;
 import javafx.animation.AnimationTimer;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.SpinnerValueFactory.DoubleSpinnerValueFactory;
-import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.layout.Region;
 import us.ihmc.commons.MathTools;
-import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.footstepPlanning.FootstepPlanHeading;
@@ -70,22 +68,6 @@ public class MainTabController
    @FXML
    private Spinner<Double> horizonLength;
 
-   // status
-   @FXML
-   private TextField sentRequestId;
-   @FXML
-   private TextField receivedRequestId;
-   @FXML
-   private Button viewExceptionButton;
-
-   @FXML
-   private TextField timeTaken;
-   @FXML
-   private TextField iterationsTaken;
-   @FXML
-   private TextField planningResult;
-   @FXML
-   private TextField plannerStatus;
    @FXML
    private ComboBox<DataSetName> dataSetSelector;
    @FXML
@@ -162,7 +144,7 @@ public class MainTabController
       if (verbose)
          LogTools.info("Clicked abort planning...");
 
-      messager.submitMessage(AbortPlanning, true);
+      messager.submitMessage(HaltPlanning, true);
    }
 
    @FXML
@@ -238,7 +220,7 @@ public class MainTabController
    private HumanoidReferenceFrames humanoidReferenceFrames;
    private AtomicReference<FootstepDataListMessage> footstepPlanReference;
    private final ArrayList<List<Point3D>> contactPointHolder = new ArrayList<>();
-   private SideDependentList<ArrayList<Point3D>> defaultContactPoints = new SideDependentList<>();
+   private SideDependentList<List<Point3D>> defaultContactPoints = new SideDependentList<>();
    private final Point3DProperty goalPositionProperty = new Point3DProperty(this, "goalPositionProperty", new Point3D());
    private final YawProperty goalRotationProperty = new YawProperty(this, "goalRotationProperty", 0.0);
 
@@ -247,7 +229,6 @@ public class MainTabController
    public void attachMessager(JavaFXMessager messager)
    {
       this.messager = messager;
-
       currentPlannerRequestId = messager.createInput(FootstepPlannerMessagerAPI.PlannerRequestId, -1);
       footstepPlanReference = messager.createInput(FootstepPlannerMessagerAPI.FootstepPlanResponse, null);
    }
@@ -299,38 +280,11 @@ public class MainTabController
    {
       setupControls();
 
-      // control
-      messager.registerJavaFXSyncedTopicListener(FootstepPlannerMessagerAPI.PlannerRequestId, new TextViewerListener<>(sentRequestId));
-      messager.registerJavaFXSyncedTopicListener(FootstepPlannerMessagerAPI.ReceivedPlanId, new TextViewerListener<>(receivedRequestId));
-      messager.registerJavaFXSyncedTopicListener(FootstepPlannerMessagerAPI.PlanningResult, new TextViewerListener<>(planningResult));
-      messager.registerJavaFXSyncedTopicListener(FootstepPlannerMessagerAPI.PlannerStatus, new TextViewerListener<>(plannerStatus));
-
-      AtomicReference<String> stackTrace = messager.createInput(PlannerExceptionStackTrace, "No stack trace available");
-      viewExceptionButton.setOnAction(e ->
-                                      {
-                                         TextArea textArea = new TextArea(stackTrace.toString());
-                                         textArea.setEditable(false);
-
-                                         Alert alert = new Alert(Alert.AlertType.NONE);
-                                         alert.getButtonTypes().add(ButtonType.CLOSE);
-                                         alert.setHeaderText("Planner Stack Trace");
-                                         alert.setResizable(true);
-                                         alert.getDialogPane().setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-                                         alert.getDialogPane().setContent(textArea);
-                                         alert.show();
-                                      });
-
       messager.bindBidirectional(FootstepPlannerMessagerAPI.AcceptNewPlanarRegions, acceptNewRegions.selectedProperty(), true);
       messager.bindBidirectional(FootstepPlannerMessagerAPI.PlannerTimeout, timeout.getValueFactory().valueProperty(), doubleToDoubleConverter, true);
 
       messager.bindBidirectional(FootstepPlannerMessagerAPI.PlannerHorizonLength, horizonLength.getValueFactory().valueProperty(), doubleToDoubleConverter,
                                  true);
-
-      messager.registerTopicListener(PlannerTimings, timings ->
-      {
-         timeTaken.setText(String.format("%.2f", timings.getTotalElapsedSeconds()));
-         iterationsTaken.setText(Long.toString(timings.getStepPlanningIterations()));
-      });
 
       // set goal
       messager.bindPropertyToTopic(FootstepPlannerMessagerAPI.EditModeEnabled, placeGoal.disableProperty());
@@ -445,13 +399,15 @@ public class MainTabController
       transferTimeSpinner.getValueFactory().setValue(transferTime);
    }
 
-   public void setContactPointParameters(RobotContactPointParameters<RobotSide> contactPointParameters)
+   public void setContactPointParameters(SideDependentList<List<Point2D>> defaultContactPoints)
    {
       for (RobotSide robotSide : RobotSide.values)
       {
-         ArrayList<Point3D> contactPoints = new ArrayList<>(contactPointParameters.getControllerFootGroundContactPoints().get(robotSide).stream()
-                                                                                  .map(p -> new Point3D(p.getX(), p.getY(), 0.0)).collect(Collectors.toList()));
-         defaultContactPoints.put(robotSide, contactPoints);
+         this.defaultContactPoints.put(robotSide,
+                                       defaultContactPoints.get(robotSide)
+                                                           .stream()
+                                                           .map(p -> new Point3D(p.getX(), p.getY(), 0.0))
+                                                           .collect(Collectors.toList()));
       }
    }
 
@@ -515,23 +471,6 @@ public class MainTabController
          return newValue;
       }
    };
-
-   private class TextViewerListener<T> implements TopicListener<T>
-   {
-      private final TextField textField;
-
-      public TextViewerListener(TextField textField)
-      {
-         this.textField = textField;
-      }
-
-      @Override
-      public void receivedMessageForTopic(T messageContent)
-      {
-         if (messageContent != null)
-            textField.promptTextProperty().setValue(messageContent.toString());
-      }
-   }
 
    private class WalkingPreviewPlaybackManager extends AnimationTimer
    {

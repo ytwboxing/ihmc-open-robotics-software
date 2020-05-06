@@ -3,12 +3,12 @@ package us.ihmc.avatar.networkProcessor.kinematicsToolboxModule;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.collision.EuclidFrameShape3DCollisionResult;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.robotics.EuclidCoreMissingTools;
 import us.ihmc.robotics.physics.CollisionResult;
-import us.ihmc.robotics.physics.EuclidFrameShape3DCollisionResult;
 
 public class KinematicsCollisionFrame extends ReferenceFrame
 {
@@ -79,7 +79,7 @@ public class KinematicsCollisionFrame extends ReferenceFrame
       this.origin.changeFrame(getParent());
       this.zAxis.changeFrame(getParent());
 
-      transformToParent.setTranslation(this.origin);
+      transformToParent.getTranslation().set(this.origin);
       EuclidCoreMissingTools.rotationMatrix3DFromZUpToVector3D(this.zAxis, transformToParent.getRotation());
       update();
    }
