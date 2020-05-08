@@ -97,6 +97,8 @@ public class SCSLidarAndCameraSimulator
       if (!SystemUtils.IS_OS_WINDOWS)
          scs.getGUI().getFrame().setSize(AWTTools.getDimensionOfSmallestScreenScaled(2.0 / 3.0));
 
+//      scs.
+
       scs.startOnAThread();
 
       scs.simulate();
@@ -144,5 +146,6 @@ public class SCSLidarAndCameraSimulator
 
       floatingHeadJoint.setPosition(tempNeckFramePose.getPosition());
       floatingHeadJoint.setQuaternion(tempNeckFramePose.getOrientation());
+      floatingHeadJoint.setAcceleration(new Vector3D());
    }
 }

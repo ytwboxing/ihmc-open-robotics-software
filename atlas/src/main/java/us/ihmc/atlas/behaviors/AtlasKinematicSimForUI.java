@@ -20,7 +20,7 @@ import us.ihmc.wholeBodyController.FootContactPoints;
 
 public class AtlasKinematicSimForUI
 {
-   private static boolean SHOW_ROBOT_VIEWER = false;
+   private static boolean SHOW_ROBOT_VIEWER = true;
    private static boolean LOG_TO_FILE = Boolean.parseBoolean(System.getProperty("log.to.file"));
    private static boolean CREATE_YOVARIABLE_SERVER = Boolean.parseBoolean(System.getProperty("create.yovariable.server"));
 
