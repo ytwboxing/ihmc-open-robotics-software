@@ -28,7 +28,9 @@ public class FootstepPlannerParameterKeys
    public static final DoubleStoredPropertyKey  maximumStepXWhenForwardAndDown             = keys.addDoubleKey ("Max step X when forward and down", 0.35);
    public static final DoubleStoredPropertyKey  maximumStepYWhenForwardAndDown             = keys.addDoubleKey ("Max step Y when forward and down", 0.4);
    public static final DoubleStoredPropertyKey  maximumStepZWhenForwardAndDown             = keys.addDoubleKey ("Max step Z when forward and down", 0.1);
-   public static final DoubleStoredPropertyKey wiggleInsideDelta                          = keys.addDoubleKey ("Wiggle inside delta", 0.01);
+   public static final DoubleStoredPropertyKey wiggleInsideDelta                           = keys.addDoubleKey ("Wiggle inside delta", 0.01);
+   public static final DoubleStoredPropertyKey minWiggleInsideDeltaToAccept                = keys.addDoubleKey ("Min wiggle inside delta to accept", -0.05);
+   public static final DoubleStoredPropertyKey wiggleCost                                  = keys.addDoubleKey ("Wiggle cost", 0.25);
    public static final DoubleStoredPropertyKey  maximumStepReachWhenSteppingUp             = keys.addDoubleKey ("Max step reach when stepping up", 0.45);
    public static final DoubleStoredPropertyKey  maximumStepWidthWhenSteppingUp             = keys.addDoubleKey ("Max step width when stepping up", 0.4);
    public static final DoubleStoredPropertyKey  maximumStepZWhenSteppingUp                 = keys.addDoubleKey ("Max step Z when stepping up", Double.POSITIVE_INFINITY);

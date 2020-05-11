@@ -197,8 +197,39 @@ module controller_msgs
      */
     
 
+    @defaultValue(value=-11.1)
 
-    double wiggle_inside_delta;
+        double wiggle_inside_delta;
+
+
+    
+    /**
+    
+     * If wiggle_inside_delta isn't achievable this is the minimum value accepted
+    
+     */
+    
+
+    @defaultValue(value=-11.1)
+
+        double min_wiggle_inside_delta_to_accept;
+
+
+    
+    /**
+    
+     * If wiggle_inside_delta isn't achievable this is the penalization cost applied. If w_des = wiggle_inside_delta
+    
+     * and w_min = min_wiggle_inside_delta_to_accept, and wiggle distance w is achieved, and this multiplier is c_wiggle, the following cost is applied:
+    
+     * c_wiggle * (w_des - w) / (w_des - w_min)
+    
+     */
+    
+
+    @defaultValue(value=-11.1)
+
+        double wiggle_cost;
 
 
     

@@ -22,6 +22,7 @@ public class FootstepPlannerEdgeData
    private double costFromStart = Double.NaN;
    private double edgeCost = Double.POSITIVE_INFINITY;
    private double heuristicCost = Double.NaN;
+   private double achievedWiggleInsideDelta = Double.NaN;
    private boolean solutionEdge = false;
    private int stepIndex = -1;
 
@@ -39,6 +40,7 @@ public class FootstepPlannerEdgeData
       costFromStart = Double.NaN;
       edgeCost = Double.POSITIVE_INFINITY;
       heuristicCost = Double.NaN;
+      achievedWiggleInsideDelta = Double.NaN;
       solutionEdge = false;
       stepIndex = -1;
    }
@@ -58,6 +60,7 @@ public class FootstepPlannerEdgeData
       copy.costFromStart = costFromStart;
       copy.edgeCost = edgeCost;
       copy.heuristicCost = heuristicCost;
+      copy.achievedWiggleInsideDelta = achievedWiggleInsideDelta;
       copy.solutionEdge = solutionEdge;
       copy.stepIndex = stepIndex;
       clear();
@@ -124,6 +127,11 @@ public class FootstepPlannerEdgeData
    public double getHeuristicCost()
    {
       return heuristicCost;
+   }
+
+   public double getAchievedWiggleInsideDelta()
+   {
+      return achievedWiggleInsideDelta;
    }
 
    public boolean getSolutionEdge()
@@ -196,6 +204,11 @@ public class FootstepPlannerEdgeData
    public void setHeuristicCost(double heuristicCost)
    {
       this.heuristicCost = heuristicCost;
+   }
+
+   public void setAchievedWiggleInsideDelta(double achievedWiggleInsideDelta)
+   {
+      this.achievedWiggleInsideDelta = achievedWiggleInsideDelta;
    }
 
    public void setSolutionEdge(boolean solutionEdge)

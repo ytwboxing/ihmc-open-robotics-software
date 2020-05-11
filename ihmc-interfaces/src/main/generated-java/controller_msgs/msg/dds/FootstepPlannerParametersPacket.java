@@ -138,7 +138,25 @@ public class FootstepPlannerParametersPacket extends Packet<FootstepPlannerParam
     * The maximum error between desired and actual foot placement
        
     */
-   public double wiggle_inside_delta_;
+   public double wiggle_inside_delta_ = -11.1;
+
+   /**
+       
+    * If wiggle_inside_delta isn't achievable this is the minimum value accepted
+       
+    */
+   public double min_wiggle_inside_delta_to_accept_ = -11.1;
+
+   /**
+       
+    * If wiggle_inside_delta isn't achievable this is the penalization cost applied. If w_des = wiggle_inside_delta
+       
+    * and w_min = min_wiggle_inside_delta_to_accept, and wiggle distance w is achieved, and this multiplier is c_wiggle, the following cost is applied:
+       
+    * c_wiggle * (w_des - w) / (w_des - w_min)
+       
+    */
+   public double wiggle_cost_ = -11.1;
 
    /**
        
@@ -871,6 +889,8 @@ public class FootstepPlannerParametersPacket extends Packet<FootstepPlannerParam
 
 
 
+
+
    }
 
    public FootstepPlannerParametersPacket(FootstepPlannerParametersPacket other)
@@ -904,6 +924,12 @@ public class FootstepPlannerParametersPacket extends Packet<FootstepPlannerParam
 
 
       wiggle_inside_delta_ = other.wiggle_inside_delta_;
+
+
+      min_wiggle_inside_delta_to_accept_ = other.min_wiggle_inside_delta_to_accept_;
+
+
+      wiggle_cost_ = other.wiggle_cost_;
 
 
       maximum_step_reach_ = other.maximum_step_reach_;
@@ -1267,6 +1293,54 @@ public class FootstepPlannerParametersPacket extends Packet<FootstepPlannerParam
    public double getWiggleInsideDelta()
    {
       return wiggle_inside_delta_;
+   }
+
+
+   /**
+       
+    * If wiggle_inside_delta isn't achievable this is the minimum value accepted
+       
+    */
+   public void setMinWiggleInsideDeltaToAccept(double min_wiggle_inside_delta_to_accept)
+   {
+      min_wiggle_inside_delta_to_accept_ = min_wiggle_inside_delta_to_accept;
+   }
+   /**
+       
+    * If wiggle_inside_delta isn't achievable this is the minimum value accepted
+       
+    */
+   public double getMinWiggleInsideDeltaToAccept()
+   {
+      return min_wiggle_inside_delta_to_accept_;
+   }
+
+
+   /**
+       
+    * If wiggle_inside_delta isn't achievable this is the penalization cost applied. If w_des = wiggle_inside_delta
+       
+    * and w_min = min_wiggle_inside_delta_to_accept, and wiggle distance w is achieved, and this multiplier is c_wiggle, the following cost is applied:
+       
+    * c_wiggle * (w_des - w) / (w_des - w_min)
+       
+    */
+   public void setWiggleCost(double wiggle_cost)
+   {
+      wiggle_cost_ = wiggle_cost;
+   }
+   /**
+       
+    * If wiggle_inside_delta isn't achievable this is the penalization cost applied. If w_des = wiggle_inside_delta
+       
+    * and w_min = min_wiggle_inside_delta_to_accept, and wiggle distance w is achieved, and this multiplier is c_wiggle, the following cost is applied:
+       
+    * c_wiggle * (w_des - w) / (w_des - w_min)
+       
+    */
+   public double getWiggleCost()
+   {
+      return wiggle_cost_;
    }
 
 
@@ -2968,6 +3042,12 @@ public class FootstepPlannerParametersPacket extends Packet<FootstepPlannerParam
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.wiggle_inside_delta_, other.wiggle_inside_delta_, epsilon)) return false;
 
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.min_wiggle_inside_delta_to_accept_, other.min_wiggle_inside_delta_to_accept_, epsilon)) return false;
+
+
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.wiggle_cost_, other.wiggle_cost_, epsilon)) return false;
+
+
       if (!us.ihmc.idl.IDLTools.epsilonEqualsPrimitive(this.maximum_step_reach_, other.maximum_step_reach_, epsilon)) return false;
 
 
@@ -3167,6 +3247,12 @@ public class FootstepPlannerParametersPacket extends Packet<FootstepPlannerParam
       if(this.wiggle_inside_delta_ != otherMyClass.wiggle_inside_delta_) return false;
 
 
+      if(this.min_wiggle_inside_delta_to_accept_ != otherMyClass.min_wiggle_inside_delta_to_accept_) return false;
+
+
+      if(this.wiggle_cost_ != otherMyClass.wiggle_cost_) return false;
+
+
       if(this.maximum_step_reach_ != otherMyClass.maximum_step_reach_) return false;
 
 
@@ -3362,6 +3448,12 @@ public class FootstepPlannerParametersPacket extends Packet<FootstepPlannerParam
 
       builder.append("wiggle_inside_delta=");
       builder.append(this.wiggle_inside_delta_);      builder.append(", ");
+
+      builder.append("min_wiggle_inside_delta_to_accept=");
+      builder.append(this.min_wiggle_inside_delta_to_accept_);      builder.append(", ");
+
+      builder.append("wiggle_cost=");
+      builder.append(this.wiggle_cost_);      builder.append(", ");
 
       builder.append("maximum_step_reach=");
       builder.append(this.maximum_step_reach_);      builder.append(", ");

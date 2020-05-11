@@ -34,7 +34,16 @@ float64 ideal_back_step_length -11.1
 # choose a footstep with an edge along a planar region. This value should roughly be set to the sum of two values:
 #    The smallest acceptable distance to the edge of a cliff
 #    The maximum error between desired and actual foot placement
-float64 wiggle_inside_delta 0.0
+float64 wiggle_inside_delta -11.1
+
+# If wiggle_inside_delta isn't achievable this is the minimum value accepted
+float64 min_wiggle_inside_delta_to_accept -11.1
+
+# If wiggle_inside_delta isn't achievable this is the penalization cost applied. If w_des = wiggle_inside_delta
+# and w_min = min_wiggle_inside_delta_to_accept, and wiggle distance w is achieved, and this multiplier is c_wiggle, the following cost is applied:
+# c_wiggle * (w_des - w) / (w_des - w_min)
+float64 wiggle_cost -11.1
+
 # Maximum xy-distance the planner will consider for candidate steps.
 # Step reach refers to the magnitude of the xy-position of a footstep expressed in its parent's z-up sole frame,
 # where the parent is the last footstep taken on the other foot.

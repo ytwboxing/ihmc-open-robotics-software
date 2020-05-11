@@ -74,6 +74,7 @@ public class FootstepCostCalculator
       cost += Math.abs(pitchOffset * parameters.getPitchWeight());
       cost += Math.abs(rollOffset * parameters.getRollWeight());
 
+      cost += computeWiggleCost();
       cost += computeAreaCost(candidateNode);
       cost += parameters.getCostPerStep();
 
@@ -114,5 +115,22 @@ public class FootstepCostCalculator
       {
          return 0.0;
       }
+   }
+
+   private double computeWiggleCost()
+   {
+      if (parameters.getMinWiggleInsideDeltaToAccept() >= parameters.getWiggleInsideDelta() - 1e-7)
+      {
+         return 0.0;
+      }
+
+      double achievedWiggleInsideDelta = edgeData.getAchievedWiggleInsideDelta();
+      if (Double.isNaN(achievedWiggleInsideDelta) || achievedWiggleInsideDelta >= parameters.getWiggleInsideDelta())
+      {
+         return 0.0;
+      }
+
+      double percentPenalization = (parameters.getWiggleInsideDelta() - achievedWiggleInsideDelta) / (parameters.getWiggleInsideDelta() - parameters.getMinWiggleInsideDeltaToAccept());
+      return parameters.getWiggleCost() * percentPenalization;
    }
 }

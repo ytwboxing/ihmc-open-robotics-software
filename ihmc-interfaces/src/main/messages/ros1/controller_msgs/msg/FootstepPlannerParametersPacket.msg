@@ -245,6 +245,12 @@
 
 
 
+
+
+
+
+
+
 float64 DEFAULT_NO_VALUE=-11.1
 
 
@@ -355,7 +361,37 @@ float64 ideal_back_step_length
 
 
 
+# Field default value -11.1
+
 float64 wiggle_inside_delta
+
+
+
+
+
+# If wiggle_inside_delta isn't achievable this is the minimum value accepted
+
+
+
+# Field default value -11.1
+
+float64 min_wiggle_inside_delta_to_accept
+
+
+
+
+
+# If wiggle_inside_delta isn't achievable this is the penalization cost applied. If w_des = wiggle_inside_delta
+
+# and w_min = min_wiggle_inside_delta_to_accept, and wiggle distance w is achieved, and this multiplier is c_wiggle, the following cost is applied:
+
+# c_wiggle * (w_des - w) / (w_des - w_min)
+
+
+
+# Field default value -11.1
+
+float64 wiggle_cost
 
 
 

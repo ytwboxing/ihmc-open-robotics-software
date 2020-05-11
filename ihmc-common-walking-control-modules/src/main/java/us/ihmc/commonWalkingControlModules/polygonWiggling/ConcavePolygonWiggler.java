@@ -4,7 +4,6 @@ import us.ihmc.commons.MathTools;
 import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.euclid.geometry.interfaces.ConvexPolygon2DReadOnly;
 import us.ihmc.euclid.geometry.interfaces.Vertex2DSupplier;
-import us.ihmc.robotics.EuclidCoreMissingTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
@@ -14,6 +13,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactLineSegment2d;
 import us.ihmc.log.LogTools;
+import us.ihmc.robotics.EuclidCoreMissingTools;
 import us.ihmc.simulationconstructionset.util.TickAndUpdatable;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -21,6 +21,7 @@ import us.ihmc.yoVariables.variable.YoFrameLineSegment2D;
 import us.ihmc.yoVariables.variable.YoFrameVector3D;
 
 import java.awt.*;
+import java.util.List;
 
 public class ConcavePolygonWiggler
 {
@@ -266,6 +267,27 @@ public class ConcavePolygonWiggler
       }
    }
 
+   public static double maximumDistanceFromPerimeter(Vertex2DSupplier constraintPolygon, List<? extends Point2DReadOnly> vertices)
+   {
+      double maxDistance = Double.NEGATIVE_INFINITY;
+      for (int i = 0; i < vertices.size(); i++)
+      {
+         Point2DReadOnly vertex = vertices.get(i);
+         double distance = Math.sqrt(distanceSquaredFromPerimeter(constraintPolygon, vertex, null));
+         if (PointInPolygonSolver.isPointInsidePolygon(constraintPolygon, vertex))
+         {
+            distance *= -1.0;
+         }
+
+         if (distance > maxDistance)
+         {
+            maxDistance = distance;
+         }
+      }
+
+      return maxDistance;
+   }
+
    private static double distanceSquaredFromPerimeter(Vertex2DSupplier polygon, Point2DReadOnly queryPoint, Point2D closestPointToPack)
    {
       double minimumDistanceSquared = Double.MAX_VALUE;
@@ -286,7 +308,8 @@ public class ConcavePolygonWiggler
          if (distanceSquared < minimumDistanceSquared)
          {
             minimumDistanceSquared = distanceSquared;
-            closestPointToPack.set(tempPoint);
+            if (closestPointToPack != null)
+               closestPointToPack.set(tempPoint);
          }
       }
 

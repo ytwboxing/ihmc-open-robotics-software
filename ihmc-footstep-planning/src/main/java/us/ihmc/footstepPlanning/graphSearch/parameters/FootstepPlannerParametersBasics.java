@@ -118,6 +118,16 @@ public interface FootstepPlannerParametersBasics extends FootstepPlannerParamete
       set(FootstepPlannerParameterKeys.wiggleInsideDelta, wiggleInsideDelta);
    }
 
+   default void setMinWiggleInsideDeltaToAccept(double minWiggleInsideDeltaToAccept)
+   {
+      set(FootstepPlannerParameterKeys.minWiggleInsideDeltaToAccept, minWiggleInsideDeltaToAccept);
+   }
+
+   default void setWiggleCost(double wiggleCost)
+   {
+      set(FootstepPlannerParameterKeys.wiggleCost, wiggleCost);
+   }
+
    default void setMaximumStepZWhenSteppingUp(double maxStepZ)
    {
       set(FootstepPlannerParameterKeys.maximumStepZWhenSteppingUp, maxStepZ);

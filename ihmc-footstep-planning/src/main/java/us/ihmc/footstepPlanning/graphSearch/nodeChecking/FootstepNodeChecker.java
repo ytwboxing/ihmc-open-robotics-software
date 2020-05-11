@@ -1,6 +1,8 @@
 package us.ihmc.footstepPlanning.graphSearch.nodeChecking;
 
+import us.ihmc.commonWalkingControlModules.polygonWiggling.ConcavePolygonWiggler;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.geometry.interfaces.Vertex2DSupplier;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.footstepPlanning.graphSearch.collision.BodyCollisionData;
 import us.ihmc.footstepPlanning.graphSearch.collision.FootstepNodeBodyCollisionDetector;
@@ -11,10 +13,12 @@ import us.ihmc.footstepPlanning.graphSearch.graph.FootstepNodeTools;
 import us.ihmc.footstepPlanning.graphSearch.graph.visualization.BipedalFootstepPlannerNodeRejectionReason;
 import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParametersReadOnly;
 import us.ihmc.footstepPlanning.log.FootstepPlannerEdgeData;
+import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
 import us.ihmc.robotics.robotSide.SideDependentList;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 public class FootstepNodeChecker
@@ -106,6 +110,12 @@ public class FootstepNodeChecker
          return BipedalFootstepPlannerNodeRejectionReason.NOT_ENOUGH_AREA;
       }
 
+      // Check wiggle threshold achieved
+      if (parameters.getWiggleWhilePlanning() && !isWiggleConstraintSatisfied(candidateNode, snapData))
+      {
+         return BipedalFootstepPlannerNodeRejectionReason.MIN_WIGGLE_DELTA_NOT_MET;
+      }
+
       // Check for ankle collision
       cliffAvoider.setPlanarRegionsList(planarRegionsList);
       if(!cliffAvoider.isNodeValid(candidateNode))
@@ -151,6 +161,32 @@ public class FootstepNodeChecker
      }
 
       return null;
+   }
+
+   private final RigidBodyTransform tempTransform = new RigidBodyTransform();
+   private final ConvexPolygon2D wiggledPolygonInRegionFrame = new ConvexPolygon2D();
+
+   private boolean isWiggleConstraintSatisfied(FootstepNode footstepNode, FootstepNodeSnapData snapData)
+   {
+      PlanarRegion planarRegion = planarRegionsList.getRegionWithId(snapData.getPlanarRegionId());
+      if (planarRegion == null)
+      {
+         return true;
+      }
+
+      snapData.packSnapAndWiggleTransform(tempTransform);
+      wiggledPolygonInRegionFrame.set(footPolygons.get(footstepNode.getRobotSide()));
+      wiggledPolygonInRegionFrame.applyTransform(tempTransform, false);
+      wiggledPolygonInRegionFrame.applyTransform(planarRegion.getTransformToLocal(), false);
+
+      boolean usingConcaveHull = parameters.getEnableConcaveHullWiggler() && !planarRegion.getConcaveHull().isEmpty();
+      Vertex2DSupplier constraintPolyon = usingConcaveHull ? Vertex2DSupplier.asVertex2DSupplier(planarRegion.getConcaveHull()) : planarRegion.getConvexHull();
+
+      // flip sign since wiggle inside delta sign is positive inside the polygon
+      double achievedWiggleInsideDelta = -1.0 * ConcavePolygonWiggler.maximumDistanceFromPerimeter(constraintPolyon, wiggledPolygonInRegionFrame.getVertexBufferView());
+      edgeData.setAchievedWiggleInsideDelta(achievedWiggleInsideDelta);
+
+      return achievedWiggleInsideDelta > parameters.getMinWiggleInsideDeltaToAccept();
    }
 
    private boolean boundingBoxCollisionDetected(FootstepNode candidateNode, FootstepNode stanceNode)

@@ -119,6 +119,12 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
       current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
 
 
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
 
 
@@ -249,6 +255,14 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
 
 
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
+
+
+
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
+
+
+
+      current_alignment += 8 + us.ihmc.idl.CDR.alignment(current_alignment, 8);
 
 
 
@@ -518,6 +532,12 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
       cdr.write_type_6(data.getWiggleInsideDelta());
 
 
+      cdr.write_type_6(data.getMinWiggleInsideDeltaToAccept());
+
+
+      cdr.write_type_6(data.getWiggleCost());
+
+
       cdr.write_type_6(data.getMaximumStepReach());
 
 
@@ -708,6 +728,12 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
       data.setWiggleInsideDelta(cdr.read_type_6());
       	
 
+      data.setMinWiggleInsideDeltaToAccept(cdr.read_type_6());
+      	
+
+      data.setWiggleCost(cdr.read_type_6());
+      	
+
       data.setMaximumStepReach(cdr.read_type_6());
       	
 
@@ -892,6 +918,10 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
 
       ser.write_type_6("wiggle_inside_delta", data.getWiggleInsideDelta());
 
+      ser.write_type_6("min_wiggle_inside_delta_to_accept", data.getMinWiggleInsideDeltaToAccept());
+
+      ser.write_type_6("wiggle_cost", data.getWiggleCost());
+
       ser.write_type_6("maximum_step_reach", data.getMaximumStepReach());
 
       ser.write_type_6("maximum_step_yaw", data.getMaximumStepYaw());
@@ -1020,6 +1050,10 @@ public class FootstepPlannerParametersPacketPubSubType implements us.ihmc.pubsub
       data.setIdealBackStepLength(ser.read_type_6("ideal_back_step_length"));
 
       data.setWiggleInsideDelta(ser.read_type_6("wiggle_inside_delta"));
+
+      data.setMinWiggleInsideDeltaToAccept(ser.read_type_6("min_wiggle_inside_delta_to_accept"));
+
+      data.setWiggleCost(ser.read_type_6("wiggle_cost"));
 
       data.setMaximumStepReach(ser.read_type_6("maximum_step_reach"));
 

@@ -81,6 +81,25 @@ public interface FootstepPlannerParametersReadOnly extends StoredPropertySetRead
    }
 
    /**
+    * If {@link #getWiggleInsideDelta()} isn't achievable this is the minimum value accepted
+    */
+   default double getMinWiggleInsideDeltaToAccept()
+   {
+      return get(minWiggleInsideDeltaToAccept);
+   }
+
+   /**
+    * If {@link #getWiggleInsideDelta()} isn't achievable this is the penalization cost applied. If w_des = wiggleInsideDelta
+    * and w_min = minWiggleInsideDeltaToAccept, and wiggle distance w is acheived, and this multiplier is c_wiggle, the following cost is applied:
+    *
+    * c_wiggle * (w_des - w) / (w_des - w_min)
+    */
+   default double getWiggleCost()
+   {
+      return get(wiggleCost);
+   }
+
+   /**
     * Maximum xy-distance the planner will consider for candidate steps.
     *
     * <p>

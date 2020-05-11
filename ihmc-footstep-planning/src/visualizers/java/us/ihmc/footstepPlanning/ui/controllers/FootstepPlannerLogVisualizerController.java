@@ -1,6 +1,7 @@
 package us.ihmc.footstepPlanning.ui.controllers;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
@@ -63,9 +64,9 @@ public class FootstepPlannerLogVisualizerController
    private final AtomicBoolean loadingLog = new AtomicBoolean();
 
    @FXML
-   private TableView debugParentStepTable;
+   private TableView stanceStepTable;
    @FXML
-   private TableView debugChildStepTable;
+   private TableView candidateStepTable;
 
    @FXML
    private Button reset;
@@ -90,15 +91,15 @@ public class FootstepPlannerLogVisualizerController
 
    public void onPrimaryStageLoaded()
    {
-      parentColumnHolder = new TableColumnHolder(debugParentStepTable, true);
-      childColumnHolder = new TableColumnHolder(debugChildStepTable, false);
+      parentColumnHolder = new TableColumnHolder(stanceStepTable, true);
+      childColumnHolder = new TableColumnHolder(candidateStepTable, false);
 
       parentTableItems.clear();
-      debugParentStepTable.setItems(parentTableItems);
+      stanceStepTable.setItems(parentTableItems);
       childTableItems.clear();
-      debugChildStepTable.setItems(childTableItems);
+      candidateStepTable.setItems(childTableItems);
 
-      Pane header = (Pane) debugParentStepTable.lookup("TableHeaderRow");
+      Pane header = (Pane) stanceStepTable.lookup("TableHeaderRow");
       if (header.isVisible())
       {
          header.setMaxHeight(0);
@@ -107,7 +108,7 @@ public class FootstepPlannerLogVisualizerController
          header.setVisible(false);
       }
 
-      debugChildStepTable.setRowFactory(tableValue ->
+      candidateStepTable.setRowFactory(tableValue ->
                                         {
                                            TableRow<ChildStepProperty> row = new TableRow<>();
                                            row.setOnMouseClicked(event ->
@@ -124,7 +125,7 @@ public class FootstepPlannerLogVisualizerController
                                            return row;
                                         });
 
-      debugParentStepTable.setRowFactory(tableValue ->
+      stanceStepTable.setRowFactory(tableValue ->
                                          {
                                             TableRow<ParentStepProperty> row = new TableRow<>();
                                             row.setOnMouseClicked(event ->
@@ -135,7 +136,7 @@ public class FootstepPlannerLogVisualizerController
                                             return row;
                                          });
 
-      debugParentStepTable.addEventFilter(ScrollEvent.ANY, Event::consume);
+      stanceStepTable.addEventFilter(ScrollEvent.ANY, Event::consume);
    }
 
    public void setContactPointParameters(SideDependentList<List<Point2D>> defaultContactPoints)
@@ -325,30 +326,31 @@ public class FootstepPlannerLogVisualizerController
       ParentStepProperty stepProperty = new ParentStepProperty(iterationData);
       parentTableItems.add(stepProperty);
 
-      debugChildStepTable.getSortOrder().clear();
-      debugChildStepTable.getSortOrder().add(childColumnHolder.solutionStep);
+      candidateStepTable.getSortOrder().clear();
+      candidateStepTable.getSortOrder().add(childColumnHolder.solutionStep);
       childColumnHolder.solutionStep.setSortType(TableColumn.SortType.DESCENDING);
-      debugChildStepTable.getSortOrder().add(childColumnHolder.totalCostColumn);
+      candidateStepTable.getSortOrder().add(childColumnHolder.totalCostColumn);
       childColumnHolder.totalCostColumn.setSortType(TableColumn.SortType.ASCENDING);
-      debugChildStepTable.sort();
+      candidateStepTable.sort();
 
-      messager.submitMessage(FootstepPlannerMessagerAPI.parentDebugStep, Pair.of(stepProperty.transform, stepProperty.snapData.getCroppedFoothold()));
-      messager.submitMessage(FootstepPlannerMessagerAPI.idealDebugStep, stepProperty.idealStepTransform);
+      messager.submitMessage(FootstepPlannerMessagerAPI.LoggedStanceStepToVisualize, Pair.of(stepProperty.snappedNodeTransform, stepProperty.snapData.getCroppedFoothold()));
+      messager.submitMessage(FootstepPlannerMessagerAPI.LoggedIdealStep, stepProperty.idealStepTransform);
 
-      debugChildStepTable.getSelectionModel().selectedItemProperty().addListener((observer, oldValue, newValue) ->
-                                                                                 {
-                                                                                    if (newValue != null)
-                                                                                    {
-                                                                                       ChildStepProperty property = (ChildStepProperty) newValue;
-                                                                                       messager.submitMessage(FootstepPlannerMessagerAPI.childDebugStep,
-                                                                                                              Pair.of(property.transform,
-                                                                                                                      property.edgeData.getCandidateNodeSnapData().getCroppedFoothold()));
-                                                                                       selectedRow.set(property);
-                                                                                    }
-                                                                                 });
+      candidateStepTable.getSelectionModel().selectedItemProperty().addListener(onStepSelected());
+      candidateStepTable.getSelectionModel().select(0);
+      candidateStepTable.getFocusModel().focus(0);
+   }
 
-      debugChildStepTable.getSelectionModel().select(0);
-      debugChildStepTable.getFocusModel().focus(0);
+   private ChangeListener<ChildStepProperty> onStepSelected()
+   {
+      return (observer, oldValue, newValue) ->
+      {
+         if (newValue != null)
+         {
+            messager.submitMessage(FootstepPlannerMessagerAPI.LoggedCandidateStepToVisualize, newValue.edgeData);
+            selectedRow.set(newValue);
+         }
+      };
    }
 
    public void stepInto()
@@ -389,6 +391,7 @@ public class FootstepPlannerLogVisualizerController
       private final TableColumn<ChildStepProperty, String> reachColumn = new TableColumn<>("Reach");
       private final TableColumn<ChildStepProperty, String> stepYawColumn = new TableColumn<>("dYaw");
       private final TableColumn<ChildStepProperty, String> areaPercentageColumn = new TableColumn<>("Area %");
+      private final TableColumn<ChildStepProperty, String> deltaInsideColumn = new TableColumn<>("Δ Inside");
       private final TableColumn<ChildStepProperty, String> edgeCostColumn = new TableColumn<>("Edge Cost");
       private final TableColumn<ChildStepProperty, String> heuristicCostColumn = new TableColumn<>("Heuristic Cost");
       private final TableColumn<ChildStepProperty, String> totalCostColumn = new TableColumn<>("Total Cost");
@@ -411,6 +414,7 @@ public class FootstepPlannerLogVisualizerController
          reachColumn.setCellValueFactory(new PropertyValueFactory<>("reach"));
          stepYawColumn.setCellValueFactory(new PropertyValueFactory<>("stepYaw"));
          areaPercentageColumn.setCellValueFactory(new PropertyValueFactory<>("areaPercentage"));
+         deltaInsideColumn.setCellValueFactory(new PropertyValueFactory<>("deltaInside"));
          edgeCostColumn.setCellValueFactory(new PropertyValueFactory<>("edgeCost"));
          heuristicCostColumn.setCellValueFactory(new PropertyValueFactory<>("heuristicCost"));
          totalCostColumn.setCellValueFactory(new PropertyValueFactory<>("totalCost"));
@@ -436,6 +440,7 @@ public class FootstepPlannerLogVisualizerController
             table.getColumns().add(areaPercentageColumn);
             table.getColumns().add(edgeCostColumn);
             table.getColumns().add(heuristicCostColumn);
+            table.getColumns().add(deltaInsideColumn);
             table.getColumns().add(totalCostColumn);
             table.getColumns().add(rejectionReasonColumn);
             table.getColumns().add(expandedColumn);
@@ -457,6 +462,7 @@ public class FootstepPlannerLogVisualizerController
          areaPercentageColumn.setPrefWidth(60);
          edgeCostColumn.setPrefWidth(80);
          heuristicCostColumn.setPrefWidth(80);
+         deltaInsideColumn.setPrefWidth(80);
          totalCostColumn.setPrefWidth(110);
          rejectionReasonColumn.setPrefWidth(200);
          expandedColumn.setPrefWidth(80);
@@ -468,21 +474,24 @@ public class FootstepPlannerLogVisualizerController
    {
       private final FootstepNode stanceNode;
       private final FootstepNodeSnapData snapData;
-      private final RigidBodyTransform transform = new RigidBodyTransform();
+      private final RigidBodyTransform snappedNodeTransform = new RigidBodyTransform();
       private final RigidBodyTransform idealStepTransform = new RigidBodyTransform();
+      private final RigidBodyTransform snapAndWiggleTransform = new RigidBodyTransform();
 
       public ParentStepProperty(FootstepPlannerIterationData iterationData)
       {
          this.stanceNode = iterationData.getStanceNode();
          this.snapData = iterationData.getStanceNodeSnapData();
-         FootstepNodeTools.getSnappedNodeTransform(stanceNode, snapData.getSnapTransform(), transform);
+
+         snapData.packSnapAndWiggleTransform(snapAndWiggleTransform);
+         FootstepNodeTools.getSnappedNodeTransform(stanceNode, snapAndWiggleTransform, snappedNodeTransform);
 
          FootstepNode idealStep = iterationData.getIdealStep();
          FootstepNodeSnapData idealStepSnapData = snapper.snapFootstepNode(idealStep);
          if(idealStepSnapData == null || idealStepSnapData.getSnapTransform().containsNaN())
          {
             FootstepNodeTools.getNodeTransform(idealStep, idealStepTransform);
-            idealStepTransform.getTranslation().setZ(transform.getTranslationZ());
+            idealStepTransform.getTranslation().setZ(snappedNodeTransform.getTranslationZ());
          }
          else
          {
@@ -497,39 +506,40 @@ public class FootstepPlannerLogVisualizerController
 
       public String getX()
       {
-         return doubleFormat.format(transform.getTranslationX());
+         return doubleFormat.format(snappedNodeTransform.getTranslationX());
       }
 
       public String getY()
       {
-         return doubleFormat.format(transform.getTranslationY());
+         return doubleFormat.format(snappedNodeTransform.getTranslationY());
       }
 
       public String getZ()
       {
-         return doubleFormat.format(transform.getTranslationZ());
+         return doubleFormat.format(snappedNodeTransform.getTranslationZ());
       }
 
       public String getYaw()
       {
-         return doubleFormat.format(transform.getRotation().getYaw());
+         return doubleFormat.format(snappedNodeTransform.getRotation().getYaw());
       }
 
       public String getPitch()
       {
-         return doubleFormat.format(transform.getRotation().getPitch());
+         return doubleFormat.format(snappedNodeTransform.getRotation().getPitch());
       }
 
       public String getRoll()
       {
-         return doubleFormat.format(transform.getRotation().getRoll());
+         return doubleFormat.format(snappedNodeTransform.getRotation().getRoll());
       }
    }
 
    public class ChildStepProperty
    {
       private final FootstepPlannerEdgeData edgeData;
-      private final RigidBodyTransform transform = new RigidBodyTransform();
+      private final RigidBodyTransform snappedNodeTransform = new RigidBodyTransform();
+      private final RigidBodyTransform snapAndWiggledNodeTransform = new RigidBodyTransform();
       private final boolean expanded;
       private final double stepYaw;
 
@@ -542,15 +552,17 @@ public class FootstepPlannerLogVisualizerController
          FootstepNode candidateNode = edgeData.getCandidateNode();
          FootstepNode stanceNode = edgeData.getStanceNode();
 
-         if (edgeData.getCandidateNodeSnapData().getSnapTransform().containsNaN())
+         stepYaw = candidateNode.getRobotSide().negateIfLeftSide(AngleTools.computeAngleDifferenceMinusPiToPi(candidateNode.getYaw(), stanceNode.getYaw()));
+         FootstepNodeSnapData snapData = edgeData.getCandidateNodeSnapData();
+         if (snapData.getWiggleTransformInWorld().containsNaN())
          {
-            FootstepNodeTools.getSnappedNodeTransform(candidateNode, new RigidBodyTransform(), transform);
-            stepYaw = Double.NaN;
+            snapAndWiggledNodeTransform.set(snappedNodeTransform);
          }
          else
          {
-            FootstepNodeTools.getSnappedNodeTransform(candidateNode, edgeData.getCandidateNodeSnapData().getSnapTransform(), transform);
-            stepYaw = candidateNode.getRobotSide().negateIfLeftSide(AngleTools.computeAngleDifferenceMinusPiToPi(candidateNode.getYaw(), stanceNode.getYaw()));
+            RigidBodyTransform snapAndWiggleTransform = new RigidBodyTransform();
+            snapData.packSnapAndWiggleTransform(snapAndWiggleTransform);
+            FootstepNodeTools.getSnappedNodeTransform(candidateNode, snapAndWiggleTransform, snapAndWiggledNodeTransform);
          }
       }
 
@@ -561,32 +573,32 @@ public class FootstepPlannerLogVisualizerController
 
       public String getX()
       {
-         return doubleFormat.format(transform.getTranslationX());
+         return doubleFormat.format(snappedNodeTransform.getTranslationX());
       }
 
       public String getY()
       {
-         return doubleFormat.format(transform.getTranslationY());
+         return doubleFormat.format(snappedNodeTransform.getTranslationY());
       }
 
       public String getZ()
       {
-         return doubleFormat.format(transform.getTranslationZ());
+         return doubleFormat.format(snappedNodeTransform.getTranslationZ());
       }
 
       public String getYaw()
       {
-         return doubleFormat.format(transform.getRotation().getYaw());
+         return doubleFormat.format(snappedNodeTransform.getRotation().getYaw());
       }
 
       public String getPitch()
       {
-         return doubleFormat.format(transform.getRotation().getPitch());
+         return doubleFormat.format(snappedNodeTransform.getRotation().getPitch());
       }
 
       public String getRoll()
       {
-         return doubleFormat.format(transform.getRotation().getRoll());
+         return doubleFormat.format(snappedNodeTransform.getRotation().getRoll());
       }
 
       public String getWidth()
@@ -627,6 +639,11 @@ public class FootstepPlannerLogVisualizerController
       public String getHeuristicCost()
       {
          return doubleFormat.format(edgeData.getHeuristicCost());
+      }
+
+      public String getDeltaInside()
+      {
+         return doubleFormat.format(edgeData.getAchievedWiggleInsideDelta());
       }
 
       public String getTotalCost()
