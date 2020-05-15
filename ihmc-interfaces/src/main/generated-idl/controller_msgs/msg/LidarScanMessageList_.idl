@@ -1,0 +1,38 @@
+
+
+
+#ifndef __controller_msgs__msg__LidarScanMessageList__idl__
+#define __controller_msgs__msg__LidarScanMessageList__idl__
+
+
+
+#include "controller_msgs/msg/./LidarScanMessage_.idl"
+
+
+module controller_msgs
+{
+  module msg
+  {
+    module dds
+    {
+
+   
+   @TypeCode(type="controller_msgs::msg::dds_::LidarScanMessageList_")
+      struct LidarScanMessageList
+      {
+
+
+    
+
+
+    sequence<controller_msgs::msg::dds::LidarScanMessage, 500> messages;
+
+
+
+      };
+
+    };
+  };
+};
+
+#endif

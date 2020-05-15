@@ -1,0 +1,1 @@
+LidarScanMessage[<=500] messages
