@@ -712,22 +712,26 @@ public class RemoteFootstepPlannerUIMessagingTest
       assertEquals("Max step z isn't equal.", parameters.getMaximumStepZ(), packet.getMaximumStepZ(), epsilon);
       assertEquals("Min foothold percent aren't equal.", parameters.getMinimumFootholdPercent(), packet.getMinimumFootholdPercent(), epsilon);
       assertEquals("Min surface incline aren't equal.", parameters.getMinimumSurfaceInclineRadians(), packet.getMinimumSurfaceInclineRadians(), epsilon);
-      assertEquals("Wiggle into convex hull isn't equal.", parameters.getEnableConcaveHullWiggler(),
-                   packet.getEnableConcaveHullWiggler());
+      assertEquals("Wiggle while planning isn't equal.", parameters.getWiggleWhilePlanning(), packet.getWiggleWhilePlanning());
+      assertEquals("Wiggle into convex hull isn't equal.", parameters.getEnableConcaveHullWiggler(), packet.getEnableConcaveHullWiggler());
       assertEquals("Max XY wiggle distance isn't equal.", parameters.getMaximumXYWiggleDistance(), packet.getMaximumXyWiggleDistance(), epsilon);
       assertEquals("Max yaw wiggle isn't equal.", parameters.getMaximumYawWiggle(), packet.getMaximumYawWiggle(), epsilon);
       assertEquals("Max Z penetration isn't equal.", parameters.getMaximumZPenetrationOnValleyRegions(), packet.getMaximumZPenetrationOnValleyRegions(),
                    epsilon);
       assertEquals("Max step width isn't equal.", parameters.getMaximumStepWidth(), packet.getMaximumStepWidth(), epsilon);
-      assertEquals("Cliff height to avoid isn't equal.", parameters.getCliffHeightToAvoid(), packet.getCliffHeightToAvoid(), epsilon);
+      assertEquals("Cliff base height to avoid isn't equal.", parameters.getCliffBaseHeightToAvoid(), packet.getCliffBaseHeightToAvoid(), epsilon);
       assertEquals("Minimum distance from cliff bottoms isn't equal.", parameters.getMinimumDistanceFromCliffBottoms(),
                    packet.getMinimumDistanceFromCliffBottoms(), epsilon);
+      assertEquals("Cliff top height to avoid isn't equal.", parameters.getCliffTopHeightToAvoid(), packet.getCliffTopHeightToAvoid(), epsilon);
+      assertEquals("Minimum distance from cliff tops isn't equal.", parameters.getMinimumDistanceFromCliffTops(),
+                   packet.getMinimumDistanceFromCliffTops(), epsilon);
       assertEquals("Body box heigth isn't equal.", parameters.getBodyBoxHeight(), packet.getBodyBoxHeight(), epsilon);
       assertEquals("Body box depth isn't equal.", parameters.getBodyBoxDepth(), packet.getBodyBoxDepth(), epsilon);
       assertEquals("Body box width isn't equal.", parameters.getBodyBoxWidth(), packet.getBodyBoxWidth(), epsilon);
       assertEquals("Body box base X isn't equal.", parameters.getBodyBoxBaseX(), packet.getBodyBoxBaseX(), epsilon);
       assertEquals("Body box base Y isn't equal.", parameters.getBodyBoxBaseY(), packet.getBodyBoxBaseY(), epsilon);
       assertEquals("Body box base Z isn't equal.", parameters.getBodyBoxBaseZ(), packet.getBodyBoxBaseZ(), epsilon);
+      assertEquals("Maximum snap height isn't equal", parameters.getMaximumSnapHeight(), packet.getMaximumSnapHeight(), epsilon);
       assertEquals("Min X clearance from stance isn't equal.", parameters.getMinXClearanceFromStance(), packet.getMinXClearanceFromStance(), epsilon);
       assertEquals("Min Y clearance from stance isn't equal.", parameters.getMinYClearanceFromStance(), packet.getMinYClearanceFromStance(), epsilon);
 

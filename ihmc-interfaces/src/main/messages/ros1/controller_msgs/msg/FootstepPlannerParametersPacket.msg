@@ -239,6 +239,18 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 float64 DEFAULT_NO_VALUE=-11.1
 
 
@@ -745,6 +757,18 @@ float64 minimum_surface_incline_radians
 
 
 
+# The wiggler can either run as a post-processor on a resulting plan or on each candidate step while planning.
+
+# If true, this wiggles each candidate step, which will slow down plan times but resulting plans will be guarunteed to match step constraints.
+
+
+
+bool wiggle_while_planning
+
+
+
+
+
 # There are two solvers for wiggling the step, one constrains to the region's convex hull and the other to the region's concave hull,
 
 # this toggles between them.
@@ -859,7 +883,7 @@ float64 maximum_step_width
 
 # Field default value -11.1
 
-float64 cliff_height_to_avoid
+float64 cliff_base_height_to_avoid
 
 
 
@@ -867,7 +891,7 @@ float64 cliff_height_to_avoid
 
 # The planner can be setup to avoid footsteps near the bottom of "cliffs". When the footstep has a planar region
 
-# nearby that is {@link #getCliffHeightToAvoid} higher than the candidate footstep, it will move away from it
+# nearby that is {@link #getCliffBaseHeightToAvoid} higher than the candidate footstep, it will move away from it
 
 # until it is minimumDistanceFromCliffBottoms away from it.
 
@@ -884,6 +908,54 @@ float64 cliff_height_to_avoid
 # Field default value -11.1
 
 float64 minimum_distance_from_cliff_bottoms
+
+
+
+
+
+# The planner can be setup to avoid footsteps near the top of "cliffs". When the footstep has a planar region
+
+# nearby that is cliffHeightToShiftAwayFrom higher than the candidate footstep, it will move away from it
+
+# until it is minimumDistanceFromCliffTops away from it.
+
+# 
+
+# If these values are set to zero, cliff avoidance will be turned off. This creates a risk that the robot will
+
+# hit the cliff with its swing foot. Therefore, these parameters should be set according to what the swing trajectory
+
+# generator is capable of swinging over.
+
+
+
+# Field default value -11.1
+
+float64 cliff_top_height_to_avoid
+
+
+
+
+
+# The planner can be setup to avoid footsteps near the top of "cliffs". When the footstep has a planar region
+
+# nearby that is {@link #getCliffTopHeightToAvoid} higher than the candidate footstep, it will move away from it
+
+# until it is minimumDistanceFromCliffBottoms away from it.
+
+# 
+
+# If these values are set to zero, cliff avoidance will be turned off. This creates a risk that the robot will
+
+# hit the cliff with its swing foot. Therefore, these parameters should be set according to what the swing trajectory
+
+# generator is capable of swinging over.
+
+
+
+# Field default value -11.1
+
+float64 minimum_distance_from_cliff_tops
 
 
 
@@ -980,6 +1052,20 @@ float64 body_box_base_y
 # Field default value -11.1
 
 float64 body_box_base_z
+
+
+
+
+
+# Maximum height above a stance step that a candidate step is snapped to. Regions above this height are ignored.
+
+# Intended to avoid ceilings or obstacles that are above the top of the robot
+
+
+
+# Field default value -11.1
+
+float64 maximum_snap_height
 
 
 
