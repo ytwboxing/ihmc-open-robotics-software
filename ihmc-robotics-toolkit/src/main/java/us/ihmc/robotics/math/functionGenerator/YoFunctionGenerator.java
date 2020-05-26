@@ -36,7 +36,8 @@ public class YoFunctionGenerator
 
    private final Random random = new Random(1776L);
 
-   private final YoDouble value, offset, amplitude, frequency, phase, resetTime, pauseTime, chirpRate, chirpFrequency, chirpFrequencyMax;
+   private final YoDouble value, offset, amplitude, frequency, phase;
+   private final YoDouble increasingAmplitude, increasingFrequency, increasingPhase, resetTime, pauseTime, chirpRate, chirpFrequency, chirpFrequencyMax;
    private final YoDouble valueDot;
    private final FilteredVelocityYoVariable valueDotFromFilter;
 
@@ -59,8 +60,8 @@ public class YoFunctionGenerator
    private boolean smoothParameters = false;
 
    private boolean modeChanged;
-   private final AlphaFilteredYoVariable offsetFiltered, amplitudeFiltered;
-   private final YoDouble frequencyFiltered, phaseFiltered;
+   private final AlphaFilteredYoVariable offsetFiltered, amplitudeFiltered, increasingAmplitudeFiltered;
+   private final YoDouble frequencyFiltered, phaseFiltered, increasingFrequencyFiltered, increasingPhaseFiltered;
    private final YoDouble alphaFilter;
 
    public YoFunctionGenerator(String name, YoVariableRegistry registry)
@@ -99,6 +100,10 @@ public class YoFunctionGenerator
       frequency = new YoDouble(name + "Freq", registry);
       phase = new YoDouble(name + "Phase", registry);
 
+      increasingAmplitude = new YoDouble(name + "IncreaseAmp", registry);
+      increasingFrequency = new YoDouble(name + "IncreaseFreq",registry);
+      increasingPhase = new YoDouble(name + "IncreasePhase", registry);
+
       alphaFilter = new YoDouble("alphaFilter", registry);
       if (!smoothParameters)
          alphaFilter.set(0.0);
@@ -110,6 +115,10 @@ public class YoFunctionGenerator
 
       frequencyFiltered = new YoDouble("frequencyFiltered", registry);
       phaseFiltered = new YoDouble("phaseFiltered", registry);
+
+      increasingAmplitudeFiltered = new AlphaFilteredYoVariable("increasingAmplitudeFiltered", registry, alphaFilter, amplitude);
+      increasingFrequencyFiltered = new YoDouble("increasingFrequencyFiltered",registry);
+      increasingPhaseFiltered = new YoDouble("increasingPhaseFiltered",registry);
 
       pauseTime = new YoDouble(name + "PauseTime", registry);
       resetTime = new YoDouble(name + "ResetTime", registry);
@@ -186,6 +195,14 @@ public class YoFunctionGenerator
       return amplitude.getDoubleValue();
    }
 
+   public void setIncreasingAmplitude(double increasingAmplitude){
+      this.increasingAmplitude.set(increasingAmplitude);
+   }
+
+   public double getIncreasingAmplitude(){
+      return increasingAmplitude.getDoubleValue();
+   }
+
    public void setFrequencyWithContinuousOutput(double frequency)
    {
       setPhase(getPhase() + TWO_PI * (getFrequency() - frequency) * timeInCurrentMode.getDoubleValue());
@@ -200,6 +217,14 @@ public class YoFunctionGenerator
    public double getFrequency()
    {
       return frequency.getDoubleValue();
+   }
+
+   public void setIncreasingFrequency(double increasingFrequency){
+      this.increasingFrequency.set(increasingFrequency);
+   }
+
+   public double getIncreasingFrequency(){
+      return increasingFrequency.getDoubleValue();
    }
 
    public void setChirpFrequencyMaxHz(double frequencyHz)
@@ -220,6 +245,14 @@ public class YoFunctionGenerator
    public double getPhase()
    {
       return phase.getDoubleValue();
+   }
+
+   public void setIncreasingPhase(double increasingPhase){
+      this.increasingPhase.set(increasingPhase);
+   }
+
+   public double getIncreasingPhase(){
+      return increasingPhase.getDoubleValue();
    }
 
    public void setMode(YoFunctionGeneratorMode mode)
@@ -351,6 +384,26 @@ public class YoFunctionGenerator
          break;
       }
 
+      case INCREASINGSINE:
+      {
+         value.set(offsetFiltered.getDoubleValue() + amplitudeFiltered.getDoubleValue() * Math.sin(
+               TWO_PI * frequencyFiltered.getDoubleValue() * timeInCurrentMode.getDoubleValue() + phaseFiltered.getDoubleValue())
+                                                     * increasingAmplitudeFiltered.getDoubleValue() * Math.sin(
+               TWO_PI * increasingFrequencyFiltered.getDoubleValue() * timeInCurrentMode.getDoubleValue() + increasingPhaseFiltered.getDoubleValue()));
+
+         valueDot.set(TWO_PI * amplitudeFiltered.getDoubleValue() * increasingAmplitudeFiltered.getDoubleValue() * (
+               increasingFrequencyFiltered.getDoubleValue() * Math.sin(TWO_PI * frequencyFiltered.getDoubleValue() * timeInCurrentMode.getDoubleValue() + phaseFiltered.getDoubleValue()) * Math.cos(
+                     TWO_PI * increasingFrequencyFiltered.getDoubleValue() * timeInCurrentMode.getDoubleValue() + increasingPhaseFiltered.getDoubleValue())
+               + frequencyFiltered.getDoubleValue() * Math.cos(TWO_PI * frequencyFiltered.getDoubleValue() * timeInCurrentMode.getDoubleValue() + phaseFiltered.getDoubleValue()) * Math.sin(
+                     TWO_PI * increasingFrequencyFiltered.getDoubleValue() * timeInCurrentMode.getDoubleValue() + increasingPhaseFiltered.getDoubleValue())));
+         if (valueDotFromFilter != null)
+         {
+            valueDotFromFilter.update();
+         }
+
+         break;
+      }
+
       case CHIRP_LINEAR:
       {
          verifyChirpParametersAreInRange();
@@ -371,7 +424,7 @@ public class YoFunctionGenerator
             previousChirpFrequency = chirpFrequencyMax.getDoubleValue();
             previousChirpUpAndDown = chirpUpAndDown.getBooleanValue();
             chirpRate.set(chirpFrequencyMax.getDoubleValue() / resetTime.getDoubleValue());
-            
+
          }
 
          if (resetTime.getDoubleValue() < MIN_LINEAR_SWEEP_TIME)
@@ -550,7 +603,7 @@ public class YoFunctionGenerator
                - amplitudeFiltered.getDoubleValue() + offsetFiltered.getDoubleValue());
          valueDot.set(-1 * Math.signum((timeInCurrentMode.getDoubleValue() % (2 * p) - p))
                * Math.abs(2 * amplitudeFiltered.getDoubleValue() / ((1 / frequencyFiltered.getDoubleValue()) / 2)));
-         
+
          // update velocity also inside the numerical derivative computer for comparison purpose
          signalDerivative.getDerivative(value.getDoubleValue(), timeInCurrentMode.getDoubleValue());
 
@@ -600,11 +653,14 @@ public class YoFunctionGenerator
    {
       offsetFiltered.update();
       amplitudeFiltered.update();
+      increasingAmplitudeFiltered.update();
 
       if (!smoothParameters)
       {
          frequencyFiltered.set(frequency.getDoubleValue());
          phaseFiltered.set(phase.getDoubleValue());
+         increasingFrequencyFiltered.set(increasingFrequency.getDoubleValue());
+         increasingPhaseFiltered.set(increasingPhase.getDoubleValue());
       }
       else
       {
@@ -613,6 +669,12 @@ public class YoFunctionGenerator
          {
             frequencyFiltered.set(frequency.getDoubleValue());
             phaseFiltered.set(phase.getDoubleValue());
+         }
+         if(Math.abs(Math.sin(TWO_PI * increasingFrequencyFiltered.getDoubleValue()
+                              * timeInCurrentMode.getDoubleValue() + increasingPhaseFiltered.getDoubleValue())) < 0.01)
+         {
+            increasingFrequencyFiltered.set(increasingFrequency.getDoubleValue());
+            increasingPhaseFiltered.set(increasingPhase.getDoubleValue());
          }
       }
    }
@@ -723,7 +785,7 @@ public class YoFunctionGenerator
    {
       this.alphaFilter.set(alpha);
    }
-   
+
    /**
     * Reset the smoothed variables to desired values immediately
     */
@@ -731,7 +793,7 @@ public class YoFunctionGenerator
    {
       offsetFiltered.reset();
       amplitudeFiltered.reset();
-      
+
       frequencyFiltered.set(frequency.getValue());
       phaseFiltered.set(phase.getValue());
 

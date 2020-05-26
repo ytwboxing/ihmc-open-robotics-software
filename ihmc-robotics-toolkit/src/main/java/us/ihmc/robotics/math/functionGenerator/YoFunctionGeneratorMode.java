@@ -12,4 +12,4 @@ package us.ihmc.robotics.math.functionGenerator;
  * @author not attributable
  * @version 1.0
  */
-public enum YoFunctionGeneratorMode {OFF, SINE, CHIRP_LINEAR, SQUARE, SAWTOOTH, TRIANGLE, WHITE_NOISE, DC, CHIRP_EXPONENTIAL}
+public enum YoFunctionGeneratorMode {OFF, SINE, INCREASINGSINE, CHIRP_LINEAR, SQUARE, SAWTOOTH, TRIANGLE, WHITE_NOISE, DC, CHIRP_EXPONENTIAL}
