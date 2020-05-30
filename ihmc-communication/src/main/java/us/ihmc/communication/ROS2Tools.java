@@ -100,7 +100,7 @@ public class ROS2Tools
 
    public static <T> ROS2Topic<T> typeNamedTopic(Class<T> messageType)
    {
-      return new ROS2Topic<>(messageType, NAMED_BY_TYPE);
+      return new ROS2Topic<>().withType(messageType);
    }
 
    public static <T> ROS2Topic<T> typeNamedTopic(Class<T> messageType, ROS2Topic<?> topicName)
