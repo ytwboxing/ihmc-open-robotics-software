@@ -1,7 +1,5 @@
 package us.ihmc.robotEnvironmentAwareness.slam;
 
-import java.util.List;
-
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
@@ -15,7 +13,11 @@ public interface SLAMInterface
 
    abstract void clear();
 
+<<<<<<< HEAD
    abstract List<RigidBodyTransformReadOnly> getSensorPoses();
+=======
+   abstract PlanarRegionsList getPlanarRegionsMap();
+>>>>>>> c12a8c7feaf... Tested surfel icp.
 
    /**
     * if this frame is detected as a key frame, return new RigidBodyTransform(); if this frame needs

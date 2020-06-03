@@ -30,7 +30,10 @@ public class RandomICPSLAM extends SLAMBasics
    public Point3D[] correctedSourcePointsToWorld;
 
    private final AtomicReference<RandomICPSLAMParameters> parameters = new AtomicReference<>(new RandomICPSLAMParameters());
+<<<<<<< HEAD
    private final AtomicBoolean enableNormalEstimation = new AtomicBoolean(true);
+=======
+>>>>>>> c12a8c7feaf... Tested surfel icp.
 
    private final GradientDescentModule optimizer;
    private static final double OPTIMIZER_POSITION_LIMIT = 0.1;
@@ -87,6 +90,7 @@ public class RandomICPSLAM extends SLAMBasics
       octree.setNormalEstimationParameters(normalEstimationParameters);
    }
 
+<<<<<<< HEAD
    private void insertNewPointCloud(SLAMFrame frame)
    {
       Point3DReadOnly[] pointCloud = frame.getPointCloud();
@@ -140,6 +144,8 @@ public class RandomICPSLAM extends SLAMBasics
       return success;
    }
 
+=======
+>>>>>>> c12a8c7feaf... Tested surfel icp.
    @Override
    public RigidBodyTransformReadOnly computeFrameCorrectionTransformer(SLAMFrame frame)
    {

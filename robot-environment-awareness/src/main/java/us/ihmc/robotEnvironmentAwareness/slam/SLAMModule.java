@@ -223,6 +223,7 @@ public class SLAMModule
    protected void dequeue()
    {
       pointCloudQueue.removeFirst();
+<<<<<<< HEAD
    }
 
    protected void publishResults()
@@ -230,6 +231,12 @@ public class SLAMModule
       String stringToReport = "";
       reaMessager.submitMessage(SLAMModuleAPI.QueuedBuffers, pointCloudQueue.size() + " [" + slam.getSensorPoses().size() + "]");
       stringToReport = stringToReport + " " + slam.getSensorPoses().size() + " " + slam.getComputationTimeForLatestFrame() + " (sec) ";
+=======
+      stationaryFlagQueue.removeFirst();
+      reasonableVelocityFlagQueue.removeFirst();
+      reaMessager.submitMessage(SLAMModuleAPI.QueuedBuffers, pointCloudQueue.size() + " [" + slam.getMapSize() + "]");
+      stringToReport = stringToReport + success + " " + slam.getMapSize() + " " + slam.getComputationTimeForLatestFrame() + " (sec) ";
+>>>>>>> c12a8c7feaf... Tested surfel icp.
       reaMessager.submitMessage(SLAMModuleAPI.SLAMStatus, stringToReport);
 
       NormalOcTree octreeMap = slam.getOctree();
