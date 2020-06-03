@@ -52,10 +52,15 @@ public class SLAMModule
    private final AtomicReference<StereoVisionPointCloudMessage> newPointCloud = new AtomicReference<>(null);
    protected final LinkedList<StereoVisionPointCloudMessage> pointCloudQueue = new LinkedList<>();
 
+<<<<<<< HEAD
    private final AtomicReference<RandomICPSLAMParameters> slamParameters;
    private final AtomicReference<NormalEstimationParameters> normalEstimationParameters;
    private final AtomicReference<Boolean> enableNormalEstimation;
    private final AtomicReference<Boolean> clearNormals;
+=======
+   //private final RandomICPSLAM slam = new RandomICPSLAM(DEFAULT_OCTREE_RESOLUTION);
+   private final SurfaceElementICPSLAM slam = new SurfaceElementICPSLAM(DEFAULT_OCTREE_RESOLUTION);
+>>>>>>> 9c5dd62fd96... Before test on Atlas.
 
    protected final RandomICPSLAM slam = new RandomICPSLAM(DEFAULT_OCTREE_RESOLUTION);
 
@@ -261,7 +266,55 @@ public class SLAMModule
 
       for (OcTreeConsumer ocTreeConsumer : ocTreeConsumers)
       {
+<<<<<<< HEAD
          ocTreeConsumer.reportOcTree(octreeMap, slam.getLatestFrame().getSensorPose().getTranslation());
+=======
+         NormalOcTree octreeMap = slam.getOctree();
+         NormalOcTreeMessage octreeMessage = OcTreeMessageConverter.convertToMessage(octreeMap);
+         reaMessager.submitMessage(SLAMModuleAPI.SLAMOctreeMapState, octreeMessage);
+
+         slam.updatePlanarRegionsMap();
+         PlanarRegionsList planarRegionsMap = slam.getPlanarRegionsMap();
+         PlanarRegionsListMessage planarRegionsListMessage = PlanarRegionMessageConverter.convertToPlanarRegionsListMessage(planarRegionsMap);
+         reaMessager.submitMessage(planarRegionsStateTopicToSubmit, planarRegionsListMessage);
+         planarRegionPublisher.publish(planarRegionsListMessage);
+
+         SLAMFrame latestFrame = slam.getLatestFrame();
+         Point3DReadOnly[] originalPointCloud = latestFrame.getOriginalPointCloud();
+         Point3DReadOnly[] correctedPointCloud = latestFrame.getPointCloud();
+         //Point3DReadOnly[] sourcePointsToWorld = slam.getSourcePointsToWorldLatestFrame();
+         Point3DReadOnly[] sourcePointsToWorld = null;
+         if (originalPointCloud == null || sourcePointsToWorld == null || correctedPointCloud == null)
+            return;
+         StereoVisionPointCloudMessage latestStereoMessage = createLatestFrameStereoVisionPointCloudMessage(originalPointCloud,
+                                                                                                            sourcePointsToWorld,
+                                                                                                            correctedPointCloud);
+         RigidBodyTransformReadOnly sensorPose = latestFrame.getSensorPose();
+         latestStereoMessage.getSensorPosition().set(sensorPose.getTranslation());
+         latestStereoMessage.getSensorOrientation().set(sensorPose.getRotation());
+         reaMessager.submitMessage(SLAMModuleAPI.IhmcSLAMFrameState, latestStereoMessage);
+         reaMessager.submitMessage(SLAMModuleAPI.LatestFrameConfidenceFactor, latestFrame.getConfidenceFactor());
+
+         if (estimatedPelvisPublisher != null)
+         {
+            StampedPosePacket posePacket = new StampedPosePacket();
+            posePacket.setTimestamp(latestRobotTimeStamp.get());
+            int maximumBufferOfQueue = 10;
+            if (pointCloudQueue.size() >= maximumBufferOfQueue)
+            {
+               posePacket.setConfidenceFactor(0.0);
+            }
+            else
+            {
+               posePacket.setConfidenceFactor(latestFrame.getConfidenceFactor());
+            }
+            RigidBodyTransform estimatedPelvisPose = new RigidBodyTransform(sensorPoseToPelvisTransformer);
+            estimatedPelvisPose.preMultiply(sensorPose);
+            posePacket.getPose().set(estimatedPelvisPose);
+            reaMessager.submitMessage(SLAMModuleAPI.CustomizedFrameState, posePacket);
+            estimatedPelvisPublisher.publish(posePacket);
+         }
+>>>>>>> 9c5dd62fd96... Before test on Atlas.
       }
    }
 
@@ -308,8 +361,13 @@ public class SLAMModule
 
    private void updateSLAMParameters()
    {
+<<<<<<< HEAD
       RandomICPSLAMParameters parameters = slamParameters.get();
       slam.updateParameters(parameters);
+=======
+      RandomICPSLAMParameters parameters = ihmcSLAMParameters.get();
+      //slam.updateParameters(parameters);
+>>>>>>> 9c5dd62fd96... Before test on Atlas.
    }
 
    public void clearSLAM()
