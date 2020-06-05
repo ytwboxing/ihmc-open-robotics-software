@@ -50,6 +50,7 @@ public class SLAMModule
    protected final AtomicReference<Boolean> enable;
 
    private final AtomicReference<StereoVisionPointCloudMessage> newPointCloud = new AtomicReference<>(null);
+<<<<<<< HEAD
    protected final LinkedList<StereoVisionPointCloudMessage> pointCloudQueue = new LinkedList<>();
 
 <<<<<<< HEAD
@@ -59,6 +60,12 @@ public class SLAMModule
    private final AtomicReference<Boolean> clearNormals;
 =======
    //private final RandomICPSLAM slam = new RandomICPSLAM(DEFAULT_OCTREE_RESOLUTION);
+=======
+   private final LinkedList<StereoVisionPointCloudMessage> pointCloudQueue = new LinkedList<StereoVisionPointCloudMessage>();
+   private final LinkedList<Boolean> stationaryFlagQueue = new LinkedList<Boolean>();
+   private final LinkedList<Boolean> reasonableVelocityFlagQueue = new LinkedList<Boolean>();
+
+>>>>>>> 50756f09dce... Fixed number of thread.
    private final SurfaceElementICPSLAM slam = new SurfaceElementICPSLAM(DEFAULT_OCTREE_RESOLUTION);
 >>>>>>> 9c5dd62fd96... Before test on Atlas.
 
