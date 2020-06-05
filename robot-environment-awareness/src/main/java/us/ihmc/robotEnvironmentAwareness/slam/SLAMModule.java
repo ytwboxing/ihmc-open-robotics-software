@@ -65,11 +65,15 @@ public class SLAMModule
    private final LinkedList<Boolean> stationaryFlagQueue = new LinkedList<Boolean>();
    private final LinkedList<Boolean> reasonableVelocityFlagQueue = new LinkedList<Boolean>();
 
+<<<<<<< HEAD
 >>>>>>> 50756f09dce... Fixed number of thread.
    private final SurfaceElementICPSLAM slam = new SurfaceElementICPSLAM(DEFAULT_OCTREE_RESOLUTION);
 >>>>>>> 9c5dd62fd96... Before test on Atlas.
 
    protected final RandomICPSLAM slam = new RandomICPSLAM(DEFAULT_OCTREE_RESOLUTION);
+=======
+   private final SLAMBasics slam = new SurfaceElementICPSLAM(DEFAULT_OCTREE_RESOLUTION);
+>>>>>>> 236236afe8f... Clean up.
 
    private ScheduledExecutorService executorService = ExecutorServiceTools.newScheduledThreadPool(2, getClass(), ExceptionHandling.CATCH_AND_REPORT);
    private static final int THREAD_PERIOD_MILLISECONDS = 1;
