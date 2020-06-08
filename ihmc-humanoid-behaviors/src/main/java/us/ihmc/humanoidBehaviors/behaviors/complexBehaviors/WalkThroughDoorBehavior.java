@@ -1,11 +1,6 @@
 package us.ihmc.humanoidBehaviors.behaviors.complexBehaviors;
 
-import controller_msgs.msg.dds.ArmTrajectoryMessage;
-import controller_msgs.msg.dds.DoorLocationPacket;
-import controller_msgs.msg.dds.FootstepDataListMessage;
-import controller_msgs.msg.dds.FootstepDataMessage;
-import controller_msgs.msg.dds.HandDesiredConfigurationMessage;
-import controller_msgs.msg.dds.HeadTrajectoryMessage;
+import controller_msgs.msg.dds.*;
 import us.ihmc.communication.IHMCROS2Publisher;
 import us.ihmc.communication.packets.PacketDestination;
 import us.ihmc.euclid.axisAngle.AxisAngle;
@@ -127,7 +122,7 @@ public class WalkThroughDoorBehavior extends StateMachineBehavior<WalkThroughDoo
       openDoorBehavior = new OpenDoorBehavior(robotName, yoNamePrefix, yoTime, ros2Node, atlasPrimitiveActions, doorOpenDetectorBehaviorService,
                                               yoGraphicsListRegistry);
       resetRobotBehavior = new ResetRobotBehavior(robotName, ros2Node, yoTime);
-      doorToBehaviorPublisher = createBehaviorPublisher(DoorLocationPacket.class);
+      doorToBehaviorPublisher = createPublisher(DoorLocationPacket.class, behaviorInputTopic);
       doorToUIPublisher = createBehaviorPublisher(DoorLocationPacket.class);
       
 
