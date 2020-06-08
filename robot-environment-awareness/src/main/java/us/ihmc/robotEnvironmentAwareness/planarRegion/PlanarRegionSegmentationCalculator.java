@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
@@ -50,7 +51,6 @@ public class PlanarRegionSegmentationCalculator
       regionsNodeData = regionsNodeData.stream().filter(region -> region.getNumberOfNodes() > parameters.getMinRegionSize()).collect(Collectors.toList());
 
       Set<NormalOcTreeNode> nodeSet = new HashSet<>();
-      nodeSet.clear();
       new OcTreeIterable<>(root, leafInBoundingBoxWithNormalSetRule(boundingBox)).forEach(nodeSet::add);
       nodeSet.removeAll(allRegionNodes);
 
@@ -180,7 +180,7 @@ public class PlanarRegionSegmentationCalculator
       }
 
       return regionToNavigate.nodeStream().filter(node -> otherRegion.distanceFromBoundingBox(node) < searchRadiusSquared)
-                             .filter(node -> isNodeInOtherRegionNeighborhood(root, node, otherRegion, searchRadius)).findFirst().isPresent();
+                             .anyMatch(node -> isNodeInOtherRegionNeighborhood(root, node, otherRegion, searchRadius));
    }
 
    public static boolean isNodeInOtherRegionNeighborhood(NormalOcTreeNode root, NormalOcTreeNode nodeFromOneRegion,
@@ -253,11 +253,12 @@ public class PlanarRegionSegmentationCalculator
    {
       double searchRadius = parameters.getSearchRadius();
 
-      Deque<NormalOcTreeNode> nodesToExplore = new ArrayDeque<>();
       Set<NormalOcTreeNode> newSetToExplore = new HashSet<>();
 
       NeighborActionRule<NormalOcTreeNode> extendSearchRule = neighborNode -> recordCandidatesForRegion(neighborNode, ocTreeNodePlanarRegion, newSetToExplore,
                                                                                                         boundingBox, parameters);
+
+      Stream<NormalOcTreeNode> nodeStream;
       if (surfaceNormalFilterParameters.isUseSurfaceNormalFilter())
       {
          double surfaceNormalLowerBound = surfaceNormalFilterParameters.getSurfaceNormalLowerBound();
@@ -265,22 +266,22 @@ public class PlanarRegionSegmentationCalculator
          double lowerBound = Math.cos(surfaceNormalLowerBound) * Math.signum(surfaceNormalLowerBound);
          double upperBound = Math.cos(surfaceNormalUpperBound) * Math.signum(surfaceNormalUpperBound);
 
-         ocTreeNodePlanarRegion.nodeStream() // TODO This should be in parallel, but the previous lambda makes threads share data which is no good.
+         nodeStream = ocTreeNodePlanarRegion.nodeStream() // TODO This should be in parallel, but the previous lambda makes threads share data which is no good.
                                .filter(node -> isNodeInBoundingBox(node, boundingBox)
-                                     && isNodeSurfaceNormalInBoundary(node, estimatedSensorPosition, lowerBound, upperBound))
-                               .forEach(regionNode -> OcTreeNearestNeighborTools.findRadiusNeighbors(root, regionNode, searchRadius, extendSearchRule));
+                                     && isNodeSurfaceNormalInBoundary(node, estimatedSensorPosition, lowerBound, upperBound));
       }
       else
       {
-         ocTreeNodePlanarRegion.nodeStream() // TODO This should be in parallel, but the previous lambda makes threads share data which is no good.
-                               .filter(node -> isNodeInBoundingBox(node, boundingBox))
-                               .forEach(regionNode -> OcTreeNearestNeighborTools.findRadiusNeighbors(root, regionNode, searchRadius, extendSearchRule));
+         nodeStream = ocTreeNodePlanarRegion.nodeStream() // TODO This should be in parallel, but the previous lambda makes threads share data which is no good.
+                               .filter(node -> isNodeInBoundingBox(node, boundingBox));
       }
-      nodesToExplore.addAll(newSetToExplore);
+      nodeStream.forEach(regionNode -> OcTreeNearestNeighborTools.findRadiusNeighbors(root, regionNode, searchRadius, extendSearchRule));
+      Deque<NormalOcTreeNode> nodesToExplore = new ArrayDeque<>(newSetToExplore);
 
       while (!nodesToExplore.isEmpty())
       {
          NormalOcTreeNode currentNode = nodesToExplore.poll();
+         // Update the region normal based on the weighted average of the node's normals.
          if (!ocTreeNodePlanarRegion.addNode(currentNode)) // TODO This updates the region normal based on the average of the nodes' normals, can very likely be improved.
             continue;
          allRegionNodes.add(currentNode);

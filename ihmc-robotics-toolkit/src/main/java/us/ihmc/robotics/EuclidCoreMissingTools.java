@@ -5,13 +5,16 @@ import static us.ihmc.euclid.tools.EuclidCoreTools.normSquared;
 
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.Axis3D;
+import us.ihmc.euclid.geometry.interfaces.BoundingBox3DReadOnly;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.matrix.interfaces.CommonMatrix3DBasics;
 import us.ihmc.euclid.orientation.interfaces.Orientation3DBasics;
+import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DBasics;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
@@ -19,6 +22,47 @@ import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 
 public class EuclidCoreMissingTools
 {
+   public static double distanceToBoundingBox3D(double x, double y, double z, BoundingBox3DReadOnly boundingBox3D)
+   {
+      return Math.sqrt(distanceSquaredToBoundingBox3D(x, y, z, boundingBox3D));
+   }
+
+   public static double distanceToBoundingBox3D(Point3DReadOnly point, BoundingBox3DReadOnly boundingBox3D)
+   {
+      return Math.sqrt(distanceSquaredToBoundingBox3D(point, boundingBox3D));
+   }
+
+   public static double distanceSquaredToBoundingBox3D(Point3DReadOnly point, BoundingBox3DReadOnly boundingBox3D)
+   {
+      return distanceSquaredToBoundingBox3D(point.getX(), point.getY(), point.getZ(), boundingBox3D);
+   }
+
+   public static double distanceSquaredToBoundingBox3D(double x, double y, double z, BoundingBox3DReadOnly boundingBox3D)
+   {
+      if (boundingBox3D.isInsideExclusive(x, y, z))
+         return 0.0;
+
+      Point3DReadOnly min = boundingBox3D.getMinPoint();
+      Point3DReadOnly max = boundingBox3D.getMaxPoint();
+
+      double dx = EuclidCoreTools.max(min.getX() - x, 0.0, x - max.getX());
+      double dy = EuclidCoreTools.max(min.getY() - y, 0.0, y - max.getY());
+      double dz = EuclidCoreTools.max(min.getZ() - z, 0.0, z - max.getZ());
+      return dx * dx + dy * dy + dz * dz;
+   }
+
+   public static double distanceSquaredBetweenTwoBoundingBox3Ds(BoundingBox3DReadOnly boundingBox1, BoundingBox3DReadOnly boundingBox2)
+   {
+      return distanceSquaredBetweenTwoBoundingBox3Ds(boundingBox1.getMinPoint(), boundingBox1.getMaxPoint(), boundingBox2.getMinPoint(), boundingBox2.getMaxPoint());
+   }
+
+   public static double distanceSquaredBetweenTwoBoundingBox3Ds(Point3DReadOnly min1, Point3DReadOnly max1, Point3DReadOnly min2, Point3DReadOnly max2)
+   {
+      double dx = EuclidCoreTools.max(min1.getX() - max2.getX(), 0.0, min2.getX() - max1.getX());
+      double dy = EuclidCoreTools.max(min1.getY() - max2.getY(), 0.0, min2.getY() - max1.getY());
+      double dz = EuclidCoreTools.max(min1.getZ() - max2.getZ(), 0.0, min2.getZ() - max1.getZ());
+      return dx * dx + dy * dy + dz * dz;
+   }
 
    public static void floorToGivenPrecision(Tuple3DBasics tuple3d, double precision)
    {

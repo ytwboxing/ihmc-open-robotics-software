@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import us.ihmc.euclid.geometry.BoundingBox2D;
+import us.ihmc.euclid.geometry.BoundingBox3D;
+import us.ihmc.euclid.geometry.interfaces.BoundingBox3DReadOnly;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -20,6 +23,7 @@ import us.ihmc.jOctoMap.node.NormalOcTreeNode;
 import us.ihmc.robotEnvironmentAwareness.geometry.PointMean;
 import us.ihmc.robotEnvironmentAwareness.geometry.REAGeometryTools;
 import us.ihmc.robotEnvironmentAwareness.geometry.VectorMean;
+import us.ihmc.robotics.EuclidCoreMissingTools;
 import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.linearAlgebra.PrincipalComponentAnalysis3D;
 
@@ -33,11 +37,9 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
    private final Vector3D standardDeviationPrincipalValues = new Vector3D();
    private final Vector3D temporaryVector = new Vector3D();
 
-   private final Point3D min = new Point3D(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
-   private final Point3D max = new Point3D(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
-
    private final List<NormalOcTreeNode> nodes = new ArrayList<>();
    private final Set<NormalOcTreeNode> nodeSet = new HashSet<>();
+   private final BoundingBox3D boundingBox = new BoundingBox3D();
 
    public PlanarRegionSegmentationNodeData(int id)
    {
@@ -64,12 +66,12 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
 
    public boolean addNodes(Collection<NormalOcTreeNode> nodes)
    {
-      return nodes.stream().filter(this::addNode).findFirst().isPresent();
+      return nodes.stream().anyMatch(this::addNode);
    }
 
    public boolean addNodesFromOtherRegion(PlanarRegionSegmentationNodeData other)
    {
-      return other.nodeStream().filter(this::addNode).findFirst().isPresent();
+      return other.nodeStream().anyMatch(this::addNode);
    }
 
    public boolean contains(NormalOcTreeNode node)
@@ -79,7 +81,7 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
 
    public void removeNodesAndUpdate(Collection<NormalOcTreeNode> nodesToRemove)
    {
-      boolean containsAtLeastOne = nodesToRemove.parallelStream().filter(nodeSet::contains).findFirst().isPresent();
+      boolean containsAtLeastOne = nodesToRemove.parallelStream().anyMatch(nodeSet::contains);
 
       if (containsAtLeastOne)
       {
@@ -92,7 +94,7 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
    public void recomputeNormalAndOrigin()
    {
       pca.clear();
-      nodes.stream().forEach(node -> pca.addPoint(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ()));
+      nodes.forEach(node -> pca.addPoint(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ()));
       pca.compute();
 
       Point3D mean = new Point3D();
@@ -117,85 +119,30 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       // TODO Review and possibly improve dealing with normal flips.
       if (getNumberOfNodes() >= 1 && temporaryVector.dot(normal) < 0.0)
          temporaryVector.negate();
-      normal.update(temporaryVector);
-      point.update(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ());
-   }
-
-   public boolean isInsideBoundingBox(NormalOcTreeNode node)
-   {
-      double nodeX = node.getX();
-      if (nodeX < min.getX() || nodeX > max.getX())
-         return false;
-
-      double nodeY = node.getY();
-      if (nodeY < min.getY() || nodeY > max.getY())
-         return false;
-
-      double nodeZ = node.getZ();
-      if (nodeZ < min.getZ() || nodeZ > max.getZ())
-         return false;
-
-      return true;
+      int numberOfHits = (int) node.getNumberOfHits();
+      normal.update(temporaryVector, numberOfHits);
+      point.update(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ(), numberOfHits);
    }
 
    public double distanceFromBoundingBox(NormalOcTreeNode node)
    {
-      return Math.sqrt(distanceSquaredFromBoundingBox(node));
-   }
-
-   public double distanceSquaredFromBoundingBox(NormalOcTreeNode node)
-   {
-      if (isInsideBoundingBox(node))
-         return 0.0;
-
-      double nodeX = node.getX();
-      double nodeY = node.getY();
-      double nodeZ = node.getZ();
-
-      double dx = EuclidCoreTools.max(min.getX() - nodeX, 0.0, nodeX - max.getX());
-      double dy = EuclidCoreTools.max(min.getY() - nodeY, 0.0, nodeY - max.getY());
-      double dz = EuclidCoreTools.max(min.getZ() - nodeZ, 0.0, nodeZ - max.getZ());
-      return dx * dx + dy * dy + dz * dz;
-   }
-
-   public double distanceFromOtherRegionBoundingBox(PlanarRegionSegmentationNodeData other)
-   {
-      return Math.sqrt(distanceSquaredFromOtherRegionBoundingBox(other));
+      return EuclidCoreMissingTools.distanceToBoundingBox3D(node.getX(), node.getY(), node.getZ(), boundingBox);
    }
 
    public double distanceSquaredFromOtherRegionBoundingBox(PlanarRegionSegmentationNodeData other)
    {
-      return distanceSquaredFromOtherBoundingBox(other.min, other.max);
-   }
-
-   public double distanceSquaredFromOtherBoundingBox(Point3DReadOnly otherMin, Point3DReadOnly otherMax)
-   {
-      return REAGeometryTools.distanceSquaredBetweenTwoBoundingBox3Ds(min, max, otherMin, otherMax);
+      return EuclidCoreMissingTools.distanceSquaredBetweenTwoBoundingBox3Ds(boundingBox, other.boundingBox);
    }
 
    private void updateBoundingBoxWithNewNode(NormalOcTreeNode newNode)
    {
-      double nodeX = newNode.getX();
-      if (nodeX < min.getX())
-         min.setX(nodeX);
-      else if (nodeX > max.getX())
-         max.setX(nodeX);
-
-      double nodeY = newNode.getY();
-      if (nodeY < min.getY())
-         min.setY(nodeY);
-      else if (nodeY > max.getY())
-         max.setY(nodeY);
-
-      double nodeZ = newNode.getZ();
-      if (nodeZ < min.getZ())
-         min.setZ(nodeZ);
-      else if (nodeZ > max.getZ())
-         max.setZ(nodeZ);
+      boundingBox.updateToIncludePoint(newNode.getX(), newNode.getY(), newNode.getZ());
    }
 
    private void updateBoundingBoxAfterRemovingNode(NormalOcTreeNode removedNode)
    {
+      Point3DBasics min = boundingBox.getMinPoint();
+      Point3DBasics max = boundingBox.getMaxPoint();
       if (nodes.isEmpty())
       {
          min.set(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY);
