@@ -46,7 +46,7 @@ public class PlanarRegionSegmentationCalculator
 
       regionsNodeData.parallelStream().forEach(region -> removeBadNodesFromRegion(boundingBox, parameters, region));
       regionsNodeData = regionsNodeData.parallelStream().filter(region -> !region.isEmpty()).collect(Collectors.toList());
-      regionsNodeData.forEach(region -> region.nodeStream().forEach(allRegionNodes::add));
+      regionsNodeData.forEach(region -> allRegionNodes.addAll(region.getNodes()));
       regionsNodeData.forEach(region -> growPlanarRegion(root, region, boundingBox, parameters));
       regionsNodeData = regionsNodeData.stream().filter(region -> region.getNumberOfNodes() > parameters.getMinRegionSize()).collect(Collectors.toList());
 
@@ -58,14 +58,18 @@ public class PlanarRegionSegmentationCalculator
       nodesWithoutRegion.addAll(nodeSet);
 
       regionsNodeData.addAll(searchNewPlanarRegions(root, boundingBox, parameters, random));
-      regionsNodeData.parallelStream().forEach(PlanarRegionSegmentationNodeData::recomputeNormalAndOrigin);
-      regionsNodeData.parallelStream().forEach(PlanarRegionSegmentationCalculator::flipNormalOfOutliers);
-      regionsNodeData = regionsNodeData.parallelStream().filter(region -> !isRegionSparse(region)).collect(Collectors.toList());
+      regionsNodeData.parallelStream().forEach(node ->
+                                               {
+                                                  node.recomputeNormalAndOrigin();
+                                                  PlanarRegionSegmentationCalculator.flipNormalOfOutliers(node);
+                                               });
+      // TODO: is it more expensive to compute the PCA algorithm or the ellipsoidal volume of the region? If it's the ellipsoidal volume, we should run the sparsity check first.
+      regionsNodeData = regionsNodeData.parallelStream().filter(region -> !isRegionSparse(region, parameters)).collect(Collectors.toList());
 
       regionsNodeData = mergePlanarRegionsIfPossible(root, regionsNodeData, parameters);
    }
 
-   public boolean isRegionSparse(PlanarRegionSegmentationNodeData region)
+   public static boolean isRegionSparse(PlanarRegionSegmentationNodeData region, PlanarRegionSegmentationParameters parameters)
    {
       Vector3D standardDeviationPrincipalValues = region.getStandardDeviationPrincipalValues();
       if (standardDeviationPrincipalValues.getZ() > parameters.getMaxStandardDeviation())
@@ -76,7 +80,7 @@ public class PlanarRegionSegmentationCalculator
 
    public void removeDeadNodes()
    {
-      regionsNodeData.stream().forEach(region -> removeDeadNodesFromRegion(region));
+      regionsNodeData.forEach(PlanarRegionSegmentationCalculator::removeDeadNodesFromRegion);
    }
 
    public List<PlanarRegionSegmentationNodeData> getSegmentationNodeData()
@@ -246,7 +250,7 @@ public class PlanarRegionSegmentationCalculator
     * TODO: 2019.10.24.
     * We need to think proper place to check that each octree node is visible from camera position or not.
     * At PR for fix/surface-normal-filter, we decided to keep the place here.
-    * But we can modify the Octree library to handle this part more cleverly. 
+    * But we can modify the Octree library to handle this part more cleverly.
     */
    public void growPlanarRegion(NormalOcTreeNode root, PlanarRegionSegmentationNodeData ocTreeNodePlanarRegion, OcTreeBoundingBoxInterface boundingBox,
                                 PlanarRegionSegmentationParameters parameters)
@@ -319,7 +323,7 @@ public class PlanarRegionSegmentationCalculator
 
    private static void removeDeadNodesFromRegion(PlanarRegionSegmentationNodeData region)
    {
-      List<NormalOcTreeNode> nodesToRemove = region.nodeStream().collect(Collectors.groupingBy(node -> isNodeDead(node))).getOrDefault(true,
+      List<NormalOcTreeNode> nodesToRemove = region.nodeStream().collect(Collectors.groupingBy(PlanarRegionSegmentationCalculator::isNodeDead)).getOrDefault(true,
                                                                                                                                        Collections.emptyList());
 
       region.removeNodesAndUpdate(nodesToRemove);

@@ -1,12 +1,6 @@
 package us.ihmc.robotEnvironmentAwareness.planarRegion;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import us.ihmc.euclid.geometry.BoundingBox3D;
@@ -92,6 +86,7 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
    public void recomputeNormalAndOrigin()
    {
       pca.clear();
+      // TODO weight the addition in the PCA by the number of points in the node
       nodes.forEach(node -> pca.addPoint(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ()));
       pca.compute();
 
@@ -113,6 +108,7 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
 
    public double predictZVarianceIfAdded(NormalOcTreeNode node)
    {
+      // TODO weight the addition in the variance by the number of points in the node.
       node.getNormal(temporaryVector);
       double zDirection = temporaryVector.getZ();
       if (getNumberOfNodes() >= 1 && temporaryVector.dot(normal) < 0.0)
@@ -287,6 +283,11 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
    public int getNumberOfNodes()
    {
       return nodes.size();
+   }
+
+   public List<NormalOcTreeNode> getNodes()
+   {
+      return nodes;
    }
 
    public Stream<NormalOcTreeNode> nodeStream()
