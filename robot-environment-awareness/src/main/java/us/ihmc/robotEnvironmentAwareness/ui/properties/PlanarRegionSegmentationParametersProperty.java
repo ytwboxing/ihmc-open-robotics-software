@@ -11,6 +11,7 @@ public class PlanarRegionSegmentationParametersProperty extends ParametersProper
    private final DoubleField minNormalQuality = new DoubleField(PlanarRegionSegmentationParameters::getMinNormalQuality, (p, v) -> p.setMinNormalQuality(v));
    private final IntegerField minRegionSize = new IntegerField(PlanarRegionSegmentationParameters::getMinRegionSize, (p, v) -> p.setMinRegionSize(v));
    private final DoubleField maxStandardDeviation = new DoubleField(PlanarRegionSegmentationParameters::getMaxStandardDeviation, (p, v) -> p.setMaxStandardDeviation(v));
+   private final DoubleField maxPredictedVarianceToAdd = new DoubleField(PlanarRegionSegmentationParameters::getMaxPredictedVarianceToAdd, (p, v) -> p.setMaxPredictedVarianceToAdd(v));
    private final DoubleField minVolumicDensity = new DoubleField(PlanarRegionSegmentationParameters::getMinVolumicDensity, (p, v) -> p.setMinVolumicDensity(v));
 
    public PlanarRegionSegmentationParametersProperty(Object bean, String name)
@@ -46,6 +47,11 @@ public class PlanarRegionSegmentationParametersProperty extends ParametersProper
    public void bindBidirectionalMaxStandardDeviation(Property<? extends Number> property)
    {
       bindFieldBidirectionalToNumberProperty(property, maxStandardDeviation);
+   }
+
+   public void bindBidirectionalMaxPredictedVarianceToAdd(Property<? extends Number> property)
+   {
+      bindFieldBidirectionalToNumberProperty(property, maxPredictedVarianceToAdd);
    }
 
    public void bindBidirectionalMinVolumicDensity(Property<? extends Number> property)

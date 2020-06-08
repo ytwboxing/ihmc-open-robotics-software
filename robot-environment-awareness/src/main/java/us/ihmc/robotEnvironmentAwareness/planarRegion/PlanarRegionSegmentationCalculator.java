@@ -302,6 +302,8 @@ public class PlanarRegionSegmentationCalculator
          return;
       if (!neighborNode.isNormalSet() || !neighborNode.isHitLocationSet())
          return;
+      if (region.getNumberOfNodes() > 1 && region.predictZVarianceIfAdded(neighborNode) > parameters.getMaxPredictedVarianceToAdd())
+         return;
 
       newSetToExplore.add(neighborNode);
    }

@@ -9,11 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import us.ihmc.euclid.geometry.BoundingBox2D;
 import us.ihmc.euclid.geometry.BoundingBox3D;
-import us.ihmc.euclid.geometry.interfaces.BoundingBox3DReadOnly;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
-import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
@@ -21,7 +18,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.jOctoMap.node.NormalOcTreeNode;
 import us.ihmc.robotEnvironmentAwareness.geometry.PointMean;
-import us.ihmc.robotEnvironmentAwareness.geometry.REAGeometryTools;
+import us.ihmc.robotEnvironmentAwareness.geometry.VariancePredictor;
 import us.ihmc.robotEnvironmentAwareness.geometry.VectorMean;
 import us.ihmc.robotics.EuclidCoreMissingTools;
 import us.ihmc.robotics.geometry.PlanarRegion;
@@ -37,6 +34,7 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
    private final Vector3D standardDeviationPrincipalValues = new Vector3D();
    private final Vector3D temporaryVector = new Vector3D();
 
+   private final VariancePredictor zVariance = new VariancePredictor();
    private final List<NormalOcTreeNode> nodes = new ArrayList<>();
    private final Set<NormalOcTreeNode> nodeSet = new HashSet<>();
    private final BoundingBox3D boundingBox = new BoundingBox3D();
@@ -113,6 +111,16 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       normal.update(thirdVector, getNumberOfNodes());
    }
 
+   public double predictZVarianceIfAdded(NormalOcTreeNode node)
+   {
+      node.getNormal(temporaryVector);
+      double zDirection = temporaryVector.getZ();
+      if (getNumberOfNodes() >= 1 && temporaryVector.dot(normal) < 0.0)
+         zDirection = -zDirection;
+
+      return zVariance.predictIncrement(zDirection);
+   }
+
    private void updateNormalAndOriginOnly(NormalOcTreeNode node)
    {
       node.getNormal(temporaryVector);
@@ -122,6 +130,7 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       int numberOfHits = (int) node.getNumberOfHits();
       normal.update(temporaryVector, numberOfHits);
       point.update(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ(), numberOfHits);
+      zVariance.increment(temporaryVector.getZ());
    }
 
    public double distanceFromBoundingBox(NormalOcTreeNode node)
