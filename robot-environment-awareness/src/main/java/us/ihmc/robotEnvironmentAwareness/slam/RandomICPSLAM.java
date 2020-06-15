@@ -279,7 +279,7 @@ public class RandomICPSLAM extends SLAMBasics
             newSensorPose.transform(newSourcePointToWorld);
 
             int maximumICPSearchingSize = parameters.get().getMaximumICPSearchingSize();
-            double distance = SLAMTools.computeDistanceToNormalOctree(octree, newSourcePointToWorld);
+            double distance = SLAMTools.computeDistancePointToNormalOctree(octree, newSourcePointToWorld);
 
             if (distance < 0)
             {
