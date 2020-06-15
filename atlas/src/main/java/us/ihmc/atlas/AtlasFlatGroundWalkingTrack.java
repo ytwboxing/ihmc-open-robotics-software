@@ -22,18 +22,26 @@ public class AtlasFlatGroundWalkingTrack
    private static final DRCRobotModel defaultModelForGraphicSelector = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS, RobotTarget.SCS, false);
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< refs/remotes/origin/feature/SandboxState
+>>>>>>> 8ab953997c3... Testing commits and push
    
    //Setting Parameters
    private static final boolean USE_BUMPY_GROUND = false;
 =======
 
    private static final boolean USE_BUMPY_GROUND = true;
+<<<<<<< HEAD
 >>>>>>> b388242c640... Testing commits and push
 =======
    
    //Setting Parameters
    private static final boolean USE_BUMPY_GROUND = false;
 >>>>>>> e1d42d64a5d... Just adding some comments for understanding
+=======
+>>>>>>> Testing commits and push
+>>>>>>> 8ab953997c3... Testing commits and push
    private static final boolean USE_FEET_PERTURBER = false;
    private static final boolean Ground_Profile_Visible = true;
    private static final boolean Draw_Plane_At_Zero_Height = false;
