@@ -25,7 +25,11 @@ public class AtlasFlatGroundWalkingTrack
 <<<<<<< HEAD
 =======
 <<<<<<< refs/remotes/origin/feature/SandboxState
+<<<<<<< HEAD
 >>>>>>> 8ab953997c3... Testing commits and push
+=======
+<<<<<<< refs/remotes/origin/feature/SandboxState
+>>>>>>> becafb16f55... Just adding some comments for understanding
    
    //Setting Parameters
    private static final boolean USE_BUMPY_GROUND = false;
@@ -41,7 +45,15 @@ public class AtlasFlatGroundWalkingTrack
 >>>>>>> e1d42d64a5d... Just adding some comments for understanding
 =======
 >>>>>>> Testing commits and push
+<<<<<<< HEAD
 >>>>>>> 8ab953997c3... Testing commits and push
+=======
+=======
+   
+   //Setting Parameters
+   private static final boolean USE_BUMPY_GROUND = false;
+>>>>>>> Just adding some comments for understanding
+>>>>>>> becafb16f55... Just adding some comments for understanding
    private static final boolean USE_FEET_PERTURBER = false;
    private static final boolean Ground_Profile_Visible = true;
    private static final boolean Draw_Plane_At_Zero_Height = false;
