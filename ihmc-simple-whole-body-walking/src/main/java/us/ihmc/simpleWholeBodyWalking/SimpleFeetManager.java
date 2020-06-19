@@ -149,10 +149,13 @@ public class SimpleFeetManager
          setFlatFootContactState(transferToSide); // still need to determine contact state for trailing leg. This is done in doAction as soon as the previous ICP trajectory is done
       }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
       reset();
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    }
 
    private final FrameVector3D footNormalContactVector = new FrameVector3D(worldFrame, 0.0, 0.0, 1.0);
@@ -173,11 +176,14 @@ public class SimpleFeetManager
    }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    public void reset()
    {
    }
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
    /**
     * Request the swing trajectory to speed up using the given speed up factor.

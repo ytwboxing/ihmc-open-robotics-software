@@ -59,6 +59,7 @@ public class SimpleCenterOfMassHeightManager
    }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    public void initializeDesiredHeightToCurrent()
    {
@@ -66,6 +67,8 @@ public class SimpleCenterOfMassHeightManager
    }
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    /**
     * checks that the command is valid and switches to user mode
     * The controller will try to achieve the pelvis height regardless of the robot configuration
@@ -136,6 +139,7 @@ public class SimpleCenterOfMassHeightManager
    }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
    public void setComHeightGains(PIDGainsReadOnly walkingControllerComHeightGains,
                                  DoubleProvider walkingControllerMaxComHeightVelocity)
 =======
@@ -149,10 +153,15 @@ public class SimpleCenterOfMassHeightManager
                                  DoubleProvider walkingControllerMaxComHeightVelocity,
                                  PIDGainsReadOnly userModeComHeightGains)
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   public void setComHeightGains(PIDGainsReadOnly walkingControllerComHeightGains,
+                                 DoubleProvider walkingControllerMaxComHeightVelocity)
+>>>>>>> 2fb58d4d161... did the simple balance manager
    {
       centerOfMassHeightControlState.setGains(walkingControllerComHeightGains, walkingControllerMaxComHeightVelocity);
    }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
    public void step(Point3DReadOnly stanceFootPosition, Point3DReadOnly touchdownPosition, double swingTime, RobotSide swingSide, double toeOffHeight)
@@ -171,6 +180,8 @@ public class SimpleCenterOfMassHeightManager
    }
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    public TaskspaceTrajectoryStatusMessage pollStatusToReport()
    {
       return centerOfMassHeightControlState.pollStatusToReport();

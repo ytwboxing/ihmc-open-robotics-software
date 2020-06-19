@@ -12,9 +12,12 @@ import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.SpatialAcceleration;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import us.ihmc.robotModels.FullHumanoidRobotModelFactory;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.stateMachine.core.State;
 

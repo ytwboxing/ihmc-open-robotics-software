@@ -1,6 +1,7 @@
 package us.ihmc.simpleWholeBodyWalking.states;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
 import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOrientationManager;
 import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyControlManager;
@@ -8,13 +9,17 @@ import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyCon
 import us.ihmc.commonWalkingControlModules.capturePoint.BalanceManager;
 import us.ihmc.commonWalkingControlModules.capturePoint.CenterOfMassHeightManager;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
-import us.ihmc.commonWalkingControlModules.controlModules.legConfiguration.LegConfigurationManager;
 import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOrientationManager;
 import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyControlManager;
+<<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControlManagerFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.TouchdownErrorCompensator;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.commonWalkingControlModules.messageHandlers.WalkingMessageHandler;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
@@ -24,11 +29,15 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.sensorProcessing.model.RobotMotionStatus;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import us.ihmc.simpleWholeBodyWalking.SimpleBalanceManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleControlManagerFactory;
 import us.ihmc.simpleWholeBodyWalking.SimplePelvisOrientationManager;
 =======
+=======
+import us.ihmc.simpleWholeBodyWalking.SimpleBalanceManager;
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleControlManagerFactory;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
@@ -43,10 +52,14 @@ public class SimpleStandingState extends SimpleWalkingState
 
    private final SimpleCenterOfMassHeightManager comHeightManager;
 <<<<<<< HEAD
+<<<<<<< HEAD
    private final SimpleBalanceManager balanceManager;
    private final SimplePelvisOrientationManager pelvisOrientationManager;
 =======
    private final BalanceManager balanceManager;
+=======
+   private final SimpleBalanceManager balanceManager;
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private final PelvisOrientationManager pelvisOrientationManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
    private final SideDependentList<RigidBodyControlManager> handManagers = new SideDependentList<>();
@@ -100,9 +113,12 @@ public class SimpleStandingState extends SimpleWalkingState
       controllerToolbox.updateBipedSupportPolygons();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       balanceManager.resetPushRecovery();
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
       balanceManager.enablePelvisXYControl();
       balanceManager.setICPPlanTransferFromSide(null);
       balanceManager.initializeICPPlanForStanding();

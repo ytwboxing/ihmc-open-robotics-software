@@ -51,12 +51,16 @@ public class SimpleControlManagerFactory
    private final YoVariableRegistry comHeightGainRegistry = new YoVariableRegistry(comHeightGainRegistryName);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
    private SimpleBalanceManager balanceManager;
    private SimpleCenterOfMassHeightManager centerOfMassHeightManager;
    private SimpleFeetManager feetManager;
    private SimplePelvisOrientationManager pelvisOrientationManager;
 =======
    private BalanceManager balanceManager;
+=======
+   private SimpleBalanceManager balanceManager;
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private SimpleCenterOfMassHeightManager centerOfMassHeightManager;
    private SimpleFeetManager feetManager;
    private PelvisOrientationManager pelvisOrientationManager;
@@ -89,9 +93,12 @@ public class SimpleControlManagerFactory
    private PIDGainsReadOnly walkingControllerComHeightGains;
    private DoubleProvider walkingControllerMaxComHeightVelocity;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    private PIDGainsReadOnly userModeComHeightGains;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
    public SimpleControlManagerFactory(YoVariableRegistry parentRegistry)
    {
@@ -135,11 +142,14 @@ public class SimpleControlManagerFactory
       walkingControllerComHeightGains = new ParameterizedPIDGains("WalkingControllerComHeight", walkingControllerParameters.getCoMHeightControlGains(), comHeightGainRegistry);
       walkingControllerMaxComHeightVelocity = new DoubleParameter("MaximumVelocityWalkingControllerComHeight", comHeightGainRegistry, walkingControllerParameters.getMaximumVelocityCoMHeight());
 <<<<<<< HEAD
+<<<<<<< HEAD
    }
 
    // TODO this needs to be called
 =======
       userModeComHeightGains = new ParameterizedPIDGains("UserModeComHeight", walkingControllerParameters.getCoMHeightControlGains(), comHeightGainRegistry);
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    }
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
@@ -149,10 +159,14 @@ public class SimpleControlManagerFactory
    }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
    public SimpleBalanceManager getOrCreateBalanceManager()
 =======
    public BalanceManager getOrCreateBalanceManager()
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   public SimpleBalanceManager getOrCreateBalanceManager()
+>>>>>>> 2fb58d4d161... did the simple balance manager
    {
       if (balanceManager != null)
          return balanceManager;
@@ -167,9 +181,13 @@ public class SimpleControlManagerFactory
          return null;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       balanceManager = new SimpleBalanceManager(controllerToolbox, walkingControllerParameters, capturePointPlannerParameters, registry);
 =======
       balanceManager = new BalanceManager(controllerToolbox, walkingControllerParameters, capturePointPlannerParameters, angularMomentumModifierParameters,
+=======
+      balanceManager = new SimpleBalanceManager(controllerToolbox, walkingControllerParameters, capturePointPlannerParameters, angularMomentumModifierParameters,
+>>>>>>> 2fb58d4d161... did the simple balance manager
                                           registry);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
       return balanceManager;
@@ -186,6 +204,7 @@ public class SimpleControlManagerFactory
          return null;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       centerOfMassHeightManager = new SimpleCenterOfMassHeightManager(controllerToolbox, walkingControllerParameters, registry);
       centerOfMassHeightManager.setComHeightGains(walkingControllerComHeightGains, walkingControllerMaxComHeightVelocity);
 =======
@@ -193,6 +212,10 @@ public class SimpleControlManagerFactory
       centerOfMassHeightManager = new SimpleCenterOfMassHeightManager(controllerToolbox, walkingControllerParameters, registry);
       centerOfMassHeightManager.setComHeightGains(walkingControllerComHeightGains, walkingControllerMaxComHeightVelocity, userModeComHeightGains);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      centerOfMassHeightManager = new SimpleCenterOfMassHeightManager(controllerToolbox, walkingControllerParameters, registry);
+      centerOfMassHeightManager.setComHeightGains(walkingControllerComHeightGains, walkingControllerMaxComHeightVelocity);
+>>>>>>> 2fb58d4d161... did the simple balance manager
       return centerOfMassHeightManager;
    }
 

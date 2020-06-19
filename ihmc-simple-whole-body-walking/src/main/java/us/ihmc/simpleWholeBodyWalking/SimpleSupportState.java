@@ -39,9 +39,12 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 public class SimpleSupportState extends SimpleFootControlState
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    private static final double defaultFootLoadThreshold = 0.2;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private static final int dofs = Twist.SIZE;
 
    private final YoVariableRegistry registry;

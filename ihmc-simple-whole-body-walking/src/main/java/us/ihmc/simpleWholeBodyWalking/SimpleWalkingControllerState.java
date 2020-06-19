@@ -62,12 +62,15 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
    private final ExecutionTimer controllerCoreTimer = new ExecutionTimer("controllerCoreTimer", 1.0, registry);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    private boolean setupInverseDynamicsSolver = true;
    private boolean setupInverseKinematicsSolver = false;
    private boolean setupVirtualModelControlSolver = false;
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private final boolean deactivateAccelerationIntegrationInWBC;
 
    private boolean requestIntegratorReset = false;
@@ -101,6 +104,7 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
       toolbox.setJointPrivilegedConfigurationParameters(walkingControllerParameters.getJointPrivilegedConfigurationParameters());
       toolbox.setFeedbackControllerSettings(walkingControllerParameters.getFeedbackControllerSettings());
 <<<<<<< HEAD
+<<<<<<< HEAD
       toolbox.setupForInverseDynamicsSolver(controllerToolbox.getContactablePlaneBodies());
       
 =======
@@ -113,6 +117,9 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
          toolbox.setupForVirtualModelControlSolver(fullRobotModel.getPelvis(), controllerToolbox.getContactablePlaneBodies());
       }
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+         toolbox.setupForInverseDynamicsSolver(controllerToolbox.getContactablePlaneBodies());
+>>>>>>> 2fb58d4d161... did the simple balance manager
       FeedbackControlCommandList template = managerFactory.createFeedbackControlTemplate();
       JointDesiredOutputList lowLevelControllerOutput = new JointDesiredOutputList(controlledJoints);
       controllerCore = new WholeBodyControllerCore(toolbox, template, lowLevelControllerOutput, registry);
@@ -137,6 +144,7 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
       registry.addChild(walkingController.getYoVariableRegistry());
    }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
    /**
@@ -182,6 +190,8 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
    }
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    public void initialize()
    {
       controllerCore.initialize();
@@ -268,6 +278,7 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
       return walkingController.isJointLoadBearing(jointName);
    }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
    /**
@@ -279,4 +290,6 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
       return walkingController.getWalkingStateEnum();
    }
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 }

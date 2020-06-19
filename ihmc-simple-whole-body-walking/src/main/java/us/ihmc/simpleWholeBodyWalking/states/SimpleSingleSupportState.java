@@ -1,19 +1,25 @@
 package us.ihmc.simpleWholeBodyWalking.states;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import us.ihmc.commonWalkingControlModules.capturePoint.BalanceManager;
 import us.ihmc.commonWalkingControlModules.capturePoint.CenterOfMassHeightManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
 import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOrientationManager;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.NewTransferToAndNextFootstepsData;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControlManagerFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.TouchdownErrorCompensator;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.commonWalkingControlModules.messageHandlers.WalkingMessageHandler;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.euclid.referenceFrame.*;
@@ -27,6 +33,7 @@ import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.sensors.FootSwitchInterface;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import us.ihmc.simpleWholeBodyWalking.*;
 =======
 import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
@@ -35,6 +42,12 @@ import us.ihmc.simpleWholeBodyWalking.SimpleFeetManager;
 import us.ihmc.yoVariables.parameters.BooleanParameter;
 import us.ihmc.yoVariables.providers.BooleanProvider;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+import us.ihmc.simpleWholeBodyWalking.SimpleBalanceManager;
+import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
+import us.ihmc.simpleWholeBodyWalking.SimpleControlManagerFactory;
+import us.ihmc.simpleWholeBodyWalking.SimpleFeetManager;
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -52,10 +65,14 @@ public class SimpleSingleSupportState extends SimpleWalkingState
    protected final FullHumanoidRobotModel fullRobotModel;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
    protected final SimpleBalanceManager balanceManager;
 =======
    protected final BalanceManager balanceManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   protected final SimpleBalanceManager balanceManager;
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private final SimpleCenterOfMassHeightManager comHeightManager;
 
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
@@ -86,18 +103,24 @@ public class SimpleSingleSupportState extends SimpleWalkingState
    private final FramePoint3D desiredCoM = new FramePoint3D();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private final YoDouble remainingSwingTimeAccordingToPlan = new YoDouble("remainingSwingTimeAccordingToPlan", registry);
    private final YoDouble estimatedRemainingSwingTimeUnderDisturbance = new YoDouble("estimatedRemainingSwingTimeUnderDisturbance", registry);
    private final YoDouble icpErrorThresholdToSpeedUpSwing = new YoDouble("icpErrorThresholdToSpeedUpSwing", registry);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    private final BooleanProvider minimizeAngularMomentumRateZDuringSwing;
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private final FrameQuaternion tempOrientation = new FrameQuaternion();
 
    public SimpleSingleSupportState(SimpleWalkingStateEnum stateEnum,
@@ -130,15 +153,19 @@ public class SimpleSingleSupportState extends SimpleWalkingState
 
       icpErrorThresholdToSpeedUpSwing.set(walkingControllerParameters.getICPErrorThresholdToSpeedUpSwing());
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       minimizeAngularMomentumRateZDuringSwing = new BooleanParameter("minimizeAngularMomentumRateZDuringSwing",
                                                                      registry,
                                                                      walkingControllerParameters.minimizeAngularMomentumRateZDuringSwing());
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
       setYoVariablesToNaN();
    }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
    public RobotSide getSwingSide()
@@ -147,6 +174,8 @@ public class SimpleSingleSupportState extends SimpleWalkingState
    }
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    @Override
    public RobotSide getSupportSide()
    {
@@ -213,9 +242,12 @@ public class SimpleSingleSupportState extends SimpleWalkingState
       double finalTransferWeightDistribution = walkingMessageHandler.getFinalTransferWeightDistribution();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
       swingTime = walkingMessageHandler.getNextSwingTime();
       walkingMessageHandler.poll(nextFootstep, footstepTiming, footstepShiftFraction);
 
@@ -225,10 +257,13 @@ public class SimpleSingleSupportState extends SimpleWalkingState
       updateFootstepParameters();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       balanceManager.minimizeAngularMomentumRateZ(minimizeAngularMomentumRateZDuringSwing.getValue());
       balanceManager.setNextFootstep(nextFootstep);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
       balanceManager.setFinalTransferTime(finalTransferTime);
       balanceManager.setFinalTransferSplitFraction(finalTransferSplitFraction);
       balanceManager.setFinalTransferWeightDistribution(finalTransferWeightDistribution);
@@ -246,10 +281,14 @@ public class SimpleSingleSupportState extends SimpleWalkingState
 
       balanceManager.setICPPlanSupportSide(supportSide);
 <<<<<<< HEAD
+<<<<<<< HEAD
       balanceManager.initializeICPPlanForSingleSupport(finalTransferTime);
 =======
       balanceManager.initializeICPPlanForSingleSupport(footstepTiming.getSwingTime(), footstepTiming.getTransferTime(), finalTransferTime);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      balanceManager.initializeICPPlanForSingleSupport(finalTransferTime);
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
       updateHeightManager();
 
@@ -283,6 +322,7 @@ public class SimpleSingleSupportState extends SimpleWalkingState
    public void onExit()
    {
 <<<<<<< HEAD
+<<<<<<< HEAD
       feetManager.setFlatFootContactState(swingSide);
 =======
       balanceManager.resetPushRecovery();
@@ -290,6 +330,8 @@ public class SimpleSingleSupportState extends SimpleWalkingState
       balanceManager.minimizeAngularMomentumRateZ(false);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
 
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
       actualFootPoseInWorld.setToZero(fullRobotModel.getSoleFrame(swingSide));
       actualFootPoseInWorld.changeFrame(worldFrame);
 
@@ -301,6 +343,7 @@ public class SimpleSingleSupportState extends SimpleWalkingState
       tempOrientation.changeFrame(soleZUpFrame);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       setYoVariablesToNaN();
    }
 
@@ -311,6 +354,11 @@ public class SimpleSingleSupportState extends SimpleWalkingState
 
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      setYoVariablesToNaN();
+   }
+
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private void setYoVariablesToNaN()
    {
       estimatedRemainingSwingTimeUnderDisturbance.setToNaN();
@@ -365,6 +413,7 @@ public class SimpleSingleSupportState extends SimpleWalkingState
       double extraToeOffHeight = 0.0;
       comHeightManager.initialize(transferToAndNextFootstepsData, extraToeOffHeight);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
       FixedFramePoint3DBasics stanceFootPosition = walkingMessageHandler.getFootstepAtCurrentLocation(swingSide.getOppositeSide())
@@ -374,6 +423,8 @@ public class SimpleSingleSupportState extends SimpleWalkingState
       double swingTime = footstepTiming.getSwingTime(); // TODO: Should be swing time remaining for step adjustments.
       comHeightManager.step(stanceFootPosition, touchdownPosition, swingTime, swingSide, extraToeOffHeight);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    }
 
    protected boolean hasMinimumTimePassed(double timeInState)

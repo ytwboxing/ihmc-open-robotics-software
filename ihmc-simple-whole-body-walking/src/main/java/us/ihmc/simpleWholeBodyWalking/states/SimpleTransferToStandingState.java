@@ -1,6 +1,7 @@
 package us.ihmc.simpleWholeBodyWalking.states;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
 import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOrientationManager;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.NewTransferToAndNextFootstepsData;
@@ -14,35 +15,38 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 =======
 import us.ihmc.commonWalkingControlModules.capturePoint.BalanceManager;
 import us.ihmc.commonWalkingControlModules.capturePoint.CenterOfMassHeightManager;
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
-import us.ihmc.commonWalkingControlModules.controlModules.foot.FeetManager;
-import us.ihmc.commonWalkingControlModules.controlModules.legConfiguration.LegConfigurationManager;
 import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOrientationManager;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.NewTransferToAndNextFootstepsData;
-import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControlManagerFactory;
-import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.TouchdownErrorCompensator;
 import us.ihmc.commonWalkingControlModules.messageHandlers.WalkingMessageHandler;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotics.robotSide.RobotSide;
+import us.ihmc.simpleWholeBodyWalking.SimpleBalanceManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleControlManagerFactory;
 import us.ihmc.simpleWholeBodyWalking.SimpleFeetManager;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+<<<<<<< HEAD
 import us.ihmc.yoVariables.variable.YoBoolean;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class SimpleTransferToStandingState extends SimpleWalkingState
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private final YoDouble maxICPErrorToSwitchToStanding = new YoDouble("maxICPErrorToSwitchToStanding", registry);
 
    private final WalkingMessageHandler walkingMessageHandler;
@@ -51,12 +55,16 @@ public class SimpleTransferToStandingState extends SimpleWalkingState
 
    private final SimpleCenterOfMassHeightManager comHeightManager;
 <<<<<<< HEAD
+<<<<<<< HEAD
    private final SimpleBalanceManager balanceManager;
    private final SimplePelvisOrientationManager pelvisOrientationManager;
    private final SimpleFeetManager feetManager;
 
 =======
    private final BalanceManager balanceManager;
+=======
+   private final SimpleBalanceManager balanceManager;
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private final PelvisOrientationManager pelvisOrientationManager;
    private final SimpleFeetManager feetManager;
 
@@ -103,9 +111,12 @@ public class SimpleTransferToStandingState extends SimpleWalkingState
    {
       balanceManager.clearICPPlan();
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       balanceManager.resetPushRecovery();
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
       SimpleWalkingStateEnum previousStateEnum = getPreviousWalkingStateEnum();
 
@@ -136,12 +147,15 @@ public class SimpleTransferToStandingState extends SimpleWalkingState
       double finalTransferSplitFraction = walkingMessageHandler.getFinalTransferSplitFraction();
       double finalTransferWeightDistribution = walkingMessageHandler.getFinalTransferWeightDistribution();
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       Footstep footstepLeft = walkingMessageHandler.getFootstepAtCurrentLocation(RobotSide.LEFT);
       Footstep footstepRight = walkingMessageHandler.getFootstepAtCurrentLocation(RobotSide.LEFT);
       midFootPosition.interpolate(footstepLeft.getFootstepPose().getPosition(), footstepRight.getFootstepPose().getPosition(), 0.5);
       comHeightManager.transfer(midFootPosition, finalTransferTime);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
       // Just standing in double support, do nothing
       pelvisOrientationManager.centerInMidFeetZUpFrame(finalTransferTime);
@@ -151,6 +165,7 @@ public class SimpleTransferToStandingState extends SimpleWalkingState
       balanceManager.initializeICPPlanForTransferToStanding(finalTransferTime);
    }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
    @Override
@@ -158,4 +173,6 @@ public class SimpleTransferToStandingState extends SimpleWalkingState
    {
    }
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 }

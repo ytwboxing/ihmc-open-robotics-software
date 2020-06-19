@@ -103,8 +103,12 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
 =======
    private final PelvisOrientationManager pelvisOrientationManager;
    private final SimpleFeetManager feetManager;
+<<<<<<< HEAD
    private final BalanceManager balanceManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   private final SimpleBalanceManager balanceManager;
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private final SimpleCenterOfMassHeightManager comHeightManager;
 
    private final ArrayList<RigidBodyControlManager> bodyManagers = new ArrayList<>();
@@ -129,10 +133,13 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
    private final WalkingFailureDetectionControlModule failureDetectionControlModule;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    private final YoBoolean enablePushRecoveryOnFailure = new YoBoolean("enablePushRecoveryOnFailure", registry);
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private final YoBoolean allowUpperBodyMotionDuringLocomotion = new YoBoolean("allowUpperBodyMotionDuringLocomotion", registry);
 
    private final CommandInputManager commandInputManager;
@@ -151,10 +158,13 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
    private final ParameterizedControllerCoreOptimizationSettings controllerCoreOptimizationSettings;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    private final YoBoolean enableHeightFeedbackControl = new YoBoolean("enableHeightFeedbackControl", registry);
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private boolean firstTick = true;
 
    public SimpleWalkingHighLevelHumanoidController(CommandInputManager commandInputManager,
@@ -215,10 +225,14 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
             continue;
          }
 <<<<<<< HEAD
+<<<<<<< HEAD
          Arrays.asList(manager.getControlledJoints()).forEach(joint -> bodyManagerByJointName.put(joint.getName(), manager));
 =======
          Arrays.asList(manager.getControlledJoints()).stream().forEach(joint -> bodyManagerByJointName.put(joint.getName(), manager));
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+         Arrays.asList(manager.getControlledJoints()).forEach(joint -> bodyManagerByJointName.put(joint.getName(), manager));
+>>>>>>> 2fb58d4d161... did the simple balance manager
       }
 
       for (RobotSide robotSide : RobotSide.values)
@@ -227,10 +241,14 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
          OneDoFJointBasics[] legJoints = MultiBodySystemTools.filterJoints(MultiBodySystemTools.createJointPath(pelvis, foot), OneDoFJointBasics.class);
          Set<String> jointNames = new HashSet<>();
 <<<<<<< HEAD
+<<<<<<< HEAD
          Arrays.asList(legJoints).forEach(legJoint -> jointNames.add(legJoint.getName()));
 =======
          Arrays.asList(legJoints).stream().forEach(legJoint -> jointNames.add(legJoint.getName()));
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+         Arrays.asList(legJoints).forEach(legJoint -> jointNames.add(legJoint.getName()));
+>>>>>>> 2fb58d4d161... did the simple balance manager
          legJointNames.put(robotSide, jointNames);
       }
 
@@ -248,9 +266,12 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
 
       allowUpperBodyMotionDuringLocomotion.set(walkingControllerParameters.allowUpperBodyMotionDuringLocomotion());
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       enableHeightFeedbackControl.set(walkingControllerParameters.enableHeightFeedbackControl());
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
       failureDetectionControlModule = new WalkingFailureDetectionControlModule(controllerToolbox.getContactableFeet(), registry);
 
@@ -418,10 +439,14 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       // Update the previous state info for each state using state changed listeners.
       factory.getRegisteredStates().forEach(state -> factory.addStateChangedListener((from, to) -> state.setPreviousWalkingStateEnum(from)));
 <<<<<<< HEAD
+<<<<<<< HEAD
       factory.addStateChangedListener(controllerToolbox::reportControllerStateChangeToListeners);
 =======
       factory.addStateChangedListener((from, to) -> controllerToolbox.reportControllerStateChangeToListeners(from, to));
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      factory.addStateChangedListener(controllerToolbox::reportControllerStateChangeToListeners);
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
       return factory.build(SimpleWalkingStateEnum.TO_STANDING);
    }
@@ -612,6 +637,7 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
          walkingMessageHandler.clearFootTrajectory();
          commandInputManager.clearAllCommands();
 <<<<<<< HEAD
+<<<<<<< HEAD
       }
 
 =======
@@ -633,6 +659,10 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
             balanceManager.disablePushRecovery();
       }
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      }
+
+>>>>>>> 2fb58d4d161... did the simple balance manager
    }
 
    public void updateManagers(SimpleWalkingState currentState)
@@ -645,9 +675,12 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       boolean isInDoubleSupport = currentState.isDoubleSupportState();
       double omega0 = controllerToolbox.getOmega0();
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       boolean isRecoveringFromPush = balanceManager.isRecovering();
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
       feetManager.compute();
 
@@ -672,6 +705,7 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
                                                                                                isInDoubleSupport,
                                                                                                omega0,
 <<<<<<< HEAD
+<<<<<<< HEAD
                                                                                                false));
 
       // the comHeightManager can control the pelvis with a feedback controller and doesn't always need the z component of the momentum command. It would be better to remove the coupling between these two modules
@@ -680,13 +714,19 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       balanceManager.compute(side, controlledCoMHeightAcceleration.getDoubleValue(), keepCMPInsideSupportPolygon, true);
 =======
                                                                                                isRecoveringFromPush));
+=======
+                                                                                               false));
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
       // the comHeightManager can control the pelvis with a feedback controller and doesn't always need the z component of the momentum command. It would be better to remove the coupling between these two modules
-      boolean controlHeightWithMomentum = comHeightManager.getControlHeightWithMomentum() && enableHeightFeedbackControl.getValue();
       boolean keepCMPInsideSupportPolygon = !bodyManagerIsLoadBearing;
       RobotSide side = currentState.isDoubleSupportState() ? currentState.getTransferToSide() : currentState.getSupportSide();
+<<<<<<< HEAD
       balanceManager.compute(side, controlledCoMHeightAcceleration.getDoubleValue(), keepCMPInsideSupportPolygon, controlHeightWithMomentum);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      balanceManager.compute(side, controlledCoMHeightAcceleration.getDoubleValue(), keepCMPInsideSupportPolygon, false);
+>>>>>>> 2fb58d4d161... did the simple balance manager
    }
 
    private void reportStatusMessages()

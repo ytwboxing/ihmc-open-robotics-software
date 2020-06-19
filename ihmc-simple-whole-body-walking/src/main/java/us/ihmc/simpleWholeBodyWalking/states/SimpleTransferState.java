@@ -1,6 +1,7 @@
 package us.ihmc.simpleWholeBodyWalking.states;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
 import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOrientationManager;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.NewTransferToAndNextFootstepsData;
@@ -9,15 +10,18 @@ import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHuma
 =======
 import us.ihmc.commonWalkingControlModules.capturePoint.BalanceManager;
 import us.ihmc.commonWalkingControlModules.capturePoint.CenterOfMassHeightManager;
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
-import us.ihmc.commonWalkingControlModules.controlModules.foot.FeetManager;
 import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOrientationManager;
 import us.ihmc.commonWalkingControlModules.desiredFootStep.NewTransferToAndNextFootstepsData;
-import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControlManagerFactory;
 import us.ihmc.commonWalkingControlModules.messageHandlers.WalkingMessageHandler;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
+<<<<<<< HEAD
 import us.ihmc.commons.MathTools;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
@@ -26,16 +30,22 @@ import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
 import us.ihmc.robotics.robotSide.RobotSide;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import us.ihmc.simpleWholeBodyWalking.*;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 =======
+=======
+import us.ihmc.simpleWholeBodyWalking.SimpleBalanceManager;
+>>>>>>> 2fb58d4d161... did the simple balance manager
 import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleControlManagerFactory;
 import us.ihmc.simpleWholeBodyWalking.SimpleFeetManager;
-import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+<<<<<<< HEAD
 import us.ihmc.yoVariables.variable.YoBoolean;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
 public abstract class SimpleTransferState extends SimpleWalkingState
 {
@@ -47,10 +57,14 @@ public abstract class SimpleTransferState extends SimpleWalkingState
 
    protected final SimpleCenterOfMassHeightManager comHeightManager;
 <<<<<<< HEAD
+<<<<<<< HEAD
    protected final SimpleBalanceManager balanceManager;
    protected final SimplePelvisOrientationManager pelvisOrientationManager;
 =======
    protected final BalanceManager balanceManager;
+=======
+   protected final SimpleBalanceManager balanceManager;
+>>>>>>> 2fb58d4d161... did the simple balance manager
    protected final PelvisOrientationManager pelvisOrientationManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
    protected final SimpleFeetManager feetManager;
@@ -95,16 +109,20 @@ public abstract class SimpleTransferState extends SimpleWalkingState
 
       balanceManager.computeNormalizedEllipticICPError(transferToSide);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
       if (balanceManager.getNormalizedEllipticICPError() > balanceManager.getEllipticICPErrorForMomentumRecovery())
          balanceManager.setUseMomentumRecoveryModeForBalance(true);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
    }
 
    @Override
    public boolean isDone(double timeInState)
    {
+<<<<<<< HEAD
 <<<<<<< HEAD
       if (balanceManager.isICPPlanDone())
 =======
@@ -117,6 +135,9 @@ public abstract class SimpleTransferState extends SimpleWalkingState
 
       if (balanceManager.isICPPlanDone() || transferTimeElapsedUnderPrecomputedICPPlan)
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      if (balanceManager.isICPPlanDone())
+>>>>>>> 2fb58d4d161... did the simple balance manager
       {
          balanceManager.getCapturePoint(capturePoint2d);
          FrameConvexPolygon2DReadOnly supportPolygonInWorld = controllerToolbox.getBipedSupportPolygons().getSupportPolygonInWorld();
@@ -130,10 +151,13 @@ public abstract class SimpleTransferState extends SimpleWalkingState
          else if (balanceManager.getNormalizedEllipticICPError() < 1.0)
             return true;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
          else
             balanceManager.setUseMomentumRecoveryModeForBalance(true);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
       }
 
       return false;
@@ -155,6 +179,7 @@ public abstract class SimpleTransferState extends SimpleWalkingState
 
       double extraToeOffHeight = 0.0;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       RobotSide swingSide = transferToSide.getOppositeSide();
 
@@ -163,6 +188,8 @@ public abstract class SimpleTransferState extends SimpleWalkingState
       double transferTime = walkingMessageHandler.getNextTransferTime();
       comHeightManager.transfer(transferFootPosition, transferTime, swingSide, extraToeOffHeight);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
 
       balanceManager.getFinalDesiredCoMPosition(desiredCoM);
       NewTransferToAndNextFootstepsData transferToAndNextFootstepsData = walkingMessageHandler.createTransferToAndNextFootstepDataForDoubleSupport(
@@ -182,13 +209,17 @@ public abstract class SimpleTransferState extends SimpleWalkingState
          walkingMessageHandler.peekFootstep(0, nextFootstep);
          failureDetectionControlModule.setNextFootstep(nextFootstep);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
          balanceManager.setUpcomingFootstep(nextFootstep);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 2fb58d4d161... did the simple balance manager
       }
       else
       {
          failureDetectionControlModule.setNextFootstep(null);
+<<<<<<< HEAD
 <<<<<<< HEAD
       }
 
@@ -199,6 +230,10 @@ public abstract class SimpleTransferState extends SimpleWalkingState
       balanceManager.resetPushRecovery();
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      }
+
+>>>>>>> 2fb58d4d161... did the simple balance manager
       double transferTime = walkingMessageHandler.getNextTransferTime();
       pelvisOrientationManager.setTrajectoryTime(transferTime);
    }
@@ -214,7 +249,6 @@ public abstract class SimpleTransferState extends SimpleWalkingState
    public void onExit()
    {
       feetManager.reset();
-      balanceManager.setUseMomentumRecoveryModeForBalance(false);
    }
 >>>>>>> 13a03c33b98... set up the simple walking state controller
 }

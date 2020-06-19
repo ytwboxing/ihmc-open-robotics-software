@@ -46,8 +46,12 @@ public class SimpleCommandConsumer
    private final SimpleBalanceManager balanceManager;
 =======
    private final PelvisOrientationManager pelvisOrientationManager;
+<<<<<<< HEAD
    private final BalanceManager balanceManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   private final SimpleBalanceManager balanceManager;
+>>>>>>> 2fb58d4d161... did the simple balance manager
    private final SimpleCenterOfMassHeightManager comHeightManager;
 
    private final RigidBodyControlManager chestManager;
