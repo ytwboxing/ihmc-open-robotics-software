@@ -6,6 +6,7 @@ byte STEP_TYPE_FLAT_WALKING = 0
 byte STEP_TYPE_STAIRS = 1
 byte STEP_TYPE_STEPPING_STONES = 2
 byte STEP_TYPE_SLOPES = 3
+byte STEP_TYPE_SIDE = 4
 
 # Unique ID used to identify this message, should preferably be consecutively increasing.
 uint32 sequence_id

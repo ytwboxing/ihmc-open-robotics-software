@@ -26,3 +26,5 @@ float64 swing_duration -1.0
 # The transferDuration is the time spent with the feet in ground contact before a step.
 # If the value of this field is invalid (not positive) it will be replaced by a default transfer_duration.
 float64 transfer_duration -1.0
+
+# Adding side-stepping parameters here (some may seem redundant w.r.t. those above)
