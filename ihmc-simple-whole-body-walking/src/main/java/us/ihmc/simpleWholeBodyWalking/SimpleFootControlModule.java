@@ -21,6 +21,10 @@ import us.ihmc.robotics.dataStructures.parameters.FrameParameterVector3D;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.stateMachine.core.StateMachine;
 import us.ihmc.robotics.stateMachine.factories.StateMachineFactory;
+<<<<<<< HEAD
+=======
+import us.ihmc.sensorProcessing.outputData.JointDesiredOutputListReadOnly;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -122,7 +126,11 @@ public class SimpleFootControlModule
 
       resetFootPolygon = new YoBoolean(namePrefix + "ResetFootPolygon", registry);
 
+<<<<<<< HEAD
       String targetRegistryName = SimpleFeetManager.class.getSimpleName();
+=======
+      String targetRegistryName = FeetManager.class.getSimpleName();
+>>>>>>> 13a03c33b98... set up the simple walking state controller
       String parameterRegistryName = SimpleFootControlModule.class.getSimpleName() + "Parameters";
       coefficientOfFriction = ParameterProvider.getOrCreateParameter(targetRegistryName,
                                                                      parameterRegistryName,
@@ -267,6 +275,14 @@ public class SimpleFootControlModule
       return stateMachine.getCurrentState().getFeedbackControlCommand();
    }
 
+<<<<<<< HEAD
+=======
+   public JointDesiredOutputListReadOnly getJointDesiredData()
+   {
+      return null;
+   }
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    public FeedbackControlCommandList createFeedbackControlTemplate()
    {
       FeedbackControlCommandList ret = new FeedbackControlCommandList();

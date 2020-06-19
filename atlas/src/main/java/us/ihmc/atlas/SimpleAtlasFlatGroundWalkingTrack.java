@@ -1,14 +1,18 @@
 package us.ihmc.atlas;
 
+<<<<<<< HEAD
 import us.ihmc.atlas.parameters.AtlasContactPointParameters;
 import us.ihmc.atlas.parameters.AtlasLegConfigurationParameters;
 import us.ihmc.atlas.parameters.AtlasWalkingControllerParameters;
+=======
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 import us.ihmc.avatar.DRCFlatGroundWalkingTrack;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.initialSetup.DRCGuiInitialSetup;
 import us.ihmc.avatar.initialSetup.DRCRobotInitialSetup;
 import us.ihmc.avatar.initialSetup.DRCSCSInitialSetup;
+<<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.configurations.LegConfigurationParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.legConfiguration.LegConfigurationGains;
@@ -20,13 +24,25 @@ import us.ihmc.simulationconstructionset.util.ground.FlatGroundProfile;
 import us.ihmc.wholeBodyController.DRCRobotJointMap;
 
 import java.io.InputStream;
+=======
+import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
+import us.ihmc.simpleWholeBodyWalking.SimpleWalkingControllerStateFactory;
+import us.ihmc.simulationConstructionSetTools.util.HumanoidFloatingRootJointRobot;
+import us.ihmc.simulationconstructionset.util.ground.FlatGroundProfile;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
 public class SimpleAtlasFlatGroundWalkingTrack
 {
    public static void main(String[] args)
    {
 
+<<<<<<< HEAD
       DRCRobotModel model = getModel();
+=======
+      DRCRobotModel model = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS,
+                                                RobotTarget.SCS,
+                                                false);
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
       DRCGuiInitialSetup guiInitialSetup = new DRCGuiInitialSetup(true, false);
 
@@ -49,6 +65,7 @@ public class SimpleAtlasFlatGroundWalkingTrack
                                     useVelocityAndHeadingScript,
                                     cheatWithGroundHeightAtForFootstep,
                                     model,
+<<<<<<< HEAD
                                     new SimpleWalkingControllerStateFactory(model.getCapturePointPlannerParameters()));
    }
 
@@ -100,4 +117,9 @@ public class SimpleAtlasFlatGroundWalkingTrack
          }
       };
    }
+=======
+                                    new SimpleWalkingControllerStateFactory());
+   }
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 }

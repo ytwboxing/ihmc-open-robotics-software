@@ -11,6 +11,10 @@ import us.ihmc.humanoidRobotics.bipedSupportPolygons.ContactableFoot;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.SpatialAcceleration;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
+<<<<<<< HEAD
+=======
+import us.ihmc.robotModels.FullHumanoidRobotModelFactory;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.stateMachine.core.State;
 

@@ -50,16 +50,27 @@ public class SimpleControlManagerFactory
    private final YoVariableRegistry footGainRegistry = new YoVariableRegistry(footGainRegistryName);
    private final YoVariableRegistry comHeightGainRegistry = new YoVariableRegistry(comHeightGainRegistryName);
 
+<<<<<<< HEAD
    private SimpleBalanceManager balanceManager;
    private SimpleCenterOfMassHeightManager centerOfMassHeightManager;
    private SimpleFeetManager feetManager;
    private SimplePelvisOrientationManager pelvisOrientationManager;
+=======
+   private BalanceManager balanceManager;
+   private SimpleCenterOfMassHeightManager centerOfMassHeightManager;
+   private SimpleFeetManager feetManager;
+   private PelvisOrientationManager pelvisOrientationManager;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
    private final Map<String, RigidBodyControlManager> rigidBodyManagerMapByBodyName = new HashMap<>();
 
    private HighLevelHumanoidControllerToolbox controllerToolbox;
    private WalkingControllerParameters walkingControllerParameters;
    private ICPWithTimeFreezingPlannerParameters capturePointPlannerParameters;
+<<<<<<< HEAD
+=======
+   private ICPAngularMomentumModifierParameters angularMomentumModifierParameters;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    private MomentumOptimizationSettings momentumOptimizationSettings;
 
    private final Map<String, PIDGainsReadOnly> jointGainMap = new HashMap<>();
@@ -77,6 +88,10 @@ public class SimpleControlManagerFactory
 
    private PIDGainsReadOnly walkingControllerComHeightGains;
    private DoubleProvider walkingControllerMaxComHeightVelocity;
+<<<<<<< HEAD
+=======
+   private PIDGainsReadOnly userModeComHeightGains;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
    public SimpleControlManagerFactory(YoVariableRegistry parentRegistry)
    {
@@ -97,6 +112,10 @@ public class SimpleControlManagerFactory
    {
       this.walkingControllerParameters = walkingControllerParameters;
       momentumOptimizationSettings = walkingControllerParameters.getMomentumOptimizationSettings();
+<<<<<<< HEAD
+=======
+      angularMomentumModifierParameters = walkingControllerParameters.getICPAngularMomentumModifierParameters();
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
       // Transform weights and gains to their parameterized versions.
       ParameterTools.extractJointGainMap(walkingControllerParameters.getJointSpaceControlGains(), jointGainMap, jointGainRegistry);
@@ -115,15 +134,25 @@ public class SimpleControlManagerFactory
 
       walkingControllerComHeightGains = new ParameterizedPIDGains("WalkingControllerComHeight", walkingControllerParameters.getCoMHeightControlGains(), comHeightGainRegistry);
       walkingControllerMaxComHeightVelocity = new DoubleParameter("MaximumVelocityWalkingControllerComHeight", comHeightGainRegistry, walkingControllerParameters.getMaximumVelocityCoMHeight());
+<<<<<<< HEAD
    }
 
    // TODO this needs to be called
+=======
+      userModeComHeightGains = new ParameterizedPIDGains("UserModeComHeight", walkingControllerParameters.getCoMHeightControlGains(), comHeightGainRegistry);
+   }
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    public void setCapturePointPlannerParameters(ICPWithTimeFreezingPlannerParameters capturePointPlannerParameters)
    {
       this.capturePointPlannerParameters = capturePointPlannerParameters;
    }
 
+<<<<<<< HEAD
    public SimpleBalanceManager getOrCreateBalanceManager()
+=======
+   public BalanceManager getOrCreateBalanceManager()
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    {
       if (balanceManager != null)
          return balanceManager;
@@ -137,7 +166,12 @@ public class SimpleControlManagerFactory
       if (!hasMomentumOptimizationSettings(BalanceManager.class))
          return null;
 
+<<<<<<< HEAD
       balanceManager = new SimpleBalanceManager(controllerToolbox, walkingControllerParameters, capturePointPlannerParameters, registry);
+=======
+      balanceManager = new BalanceManager(controllerToolbox, walkingControllerParameters, capturePointPlannerParameters, angularMomentumModifierParameters,
+                                          registry);
+>>>>>>> 13a03c33b98... set up the simple walking state controller
       return balanceManager;
    }
 
@@ -151,8 +185,14 @@ public class SimpleControlManagerFactory
       if (!hasWalkingControllerParameters(CenterOfMassHeightManager.class))
          return null;
 
+<<<<<<< HEAD
       centerOfMassHeightManager = new SimpleCenterOfMassHeightManager(controllerToolbox, walkingControllerParameters, registry);
       centerOfMassHeightManager.setComHeightGains(walkingControllerComHeightGains, walkingControllerMaxComHeightVelocity);
+=======
+      String pelvisName = controllerToolbox.getFullRobotModel().getPelvis().getName();
+      centerOfMassHeightManager = new SimpleCenterOfMassHeightManager(controllerToolbox, walkingControllerParameters, registry);
+      centerOfMassHeightManager.setComHeightGains(walkingControllerComHeightGains, walkingControllerMaxComHeightVelocity, userModeComHeightGains);
+>>>>>>> 13a03c33b98... set up the simple walking state controller
       return centerOfMassHeightManager;
    }
 
@@ -233,7 +273,11 @@ public class SimpleControlManagerFactory
       return feetManager;
    }
 
+<<<<<<< HEAD
    public SimplePelvisOrientationManager getOrCreatePelvisOrientationManager()
+=======
+   public PelvisOrientationManager getOrCreatePelvisOrientationManager()
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    {
       if (pelvisOrientationManager != null)
          return pelvisOrientationManager;
@@ -248,8 +292,16 @@ public class SimpleControlManagerFactory
       String pelvisName = controllerToolbox.getFullRobotModel().getPelvis().getName();
       PID3DGainsReadOnly pelvisGains = taskspaceOrientationGainMap.get(pelvisName);
       Vector3DReadOnly pelvisAngularWeight = taskspaceAngularWeightMap.get(pelvisName);
+<<<<<<< HEAD
 
       pelvisOrientationManager = new SimplePelvisOrientationManager(pelvisGains, controllerToolbox, registry);
+=======
+      PelvisOffsetWhileWalkingParameters pelvisOffsetWhileWalkingParameters = walkingControllerParameters.getPelvisOffsetWhileWalkingParameters();
+      LeapOfFaithParameters leapOfFaithParameters = walkingControllerParameters.getLeapOfFaithParameters();
+
+      pelvisOrientationManager = new PelvisOrientationManager(pelvisGains, pelvisOffsetWhileWalkingParameters, leapOfFaithParameters, controllerToolbox,
+                                                              registry);
+>>>>>>> 13a03c33b98... set up the simple walking state controller
       pelvisOrientationManager.setWeights(pelvisAngularWeight);
       pelvisOrientationManager.setPrepareForLocomotion(walkingControllerParameters.doPreparePelvisForLocomotion());
       return pelvisOrientationManager;

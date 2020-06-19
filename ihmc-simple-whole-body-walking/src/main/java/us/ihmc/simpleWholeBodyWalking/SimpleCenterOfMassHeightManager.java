@@ -58,6 +58,14 @@ public class SimpleCenterOfMassHeightManager
       centerOfMassHeightControlState.doAction(time.getValue());
    }
 
+<<<<<<< HEAD
+=======
+   public void initializeDesiredHeightToCurrent()
+   {
+      centerOfMassHeightControlState.initializeDesiredHeightToCurrent();
+   }
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    /**
     * checks that the command is valid and switches to user mode
     * The controller will try to achieve the pelvis height regardless of the robot configuration
@@ -127,12 +135,42 @@ public class SimpleCenterOfMassHeightManager
       return centerOfMassHeightControlState.getFeedbackControlCommand();
    }
 
+<<<<<<< HEAD
    public void setComHeightGains(PIDGainsReadOnly walkingControllerComHeightGains,
                                  DoubleProvider walkingControllerMaxComHeightVelocity)
+=======
+   public boolean getControlHeightWithMomentum()
+   {
+
+      return false;
+   }
+
+   public void setComHeightGains(PIDGainsReadOnly walkingControllerComHeightGains,
+                                 DoubleProvider walkingControllerMaxComHeightVelocity,
+                                 PIDGainsReadOnly userModeComHeightGains)
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    {
       centerOfMassHeightControlState.setGains(walkingControllerComHeightGains, walkingControllerMaxComHeightVelocity);
    }
 
+<<<<<<< HEAD
+=======
+   public void step(Point3DReadOnly stanceFootPosition, Point3DReadOnly touchdownPosition, double swingTime, RobotSide swingSide, double toeOffHeight)
+   {
+
+   }
+
+   public void transfer(Point3DReadOnly transferPosition, double transferTime)
+   {
+      transfer(transferPosition, transferTime, null, 0.0);
+   }
+
+   public void transfer(Point3DReadOnly transferPosition, double transferTime, RobotSide swingSide, double toeOffHeight)
+   {
+
+   }
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    public TaskspaceTrajectoryStatusMessage pollStatusToReport()
    {
       return centerOfMassHeightControlState.pollStatusToReport();

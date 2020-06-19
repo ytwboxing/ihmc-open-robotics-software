@@ -1,5 +1,6 @@
 package us.ihmc.simpleWholeBodyWalking;
 
+<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -10,10 +11,19 @@ import java.util.Set;
 
 import controller_msgs.msg.dds.TaskspaceTrajectoryStatusMessage;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
+=======
+import controller_msgs.msg.dds.TaskspaceTrajectoryStatusMessage;
+import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
+import us.ihmc.commonWalkingControlModules.capturePoint.BalanceManager;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleInput;
 import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleOutput;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
+<<<<<<< HEAD
+=======
+import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOrientationManager;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyControlManager;
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.ControllerCoreCommand;
@@ -25,6 +35,10 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseKinemat
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.JointLoadStatusProvider;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.ParameterizedControllerCoreOptimizationSettings;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.stateTransitionConditions.StartWalkingCondition;
+<<<<<<< HEAD
+=======
+import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.states.WalkingStateEnum;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 import us.ihmc.commonWalkingControlModules.messageHandlers.WalkingMessageHandler;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.ControllerCoreOptimizationSettings;
@@ -44,23 +58,35 @@ import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.contactable.ContactablePlaneBody;
 import us.ihmc.robotics.partNames.ArmJointName;
+<<<<<<< HEAD
 import us.ihmc.robotics.partNames.LegJointName;
+=======
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.ScrewTools;
 import us.ihmc.robotics.stateMachine.core.StateMachine;
 import us.ihmc.robotics.stateMachine.core.StateTransitionCondition;
 import us.ihmc.robotics.stateMachine.factories.StateMachineFactory;
+<<<<<<< HEAD
 import us.ihmc.simpleWholeBodyWalking.states.SimpleSingleSupportState;
 import us.ihmc.simpleWholeBodyWalking.states.SimpleStandingState;
 import us.ihmc.simpleWholeBodyWalking.states.SimpleTransferToStandingState;
 import us.ihmc.simpleWholeBodyWalking.states.SimpleTransferToSwingState;
 import us.ihmc.simpleWholeBodyWalking.states.SimpleWalkingState;
 import us.ihmc.simpleWholeBodyWalking.states.SimpleWalkingStateEnum;
+=======
+import us.ihmc.simpleWholeBodyWalking.states.*;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 
+<<<<<<< HEAD
+=======
+import java.util.*;
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatusProvider
 {
    private final String name = getClass().getSimpleName();
@@ -70,9 +96,15 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
 
    private final SimpleControlManagerFactory managerFactory;
 
+<<<<<<< HEAD
    private final SimplePelvisOrientationManager pelvisOrientationManager;
    private final SimpleFeetManager feetManager;
    private final SimpleBalanceManager balanceManager;
+=======
+   private final PelvisOrientationManager pelvisOrientationManager;
+   private final SimpleFeetManager feetManager;
+   private final BalanceManager balanceManager;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    private final SimpleCenterOfMassHeightManager comHeightManager;
 
    private final ArrayList<RigidBodyControlManager> bodyManagers = new ArrayList<>();
@@ -96,6 +128,11 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
 
    private final WalkingFailureDetectionControlModule failureDetectionControlModule;
 
+<<<<<<< HEAD
+=======
+   private final YoBoolean enablePushRecoveryOnFailure = new YoBoolean("enablePushRecoveryOnFailure", registry);
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    private final YoBoolean allowUpperBodyMotionDuringLocomotion = new YoBoolean("allowUpperBodyMotionDuringLocomotion", registry);
 
    private final CommandInputManager commandInputManager;
@@ -113,6 +150,11 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
 
    private final ParameterizedControllerCoreOptimizationSettings controllerCoreOptimizationSettings;
 
+<<<<<<< HEAD
+=======
+   private final YoBoolean enableHeightFeedbackControl = new YoBoolean("enableHeightFeedbackControl", registry);
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    private boolean firstTick = true;
 
    public SimpleWalkingHighLevelHumanoidController(CommandInputManager commandInputManager,
@@ -172,7 +214,11 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
          {
             continue;
          }
+<<<<<<< HEAD
          Arrays.asList(manager.getControlledJoints()).forEach(joint -> bodyManagerByJointName.put(joint.getName(), manager));
+=======
+         Arrays.asList(manager.getControlledJoints()).stream().forEach(joint -> bodyManagerByJointName.put(joint.getName(), manager));
+>>>>>>> 13a03c33b98... set up the simple walking state controller
       }
 
       for (RobotSide robotSide : RobotSide.values)
@@ -180,19 +226,31 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
          RigidBodyBasics foot = fullRobotModel.getFoot(robotSide);
          OneDoFJointBasics[] legJoints = MultiBodySystemTools.filterJoints(MultiBodySystemTools.createJointPath(pelvis, foot), OneDoFJointBasics.class);
          Set<String> jointNames = new HashSet<>();
+<<<<<<< HEAD
          Arrays.asList(legJoints).forEach(legJoint -> jointNames.add(legJoint.getName()));
+=======
+         Arrays.asList(legJoints).stream().forEach(legJoint -> jointNames.add(legJoint.getName()));
+>>>>>>> 13a03c33b98... set up the simple walking state controller
          legJointNames.put(robotSide, jointNames);
       }
 
       this.walkingControllerParameters = walkingControllerParameters;
 
       balanceManager = managerFactory.getOrCreateBalanceManager();
+<<<<<<< HEAD
       comHeightManager = managerFactory.getOrCreateCenterOfMassHeightManager();
+=======
+      comHeightManager = new SimpleCenterOfMassHeightManager(controllerToolbox, walkingControllerParameters, registry);
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
       this.commandInputManager = commandInputManager;
       this.statusOutputManager = statusOutputManager;
 
       allowUpperBodyMotionDuringLocomotion.set(walkingControllerParameters.allowUpperBodyMotionDuringLocomotion());
+<<<<<<< HEAD
+=======
+      enableHeightFeedbackControl.set(walkingControllerParameters.enableHeightFeedbackControl());
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
       failureDetectionControlModule = new WalkingFailureDetectionControlModule(controllerToolbox.getContactableFeet(), registry);
 
@@ -359,7 +417,11 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
 
       // Update the previous state info for each state using state changed listeners.
       factory.getRegisteredStates().forEach(state -> factory.addStateChangedListener((from, to) -> state.setPreviousWalkingStateEnum(from)));
+<<<<<<< HEAD
       factory.addStateChangedListener(controllerToolbox::reportControllerStateChangeToListeners);
+=======
+      factory.addStateChangedListener((from, to) -> controllerToolbox.reportControllerStateChangeToListeners(from, to));
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
       return factory.build(SimpleWalkingStateEnum.TO_STANDING);
    }
@@ -392,7 +454,10 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
          ArmJointName[] armJointNames = fullRobotModel.getRobotSpecificJointNames().getArmJointNames();
          for (int i = 0; i < armJointNames.length; i++)
             privilegedConfigurationCommand.addJoint(fullRobotModel.getArmJoint(robotSide, armJointNames[i]), PrivilegedConfigurationOption.AT_MID_RANGE);
+<<<<<<< HEAD
          privilegedConfigurationCommand.addJoint(fullRobotModel.getLegJoint(robotSide, LegJointName.KNEE_PITCH), PrivilegedConfigurationOption.AT_MID_RANGE);
+=======
+>>>>>>> 13a03c33b98... set up the simple walking state controller
       }
 
       initializeContacts();
@@ -546,8 +611,28 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
          walkingMessageHandler.clearFootsteps();
          walkingMessageHandler.clearFootTrajectory();
          commandInputManager.clearAllCommands();
+<<<<<<< HEAD
       }
 
+=======
+
+         if (enablePushRecoveryOnFailure.getBooleanValue() && !balanceManager.isPushRecoveryEnabled())
+         {
+            balanceManager.enablePushRecovery();
+         }
+         else if (!balanceManager.isPushRecoveryEnabled() || balanceManager.isRecoveryImpossible())
+         {
+            walkingMessageHandler.reportControllerFailure(failureDetectionControlModule.getFallingDirection3D());
+            controllerToolbox.reportControllerFailureToListeners(failureDetectionControlModule.getFallingDirection2D());
+         }
+      }
+
+      if (enablePushRecoveryOnFailure.getBooleanValue())
+      {
+         if (balanceManager.isPushRecoveryEnabled() && balanceManager.isRobotBackToSafeState())
+            balanceManager.disablePushRecovery();
+      }
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    }
 
    public void updateManagers(SimpleWalkingState currentState)
@@ -559,6 +644,10 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
 
       boolean isInDoubleSupport = currentState.isDoubleSupportState();
       double omega0 = controllerToolbox.getOmega0();
+<<<<<<< HEAD
+=======
+      boolean isRecoveringFromPush = balanceManager.isRecovering();
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
       feetManager.compute();
 
@@ -582,12 +671,22 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
                                                                                                desiredCoMVelocityAsFrameVector,
                                                                                                isInDoubleSupport,
                                                                                                omega0,
+<<<<<<< HEAD
                                                                                                false));
 
       // the comHeightManager can control the pelvis with a feedback controller and doesn't always need the z component of the momentum command. It would be better to remove the coupling between these two modules
       boolean keepCMPInsideSupportPolygon = !bodyManagerIsLoadBearing;
       RobotSide side = currentState.isDoubleSupportState() ? currentState.getTransferToSide() : currentState.getSupportSide();
       balanceManager.compute(side, controlledCoMHeightAcceleration.getDoubleValue(), keepCMPInsideSupportPolygon, true);
+=======
+                                                                                               isRecoveringFromPush));
+
+      // the comHeightManager can control the pelvis with a feedback controller and doesn't always need the z component of the momentum command. It would be better to remove the coupling between these two modules
+      boolean controlHeightWithMomentum = comHeightManager.getControlHeightWithMomentum() && enableHeightFeedbackControl.getValue();
+      boolean keepCMPInsideSupportPolygon = !bodyManagerIsLoadBearing;
+      RobotSide side = currentState.isDoubleSupportState() ? currentState.getTransferToSide() : currentState.getSupportSide();
+      balanceManager.compute(side, controlledCoMHeightAcceleration.getDoubleValue(), keepCMPInsideSupportPolygon, controlHeightWithMomentum);
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    }
 
    private void reportStatusMessages()
@@ -612,10 +711,18 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
          }
       }
 
+<<<<<<< HEAD
       TaskspaceTrajectoryStatusMessage pelvisXYStatus = balanceManager.pollPelvisXYTranslationStatusToReport();
       TaskspaceTrajectoryStatusMessage pelvisHeightStatus = comHeightManager.pollStatusToReport();
 
       TaskspaceTrajectoryStatusMessage mergedPelvisStatus = mergePelvisStatusMessages(pelvisXYStatus, pelvisHeightStatus);
+=======
+      TaskspaceTrajectoryStatusMessage pelvisOrientationStatus = pelvisOrientationManager.pollStatusToReport();
+      TaskspaceTrajectoryStatusMessage pelvisXYStatus = balanceManager.pollPelvisXYTranslationStatusToReport();
+      TaskspaceTrajectoryStatusMessage pelvisHeightStatus = comHeightManager.pollStatusToReport();
+
+      TaskspaceTrajectoryStatusMessage mergedPelvisStatus = mergePelvisStatusMessages(pelvisOrientationStatus, pelvisXYStatus, pelvisHeightStatus);
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
       if (mergedPelvisStatus != null)
       {
@@ -623,14 +730,28 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       }
    }
 
+<<<<<<< HEAD
    private TaskspaceTrajectoryStatusMessage mergePelvisStatusMessages(TaskspaceTrajectoryStatusMessage pelvisXYStatus,
                                                                       TaskspaceTrajectoryStatusMessage pelvisHeightStatus)
    {
       int numberOfStatus = pelvisXYStatus != null ? 1 : 0;
+=======
+   private TaskspaceTrajectoryStatusMessage mergePelvisStatusMessages(TaskspaceTrajectoryStatusMessage pelvisOrientationStatus,
+                                                                      TaskspaceTrajectoryStatusMessage pelvisXYStatus,
+                                                                      TaskspaceTrajectoryStatusMessage pelvisHeightStatus)
+   {
+      int numberOfStatus = pelvisOrientationStatus != null ? 1 : 0;
+      numberOfStatus += pelvisXYStatus != null ? 1 : 0;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
       numberOfStatus += pelvisHeightStatus != null ? 1 : 0;
 
       if (numberOfStatus <= 1)
       {
+<<<<<<< HEAD
+=======
+         if (pelvisOrientationStatus != null)
+            return pelvisOrientationStatus;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
          if (pelvisXYStatus != null)
             return pelvisXYStatus;
          if (pelvisHeightStatus != null)
@@ -648,6 +769,18 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       actualEndEffectorOrientation.setToNaN();
       actualEndEffectorPosition.setToNaN();
 
+<<<<<<< HEAD
+=======
+      if (pelvisOrientationStatus != null)
+      {
+         pelvisStatusMessage.setSequenceId(pelvisOrientationStatus.getSequenceId());
+         pelvisStatusMessage.setTimestamp(pelvisOrientationStatus.getTimestamp());
+         pelvisStatusMessage.setTrajectoryExecutionStatus(pelvisOrientationStatus.getTrajectoryExecutionStatus());
+         desiredEndEffectorOrientation.set(pelvisOrientationStatus.getDesiredEndEffectorOrientation());
+         actualEndEffectorOrientation.set(pelvisOrientationStatus.getActualEndEffectorOrientation());
+      }
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
       if (pelvisXYStatus != null)
       {
          pelvisStatusMessage.setSequenceId(pelvisXYStatus.getSequenceId());

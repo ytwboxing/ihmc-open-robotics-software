@@ -10,7 +10,14 @@ import us.ihmc.commonWalkingControlModules.controllerCore.command.ControllerCore
 import us.ihmc.commonWalkingControlModules.controllerCore.command.feedbackController.FeedbackControlCommandList;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.JointAccelerationIntegrationCommand;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.lowLevel.RootJointDesiredConfigurationDataReadOnly;
+<<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.HighLevelControllerState;
+=======
+import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControlManagerFactory;
+import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.HighLevelControllerState;
+import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.WalkingHighLevelHumanoidController;
+import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.states.WalkingStateEnum;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.communication.controllerAPI.CommandInputManager;
 import us.ihmc.communication.controllerAPI.StatusMessageOutputManager;
@@ -31,9 +38,17 @@ import us.ihmc.sensorProcessing.frames.CommonHumanoidReferenceFrames;
 import us.ihmc.sensorProcessing.model.RobotMotionStatus;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputList;
 import us.ihmc.sensorProcessing.outputData.JointDesiredOutputListReadOnly;
+<<<<<<< HEAD
 import us.ihmc.yoVariables.parameters.BooleanParameter;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
+=======
+import us.ihmc.simpleWholeBodyWalking.states.SimpleWalkingStateEnum;
+import us.ihmc.yoVariables.parameters.BooleanParameter;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 
 public class SimpleWalkingControllerState extends HighLevelControllerState
 {
@@ -46,6 +61,13 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
 
    private final ExecutionTimer controllerCoreTimer = new ExecutionTimer("controllerCoreTimer", 1.0, registry);
 
+<<<<<<< HEAD
+=======
+   private boolean setupInverseDynamicsSolver = true;
+   private boolean setupInverseKinematicsSolver = false;
+   private boolean setupVirtualModelControlSolver = false;
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    private final boolean deactivateAccelerationIntegrationInWBC;
 
    private boolean requestIntegratorReset = false;
@@ -78,8 +100,19 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
                                                                             controllerToolbox.getYoGraphicsListRegistry(), registry);
       toolbox.setJointPrivilegedConfigurationParameters(walkingControllerParameters.getJointPrivilegedConfigurationParameters());
       toolbox.setFeedbackControllerSettings(walkingControllerParameters.getFeedbackControllerSettings());
+<<<<<<< HEAD
       toolbox.setupForInverseDynamicsSolver(controllerToolbox.getContactablePlaneBodies());
       
+=======
+      if (setupInverseDynamicsSolver)
+         toolbox.setupForInverseDynamicsSolver(controllerToolbox.getContactablePlaneBodies());
+      if (setupInverseKinematicsSolver)
+         toolbox.setupForInverseKinematicsSolver();
+      if (setupVirtualModelControlSolver)
+      {
+         toolbox.setupForVirtualModelControlSolver(fullRobotModel.getPelvis(), controllerToolbox.getContactablePlaneBodies());
+      }
+>>>>>>> 13a03c33b98... set up the simple walking state controller
       FeedbackControlCommandList template = managerFactory.createFeedbackControlTemplate();
       JointDesiredOutputList lowLevelControllerOutput = new JointDesiredOutputList(controlledJoints);
       controllerCore = new WholeBodyControllerCore(toolbox, template, lowLevelControllerOutput, registry);
@@ -104,6 +137,51 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
       registry.addChild(walkingController.getYoVariableRegistry());
    }
 
+<<<<<<< HEAD
+=======
+   /**
+    * Specifies whether the inverse dynamics module of the {@link WholeBodyControllerCore} should be
+    * created or not.
+    * <p>
+    * This module is created by default as the {@link WalkingHighLevelHumanoidController} needs it.
+    * </p>
+    *
+    * @param setup whether to setup the inverse dynamics mode or not.
+    */
+   public void setupControllerCoreInverseDynamicsMode(boolean setup)
+   {
+      setupInverseDynamicsSolver = setup;
+   }
+
+   /**
+    * Specifies whether the inverse kinematics module of the {@link WholeBodyControllerCore} should
+    * be created or not.
+    * <p>
+    * This module is not created by default to prevent creating unused {@link YoVariable}s.
+    * </p>
+    *
+    * @param setup whether to setup the inverse kinematics mode or not.
+    */
+   public void setupControllerCoreInverseKinematicsMode(boolean setup)
+   {
+      setupInverseKinematicsSolver = setup;
+   }
+
+   /**
+    * Specifies whether the virtual model control module of the {@link WholeBodyControllerCore}
+    * should be created or not.
+    * <p>
+    * This module is not created by default to prevent creating unused {@link YoVariable}s.
+    * </p>
+    *
+    * @param setup whether to setup the virtual model control mode or not.
+    */
+   public void setupControllerCoreVirtualModelControlMode(boolean setup)
+   {
+      setupVirtualModelControlSolver = setup;
+   }
+
+>>>>>>> 13a03c33b98... set up the simple walking state controller
    public void initialize()
    {
       controllerCore.initialize();
@@ -189,4 +267,16 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
    {
       return walkingController.isJointLoadBearing(jointName);
    }
+<<<<<<< HEAD
+=======
+
+   /**
+    * Returns the currently active walking state. This is used for unit testing.
+    * @return WalkingStateEnum
+    */
+   public SimpleWalkingStateEnum getWalkingStateEnum()
+   {
+      return walkingController.getWalkingStateEnum();
+   }
+>>>>>>> 13a03c33b98... set up the simple walking state controller
 }
