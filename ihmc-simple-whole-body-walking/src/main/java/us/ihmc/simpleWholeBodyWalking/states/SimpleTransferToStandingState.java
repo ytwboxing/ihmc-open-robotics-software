@@ -25,10 +25,7 @@ import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHuma
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.robotics.robotSide.RobotSide;
-import us.ihmc.simpleWholeBodyWalking.SimpleBalanceManager;
-import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
-import us.ihmc.simpleWholeBodyWalking.SimpleControlManagerFactory;
-import us.ihmc.simpleWholeBodyWalking.SimpleFeetManager;
+import us.ihmc.simpleWholeBodyWalking.*;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 <<<<<<< HEAD
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -64,6 +61,7 @@ public class SimpleTransferToStandingState extends SimpleWalkingState
    private final BalanceManager balanceManager;
 =======
    private final SimpleBalanceManager balanceManager;
+<<<<<<< HEAD
 >>>>>>> 2fb58d4d161... did the simple balance manager
    private final PelvisOrientationManager pelvisOrientationManager;
    private final SimpleFeetManager feetManager;
@@ -71,6 +69,11 @@ public class SimpleTransferToStandingState extends SimpleWalkingState
    private final Point3D midFootPosition = new Point3D();
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   private final SimplePelvisOrientationManager pelvisOrientationManager;
+   private final SimpleFeetManager feetManager;
+
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
    public SimpleTransferToStandingState(WalkingMessageHandler walkingMessageHandler,
                                         HighLevelHumanoidControllerToolbox controllerToolbox,
                                         SimpleControlManagerFactory managerFactory,

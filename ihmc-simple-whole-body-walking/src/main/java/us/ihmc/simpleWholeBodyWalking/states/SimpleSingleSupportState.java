@@ -34,6 +34,7 @@ import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.sensors.FootSwitchInterface;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import us.ihmc.simpleWholeBodyWalking.*;
 =======
 import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
@@ -48,6 +49,9 @@ import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleControlManagerFactory;
 import us.ihmc.simpleWholeBodyWalking.SimpleFeetManager;
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+import us.ihmc.simpleWholeBodyWalking.*;
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -94,10 +98,14 @@ public class SimpleSingleSupportState extends SimpleWalkingState
    private final WalkingFailureDetectionControlModule failureDetectionControlModule;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
    private final SimplePelvisOrientationManager pelvisOrientationManager;
 =======
    private final PelvisOrientationManager pelvisOrientationManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   private final SimplePelvisOrientationManager pelvisOrientationManager;
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
    private final SimpleFeetManager feetManager;
 
    private final FramePoint3D desiredCoM = new FramePoint3D();

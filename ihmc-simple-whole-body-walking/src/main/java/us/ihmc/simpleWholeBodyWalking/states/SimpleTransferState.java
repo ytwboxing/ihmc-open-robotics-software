@@ -31,6 +31,7 @@ import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
 import us.ihmc.robotics.robotSide.RobotSide;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import us.ihmc.simpleWholeBodyWalking.*;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 =======
@@ -40,6 +41,9 @@ import us.ihmc.simpleWholeBodyWalking.SimpleBalanceManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleControlManagerFactory;
 import us.ihmc.simpleWholeBodyWalking.SimpleFeetManager;
+=======
+import us.ihmc.simpleWholeBodyWalking.*;
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 <<<<<<< HEAD
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -64,9 +68,13 @@ public abstract class SimpleTransferState extends SimpleWalkingState
    protected final BalanceManager balanceManager;
 =======
    protected final SimpleBalanceManager balanceManager;
+<<<<<<< HEAD
 >>>>>>> 2fb58d4d161... did the simple balance manager
    protected final PelvisOrientationManager pelvisOrientationManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   protected final SimplePelvisOrientationManager pelvisOrientationManager;
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
    protected final SimpleFeetManager feetManager;
 
    private final FramePoint2D capturePoint2d = new FramePoint2D();
@@ -243,6 +251,7 @@ public abstract class SimpleTransferState extends SimpleWalkingState
       return getPreviousWalkingStateEnum() == SimpleWalkingStateEnum.STANDING;
    }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
    @Override
@@ -251,4 +260,6 @@ public abstract class SimpleTransferState extends SimpleWalkingState
       feetManager.reset();
    }
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
 }

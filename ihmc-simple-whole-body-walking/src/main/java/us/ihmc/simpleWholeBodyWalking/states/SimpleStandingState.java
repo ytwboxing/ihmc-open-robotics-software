@@ -34,6 +34,7 @@ import us.ihmc.simpleWholeBodyWalking.SimpleBalanceManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleControlManagerFactory;
 import us.ihmc.simpleWholeBodyWalking.SimplePelvisOrientationManager;
+<<<<<<< HEAD
 =======
 =======
 import us.ihmc.simpleWholeBodyWalking.SimpleBalanceManager;
@@ -41,6 +42,8 @@ import us.ihmc.simpleWholeBodyWalking.SimpleBalanceManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleCenterOfMassHeightManager;
 import us.ihmc.simpleWholeBodyWalking.SimpleControlManagerFactory;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class SimpleStandingState extends SimpleWalkingState
@@ -59,9 +62,13 @@ public class SimpleStandingState extends SimpleWalkingState
    private final BalanceManager balanceManager;
 =======
    private final SimpleBalanceManager balanceManager;
+<<<<<<< HEAD
 >>>>>>> 2fb58d4d161... did the simple balance manager
    private final PelvisOrientationManager pelvisOrientationManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   private final SimplePelvisOrientationManager pelvisOrientationManager;
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
    private final SideDependentList<RigidBodyControlManager> handManagers = new SideDependentList<>();
 
    public SimpleStandingState(CommandInputManager commandInputManager, WalkingMessageHandler walkingMessageHandler,

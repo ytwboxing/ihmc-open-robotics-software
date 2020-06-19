@@ -97,11 +97,15 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
    private final SimpleControlManagerFactory managerFactory;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
    private final SimplePelvisOrientationManager pelvisOrientationManager;
    private final SimpleFeetManager feetManager;
    private final SimpleBalanceManager balanceManager;
 =======
    private final PelvisOrientationManager pelvisOrientationManager;
+=======
+   private final SimplePelvisOrientationManager pelvisOrientationManager;
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
    private final SimpleFeetManager feetManager;
 <<<<<<< HEAD
    private final BalanceManager balanceManager;
@@ -752,6 +756,7 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       TaskspaceTrajectoryStatusMessage pelvisXYStatus = balanceManager.pollPelvisXYTranslationStatusToReport();
       TaskspaceTrajectoryStatusMessage pelvisHeightStatus = comHeightManager.pollStatusToReport();
 
@@ -763,6 +768,12 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
 
       TaskspaceTrajectoryStatusMessage mergedPelvisStatus = mergePelvisStatusMessages(pelvisOrientationStatus, pelvisXYStatus, pelvisHeightStatus);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      TaskspaceTrajectoryStatusMessage pelvisXYStatus = balanceManager.pollPelvisXYTranslationStatusToReport();
+      TaskspaceTrajectoryStatusMessage pelvisHeightStatus = comHeightManager.pollStatusToReport();
+
+      TaskspaceTrajectoryStatusMessage mergedPelvisStatus = mergePelvisStatusMessages(pelvisXYStatus, pelvisHeightStatus);
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
 
       if (mergedPelvisStatus != null)
       {
@@ -770,6 +781,7 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       }
    }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
    private TaskspaceTrajectoryStatusMessage mergePelvisStatusMessages(TaskspaceTrajectoryStatusMessage pelvisXYStatus,
                                                                       TaskspaceTrajectoryStatusMessage pelvisHeightStatus)
@@ -783,15 +795,24 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       int numberOfStatus = pelvisOrientationStatus != null ? 1 : 0;
       numberOfStatus += pelvisXYStatus != null ? 1 : 0;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   private TaskspaceTrajectoryStatusMessage mergePelvisStatusMessages(TaskspaceTrajectoryStatusMessage pelvisXYStatus,
+                                                                      TaskspaceTrajectoryStatusMessage pelvisHeightStatus)
+   {
+      int numberOfStatus = pelvisXYStatus != null ? 1 : 0;
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
       numberOfStatus += pelvisHeightStatus != null ? 1 : 0;
 
       if (numberOfStatus <= 1)
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
          if (pelvisOrientationStatus != null)
             return pelvisOrientationStatus;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
          if (pelvisXYStatus != null)
             return pelvisXYStatus;
          if (pelvisHeightStatus != null)
@@ -810,6 +831,7 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       actualEndEffectorPosition.setToNaN();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       if (pelvisOrientationStatus != null)
       {
@@ -821,6 +843,8 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       }
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
       if (pelvisXYStatus != null)
       {
          pelvisStatusMessage.setSequenceId(pelvisXYStatus.getSequenceId());

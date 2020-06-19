@@ -179,10 +179,14 @@ public class SimpleBalanceManager
 
    public SimpleBalanceManager(HighLevelHumanoidControllerToolbox controllerToolbox, WalkingControllerParameters walkingControllerParameters,
 <<<<<<< HEAD
+<<<<<<< HEAD
                                ICPWithTimeFreezingPlannerParameters icpPlannerParameters,
 =======
                                ICPWithTimeFreezingPlannerParameters icpPlannerParameters, ICPAngularMomentumModifierParameters angularMomentumModifierParameters,
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+                               ICPWithTimeFreezingPlannerParameters icpPlannerParameters,
+>>>>>>> 5942e55c22c... got simple pelvis orietnation manager
                                YoVariableRegistry parentRegistry)
    {
       CommonHumanoidReferenceFrames referenceFrames = controllerToolbox.getReferenceFrames();
