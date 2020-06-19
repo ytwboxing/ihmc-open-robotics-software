@@ -13,6 +13,7 @@ public class SimpleWalkingControllerStateFactory implements HighLevelControllerS
 {
    private SimpleWalkingControllerState walkingControllerState;
 <<<<<<< HEAD
+<<<<<<< HEAD
    private SimpleControlManagerFactory managerFactory;
    private ICPWithTimeFreezingPlannerParameters capturePointPlannerParameters;
    
@@ -27,6 +28,8 @@ public class SimpleWalkingControllerStateFactory implements HighLevelControllerS
    {
       this.managerFactory = managerFactory;
    }
+=======
+>>>>>>> dbc5c5a55f9... fixed compile
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
    @Override
@@ -35,6 +38,7 @@ public class SimpleWalkingControllerStateFactory implements HighLevelControllerS
       if (walkingControllerState == null)
       {
 <<<<<<< HEAD
+<<<<<<< HEAD
          managerFactory = new SimpleControlManagerFactory(controllerFactoryHelper.getHighLevelHumanoidControllerToolbox().getYoVariableRegistry());
          managerFactory.setHighLevelHumanoidControllerToolbox(controllerFactoryHelper.getHighLevelHumanoidControllerToolbox());
          managerFactory.setWalkingControllerParameters(controllerFactoryHelper.getWalkingControllerParameters());
@@ -42,6 +46,9 @@ public class SimpleWalkingControllerStateFactory implements HighLevelControllerS
          
 =======
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+         SimpleControlManagerFactory managerFactory = new SimpleControlManagerFactory(controllerFactoryHelper.getHighLevelHumanoidControllerToolbox().getYoVariableRegistry());
+>>>>>>> dbc5c5a55f9... fixed compile
          walkingControllerState = new SimpleWalkingControllerState(controllerFactoryHelper.getCommandInputManager(), controllerFactoryHelper.getStatusMessageOutputManager(),
                                                                    managerFactory, controllerFactoryHelper.getHighLevelHumanoidControllerToolbox(),
                                                                    controllerFactoryHelper.getHighLevelControllerParameters(),
