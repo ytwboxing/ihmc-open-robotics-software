@@ -260,10 +260,14 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
 
       balanceManager = managerFactory.getOrCreateBalanceManager();
 <<<<<<< HEAD
+<<<<<<< HEAD
       comHeightManager = managerFactory.getOrCreateCenterOfMassHeightManager();
 =======
       comHeightManager = new SimpleCenterOfMassHeightManager(controllerToolbox, walkingControllerParameters, registry);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      comHeightManager = managerFactory.getOrCreateCenterOfMassHeightManager();
+>>>>>>> b2d947f322f... Fixing compile and runtime errors
 
       this.commandInputManager = commandInputManager;
       this.statusOutputManager = statusOutputManager;

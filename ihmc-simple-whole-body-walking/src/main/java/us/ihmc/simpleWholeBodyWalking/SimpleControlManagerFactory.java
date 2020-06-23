@@ -161,7 +161,11 @@ public class SimpleControlManagerFactory
 >>>>>>> 2fb58d4d161... did the simple balance manager
    }
 
+<<<<<<< HEAD
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+   // TODO this needs to be called
+>>>>>>> b2d947f322f... Fixing compile and runtime errors
    public void setCapturePointPlannerParameters(ICPWithTimeFreezingPlannerParameters capturePointPlannerParameters)
    {
       this.capturePointPlannerParameters = capturePointPlannerParameters;
