@@ -39,6 +39,7 @@ public class SimpleWalkingControllerStateFactory implements HighLevelControllerS
       {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
          managerFactory = new SimpleControlManagerFactory(controllerFactoryHelper.getHighLevelHumanoidControllerToolbox().getYoVariableRegistry());
          managerFactory.setHighLevelHumanoidControllerToolbox(controllerFactoryHelper.getHighLevelHumanoidControllerToolbox());
          managerFactory.setWalkingControllerParameters(controllerFactoryHelper.getWalkingControllerParameters());
@@ -49,6 +50,13 @@ public class SimpleWalkingControllerStateFactory implements HighLevelControllerS
 =======
          SimpleControlManagerFactory managerFactory = new SimpleControlManagerFactory(controllerFactoryHelper.getHighLevelHumanoidControllerToolbox().getYoVariableRegistry());
 >>>>>>> dbc5c5a55f9... fixed compile
+=======
+         
+         SimpleControlManagerFactory managerFactory = new SimpleControlManagerFactory(controllerFactoryHelper.getHighLevelHumanoidControllerToolbox().getYoVariableRegistry());
+         managerFactory.setHighLevelHumanoidControllerToolbox(controllerFactoryHelper.getHighLevelHumanoidControllerToolbox());
+         managerFactory.setWalkingControllerParameters(controllerFactoryHelper.getWalkingControllerParameters());
+         
+>>>>>>> 017fc976122... Fixed 2 bugs in running SimpleAtlasFGWT
          walkingControllerState = new SimpleWalkingControllerState(controllerFactoryHelper.getCommandInputManager(), controllerFactoryHelper.getStatusMessageOutputManager(),
                                                                    managerFactory, controllerFactoryHelper.getHighLevelHumanoidControllerToolbox(),
                                                                    controllerFactoryHelper.getHighLevelControllerParameters(),

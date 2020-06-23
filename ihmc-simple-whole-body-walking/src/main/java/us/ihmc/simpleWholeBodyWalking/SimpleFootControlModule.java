@@ -130,10 +130,14 @@ public class SimpleFootControlModule
       resetFootPolygon = new YoBoolean(namePrefix + "ResetFootPolygon", registry);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       String targetRegistryName = SimpleFeetManager.class.getSimpleName();
 =======
       String targetRegistryName = FeetManager.class.getSimpleName();
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+      String targetRegistryName = SimpleFeetManager.class.getSimpleName();
+>>>>>>> 017fc976122... Fixed 2 bugs in running SimpleAtlasFGWT
       String parameterRegistryName = SimpleFootControlModule.class.getSimpleName() + "Parameters";
       coefficientOfFriction = ParameterProvider.getOrCreateParameter(targetRegistryName,
                                                                      parameterRegistryName,
