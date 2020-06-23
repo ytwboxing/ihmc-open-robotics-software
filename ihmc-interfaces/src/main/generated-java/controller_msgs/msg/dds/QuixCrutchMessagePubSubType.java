@@ -59,6 +59,9 @@ public class QuixCrutchMessagePubSubType implements us.ihmc.pubsub.TopicDataType
       current_alignment += 1 + us.ihmc.idl.CDR.alignment(current_alignment, 1);
 
 
+      current_alignment += controller_msgs.msg.dds.QuixFlatStepTypePubSubType.getMaxCdrSerializedSize(current_alignment);
+
+
       return current_alignment - initial_alignment;
    }
 
@@ -95,6 +98,9 @@ public class QuixCrutchMessagePubSubType implements us.ihmc.pubsub.TopicDataType
 
 
 
+      current_alignment += controller_msgs.msg.dds.QuixFlatStepTypePubSubType.getCdrSerializedSize(data.getDesiredFlatStepType(), current_alignment);
+
+
       return current_alignment - initial_alignment;
    }
 
@@ -117,6 +123,8 @@ public class QuixCrutchMessagePubSubType implements us.ihmc.pubsub.TopicDataType
 
       cdr.write_type_7(data.getExecuteBehavior());
 
+
+      controller_msgs.msg.dds.QuixFlatStepTypePubSubType.write(data.getDesiredFlatStepType(), cdr);
    }
 
    public static void read(controller_msgs.msg.dds.QuixCrutchMessage data, us.ihmc.idl.CDR cdr)
@@ -139,6 +147,8 @@ public class QuixCrutchMessagePubSubType implements us.ihmc.pubsub.TopicDataType
       data.setExecuteBehavior(cdr.read_type_7());
       	
 
+      controller_msgs.msg.dds.QuixFlatStepTypePubSubType.read(data.getDesiredFlatStepType(), cdr);	
+
    }
 
    @Override
@@ -157,6 +167,9 @@ public class QuixCrutchMessagePubSubType implements us.ihmc.pubsub.TopicDataType
 
 
       ser.write_type_7("execute_behavior", data.getExecuteBehavior());
+
+      ser.write_type_a("desired_flat_step_type", new controller_msgs.msg.dds.QuixFlatStepTypePubSubType(), data.getDesiredFlatStepType());
+
    }
 
    @Override
@@ -175,6 +188,9 @@ public class QuixCrutchMessagePubSubType implements us.ihmc.pubsub.TopicDataType
 
 
       data.setExecuteBehavior(ser.read_type_7("execute_behavior"));
+
+      ser.read_type_a("desired_flat_step_type", new controller_msgs.msg.dds.QuixFlatStepTypePubSubType(), data.getDesiredFlatStepType());
+
    }
 
    public static void staticCopy(controller_msgs.msg.dds.QuixCrutchMessage src, controller_msgs.msg.dds.QuixCrutchMessage dest)

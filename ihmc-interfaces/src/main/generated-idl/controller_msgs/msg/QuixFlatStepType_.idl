@@ -1,0 +1,41 @@
+#ifndef __controller_msgs__msg__QuixFlatStepType__idl__
+#define __controller_msgs__msg__QuixFlatStepType__idl__
+
+module controller_msgs
+{
+  module msg
+  {
+    module dds
+    {
+      const octet SQUARE =
+      0;
+
+      const octet SHORT_FORWARD =
+      1;
+
+      const octet MEDIUM_FORWARD =
+      2;
+
+      const octet LONG_FORWARD =
+      3;
+
+
+      /**
+       * This message is part of the Quix controller API.
+       * This message is used to notify the controller of the user's desired flat step type
+       */
+      @TypeCode(type="controller_msgs::msg::dds_::QuixFlatStepType_")
+      struct QuixFlatStepType
+      {
+        /**
+         * Unique ID used to identify this message, should preferably be consecutively increasing.
+         */
+        unsigned long sequence_id;
+        @defaultValue(value=255)
+        octet desired_flat_step_type;
+      };
+    };
+  };
+};
+
+#endif

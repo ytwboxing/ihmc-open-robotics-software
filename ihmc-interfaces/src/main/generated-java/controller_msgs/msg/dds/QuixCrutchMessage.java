@@ -25,6 +25,8 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
    public boolean execute_behavior_;
 
+   public controller_msgs.msg.dds.QuixFlatStepType desired_flat_step_type_;
+
    public QuixCrutchMessage()
    {
 
@@ -34,6 +36,8 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
       requested_motion_state_ = new controller_msgs.msg.dds.QuixMotionStateMessage();
 
+
+      desired_flat_step_type_ = new controller_msgs.msg.dds.QuixFlatStepType();
 
    }
 
@@ -62,6 +66,8 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
       execute_behavior_ = other.execute_behavior_;
 
+
+      controller_msgs.msg.dds.QuixFlatStepTypePubSubType.staticCopy(other.desired_flat_step_type_, desired_flat_step_type_);
    }
 
 
@@ -122,6 +128,13 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
    }
 
 
+
+   public controller_msgs.msg.dds.QuixFlatStepType getDesiredFlatStepType()
+   {
+      return desired_flat_step_type_;
+   }
+
+
    public static Supplier<QuixCrutchMessagePubSubType> getPubSubType()
    {
       return QuixCrutchMessagePubSubType::new;
@@ -157,6 +170,8 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
       if (!us.ihmc.idl.IDLTools.epsilonEqualsBoolean(this.execute_behavior_, other.execute_behavior_, epsilon)) return false;
 
 
+      if (!this.desired_flat_step_type_.epsilonEquals(other.desired_flat_step_type_, epsilon)) return false;
+
       return true;
    }
 
@@ -187,6 +202,8 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
       if(this.execute_behavior_ != otherMyClass.execute_behavior_) return false;
 
 
+      if (!this.desired_flat_step_type_.equals(otherMyClass.desired_flat_step_type_)) return false;
+
       return true;
    }
 
@@ -213,7 +230,10 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
       builder.append(this.requested_motion_state_);      builder.append(", ");
 
       builder.append("execute_behavior=");
-      builder.append(this.execute_behavior_);
+      builder.append(this.execute_behavior_);      builder.append(", ");
+
+      builder.append("desired_flat_step_type=");
+      builder.append(this.desired_flat_step_type_);
       builder.append("}");
       return builder.toString();
    }
