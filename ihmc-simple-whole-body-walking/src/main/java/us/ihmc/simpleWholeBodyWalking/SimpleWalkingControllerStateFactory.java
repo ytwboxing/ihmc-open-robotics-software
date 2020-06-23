@@ -1,9 +1,13 @@
 package us.ihmc.simpleWholeBodyWalking;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.configurations.ICPWithTimeFreezingPlannerParameters;
 =======
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+import us.ihmc.commonWalkingControlModules.configurations.ICPWithTimeFreezingPlannerParameters;
+>>>>>>> 29fb07b96d9... Added the set ICP parameters to SimpleWalkingControllerStateFactory.
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.HighLevelControllerFactoryHelper;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControllerStateFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.HighLevelControllerState;
@@ -55,8 +59,12 @@ public class SimpleWalkingControllerStateFactory implements HighLevelControllerS
          SimpleControlManagerFactory managerFactory = new SimpleControlManagerFactory(controllerFactoryHelper.getHighLevelHumanoidControllerToolbox().getYoVariableRegistry());
          managerFactory.setHighLevelHumanoidControllerToolbox(controllerFactoryHelper.getHighLevelHumanoidControllerToolbox());
          managerFactory.setWalkingControllerParameters(controllerFactoryHelper.getWalkingControllerParameters());
+<<<<<<< HEAD
          
 >>>>>>> 017fc976122... Fixed 2 bugs in running SimpleAtlasFGWT
+=======
+         managerFactory.setCapturePointPlannerParameters((ICPWithTimeFreezingPlannerParameters) controllerFactoryHelper.getIcpPlannerParameters());
+>>>>>>> 29fb07b96d9... Added the set ICP parameters to SimpleWalkingControllerStateFactory.
          walkingControllerState = new SimpleWalkingControllerState(controllerFactoryHelper.getCommandInputManager(), controllerFactoryHelper.getStatusMessageOutputManager(),
                                                                    managerFactory, controllerFactoryHelper.getHighLevelHumanoidControllerToolbox(),
                                                                    controllerFactoryHelper.getHighLevelControllerParameters(),

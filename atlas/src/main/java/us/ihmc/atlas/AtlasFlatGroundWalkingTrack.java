@@ -23,6 +23,7 @@ public class AtlasFlatGroundWalkingTrack
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< refs/remotes/origin/feature/SandboxState
 <<<<<<< HEAD
@@ -54,6 +55,11 @@ public class AtlasFlatGroundWalkingTrack
    private static final boolean USE_BUMPY_GROUND = false;
 >>>>>>> Just adding some comments for understanding
 >>>>>>> becafb16f55... Just adding some comments for understanding
+=======
+   
+   //Setting Parameters
+   private static final boolean USE_BUMPY_GROUND = false;
+>>>>>>> 29fb07b96d9... Added the set ICP parameters to SimpleWalkingControllerStateFactory.
    private static final boolean USE_FEET_PERTURBER = false;
    private static final boolean Ground_Profile_Visible = true;
    private static final boolean Draw_Plane_At_Zero_Height = false;
