@@ -31,6 +31,8 @@ import us.ihmc.simulationConstructionSetTools.util.HumanoidFloatingRootJointRobo
 import us.ihmc.simulationconstructionset.util.ground.FlatGroundProfile;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
 
+import java.io.InputStream;
+
 public class SimpleAtlasFlatGroundWalkingTrack
 {
    public static void main(String[] args)
@@ -41,8 +43,27 @@ public class SimpleAtlasFlatGroundWalkingTrack
 =======
       DRCRobotModel model = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_NO_HANDS,
                                                 RobotTarget.SCS,
+<<<<<<< HEAD
                                                 false);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+                                                false)
+      {
+         private static final String parameterFile = "/us/ihmc/atlas/parameters/experimental_controller_parameters.xml";
+
+         @Override
+         public String getParameterFileName()
+         {
+            return parameterFile;
+         }
+
+         @Override
+         public InputStream getParameterOverwrites()
+         {
+            return null;
+         }
+      };
+>>>>>>> 0564eaa6ee0... Adding parameter file for experimental walking state
 
       DRCGuiInitialSetup guiInitialSetup = new DRCGuiInitialSetup(true, false);
 
