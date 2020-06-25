@@ -208,6 +208,7 @@ public class ControllerPelvisOrientationManager implements PelvisOrientationCont
       }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       tempWeight.set(pelvisAngularWeight);
 
       if (leapOfFaithModule != null)
@@ -217,6 +218,12 @@ public class ControllerPelvisOrientationManager implements PelvisOrientationCont
       {
          tempWeight.set(pelvisAngularWeight);
 >>>>>>> 5942e55c22c... got simple pelvis orietnation manager
+=======
+      tempWeight.set(pelvisAngularWeight);
+
+      if (leapOfFaithModule != null)
+      {
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
          leapOfFaithModule.update(deltaTime);
          leapOfFaithModule.updateAngularOffsets();
          leapOfFaithModule.addAngularOffset(tempOrientation);

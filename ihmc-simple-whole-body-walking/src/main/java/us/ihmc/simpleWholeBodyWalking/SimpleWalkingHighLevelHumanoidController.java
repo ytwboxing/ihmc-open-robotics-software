@@ -1,6 +1,9 @@
 package us.ihmc.simpleWholeBodyWalking;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -9,6 +12,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+<<<<<<< HEAD
 import controller_msgs.msg.dds.TaskspaceTrajectoryStatusMessage;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
 =======
@@ -16,14 +20,21 @@ import controller_msgs.msg.dds.TaskspaceTrajectoryStatusMessage;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
 import us.ihmc.commonWalkingControlModules.capturePoint.BalanceManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+import controller_msgs.msg.dds.TaskspaceTrajectoryStatusMessage;
+import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleInput;
 import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleOutput;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.WalkingFailureDetectionControlModule;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import us.ihmc.commonWalkingControlModules.controlModules.pelvis.PelvisOrientationManager;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyControlManager;
 import us.ihmc.commonWalkingControlModules.controllerCore.WholeBodyControllerCoreMode;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.ControllerCoreCommand;
@@ -36,9 +47,12 @@ import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelSta
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.ParameterizedControllerCoreOptimizationSettings;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.stateTransitionConditions.StartWalkingCondition;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.states.WalkingStateEnum;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.commonWalkingControlModules.messageHandlers.WalkingMessageHandler;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.ControllerCoreOptimizationSettings;
@@ -59,9 +73,13 @@ import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.contactable.ContactablePlaneBody;
 import us.ihmc.robotics.partNames.ArmJointName;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import us.ihmc.robotics.partNames.LegJointName;
 =======
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+import us.ihmc.robotics.partNames.LegJointName;
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.ScrewTools;
@@ -69,24 +87,33 @@ import us.ihmc.robotics.stateMachine.core.StateMachine;
 import us.ihmc.robotics.stateMachine.core.StateTransitionCondition;
 import us.ihmc.robotics.stateMachine.factories.StateMachineFactory;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.simpleWholeBodyWalking.states.SimpleSingleSupportState;
 import us.ihmc.simpleWholeBodyWalking.states.SimpleStandingState;
 import us.ihmc.simpleWholeBodyWalking.states.SimpleTransferToStandingState;
 import us.ihmc.simpleWholeBodyWalking.states.SimpleTransferToSwingState;
 import us.ihmc.simpleWholeBodyWalking.states.SimpleWalkingState;
 import us.ihmc.simpleWholeBodyWalking.states.SimpleWalkingStateEnum;
+<<<<<<< HEAD
 =======
 import us.ihmc.simpleWholeBodyWalking.states.*;
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import java.util.*;
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatusProvider
 {
    private final String name = getClass().getSimpleName();
@@ -488,9 +515,13 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
          for (int i = 0; i < armJointNames.length; i++)
             privilegedConfigurationCommand.addJoint(fullRobotModel.getArmJoint(robotSide, armJointNames[i]), PrivilegedConfigurationOption.AT_MID_RANGE);
 <<<<<<< HEAD
+<<<<<<< HEAD
          privilegedConfigurationCommand.addJoint(fullRobotModel.getLegJoint(robotSide, LegJointName.KNEE_PITCH), PrivilegedConfigurationOption.AT_MID_RANGE);
 =======
 >>>>>>> 13a03c33b98... set up the simple walking state controller
+=======
+         privilegedConfigurationCommand.addJoint(fullRobotModel.getLegJoint(robotSide, LegJointName.KNEE_PITCH), PrivilegedConfigurationOption.AT_MID_RANGE);
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
       }
 
       initializeContacts();
@@ -730,11 +761,15 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
       boolean keepCMPInsideSupportPolygon = !bodyManagerIsLoadBearing;
       RobotSide side = currentState.isDoubleSupportState() ? currentState.getTransferToSide() : currentState.getSupportSide();
 <<<<<<< HEAD
+<<<<<<< HEAD
       balanceManager.compute(side, controlledCoMHeightAcceleration.getDoubleValue(), keepCMPInsideSupportPolygon, controlHeightWithMomentum);
 >>>>>>> 13a03c33b98... set up the simple walking state controller
 =======
       balanceManager.compute(side, controlledCoMHeightAcceleration.getDoubleValue(), keepCMPInsideSupportPolygon, false);
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+      balanceManager.compute(side, controlledCoMHeightAcceleration.getDoubleValue(), keepCMPInsideSupportPolygon, true);
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
    }
 
    private void reportStatusMessages()

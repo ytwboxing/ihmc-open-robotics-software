@@ -1,17 +1,24 @@
 package us.ihmc.simpleWholeBodyWalking;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import static us.ihmc.graphicsDescription.appearance.YoAppearance.Beige;
 import static us.ihmc.graphicsDescription.appearance.YoAppearance.BlueViolet;
 import static us.ihmc.graphicsDescription.appearance.YoAppearance.DarkViolet;
 import static us.ihmc.graphicsDescription.appearance.YoAppearance.Yellow;
 
+<<<<<<< HEAD
 =======
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import controller_msgs.msg.dds.CapturabilityBasedStatus;
 import controller_msgs.msg.dds.TaskspaceTrajectoryStatusMessage;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
+<<<<<<< HEAD
 <<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.capturePoint.CapturePointTools;
 import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleInput;
@@ -23,10 +30,17 @@ import us.ihmc.commonWalkingControlModules.capturePoint.smoothCMPBasedICPPlanner
 import us.ihmc.commonWalkingControlModules.captureRegion.PushRecoveryControlModule;
 import us.ihmc.commonWalkingControlModules.configurations.ICPAngularMomentumModifierParameters;
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+import us.ihmc.commonWalkingControlModules.capturePoint.CapturePointTools;
+import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleInput;
+import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleOutput;
+import us.ihmc.commonWalkingControlModules.capturePoint.smoothCMPBasedICPPlanner.SmoothCMPBasedICPPlanner;
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.commonWalkingControlModules.configurations.ICPWithTimeFreezingPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.PelvisICPBasedTranslationManager;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.PlaneContactStateCommand;
+<<<<<<< HEAD
 <<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.commons.MathTools;
@@ -56,6 +70,25 @@ import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.euclid.referenceFrame.*;
 import us.ihmc.euclid.referenceFrame.interfaces.*;
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
+import us.ihmc.commons.MathTools;
+import us.ihmc.commons.lists.RecyclingArrayList;
+import us.ihmc.euclid.referenceFrame.FrameConvexPolygon2D;
+import us.ihmc.euclid.referenceFrame.FramePoint2D;
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.FramePose3D;
+import us.ihmc.euclid.referenceFrame.FrameVector2D;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint2DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePose3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector2DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
+import us.ihmc.euclid.referenceFrame.interfaces.FrameConvexPolygon2DReadOnly;
+import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
@@ -73,32 +106,44 @@ import us.ihmc.robotics.geometry.ConvexPolygonScaler;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import us.ihmc.robotics.screwTheory.TotalMassCalculator;
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.sensorProcessing.frames.CommonHumanoidReferenceFrames;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoFramePoint2D;
 import us.ihmc.yoVariables.variable.YoFramePoint3D;
 import us.ihmc.yoVariables.variable.YoFrameVector2D;
+<<<<<<< HEAD
 =======
 import us.ihmc.yoVariables.variable.*;
 
 import static us.ihmc.graphicsDescription.appearance.YoAppearance.*;
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 
 public class SimpleBalanceManager
 {
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    private static final boolean ENABLE_DYN_REACHABILITY = true;
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
@@ -151,9 +196,12 @@ public class SimpleBalanceManager
 
    private final DoubleProvider icpDistanceOutsideSupportForStep = new DoubleParameter("icpDistanceOutsideSupportForStep", registry, 0.03);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
    private final DoubleProvider ellipticICPErrorForMomentumRecovery = new DoubleParameter("ellipticICPErrorForMomentumRecovery", registry, 2.0);
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+>>>>>>> 9f1b5ce312b... Got Atlas to stand
 
    private final CapturabilityBasedStatus capturabilityBasedStatus = new CapturabilityBasedStatus();
 
