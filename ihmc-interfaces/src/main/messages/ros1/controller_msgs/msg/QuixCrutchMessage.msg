@@ -15,4 +15,6 @@ bool execute_behavior
 
 controller_msgs/QuixFlatStepType desired_flat_step_type
 
+bool desired_continuous_walk
+
 

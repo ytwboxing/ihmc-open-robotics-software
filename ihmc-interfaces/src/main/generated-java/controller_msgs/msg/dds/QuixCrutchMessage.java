@@ -27,6 +27,8 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
    public controller_msgs.msg.dds.QuixFlatStepType desired_flat_step_type_;
 
+   public boolean desired_continuous_walk_;
+
    public QuixCrutchMessage()
    {
 
@@ -38,6 +40,7 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
 
       desired_flat_step_type_ = new controller_msgs.msg.dds.QuixFlatStepType();
+
 
    }
 
@@ -68,6 +71,9 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
 
       controller_msgs.msg.dds.QuixFlatStepTypePubSubType.staticCopy(other.desired_flat_step_type_, desired_flat_step_type_);
+
+      desired_continuous_walk_ = other.desired_continuous_walk_;
+
    }
 
 
@@ -135,6 +141,16 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
    }
 
 
+   public void setDesiredContinuousWalk(boolean desired_continuous_walk)
+   {
+      desired_continuous_walk_ = desired_continuous_walk;
+   }
+   public boolean getDesiredContinuousWalk()
+   {
+      return desired_continuous_walk_;
+   }
+
+
    public static Supplier<QuixCrutchMessagePubSubType> getPubSubType()
    {
       return QuixCrutchMessagePubSubType::new;
@@ -172,6 +188,9 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
       if (!this.desired_flat_step_type_.epsilonEquals(other.desired_flat_step_type_, epsilon)) return false;
 
+      if (!us.ihmc.idl.IDLTools.epsilonEqualsBoolean(this.desired_continuous_walk_, other.desired_continuous_walk_, epsilon)) return false;
+
+
       return true;
    }
 
@@ -204,6 +223,9 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
       if (!this.desired_flat_step_type_.equals(otherMyClass.desired_flat_step_type_)) return false;
 
+      if(this.desired_continuous_walk_ != otherMyClass.desired_continuous_walk_) return false;
+
+
       return true;
    }
 
@@ -233,7 +255,10 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
       builder.append(this.execute_behavior_);      builder.append(", ");
 
       builder.append("desired_flat_step_type=");
-      builder.append(this.desired_flat_step_type_);
+      builder.append(this.desired_flat_step_type_);      builder.append(", ");
+
+      builder.append("desired_continuous_walk=");
+      builder.append(this.desired_continuous_walk_);
       builder.append("}");
       return builder.toString();
    }

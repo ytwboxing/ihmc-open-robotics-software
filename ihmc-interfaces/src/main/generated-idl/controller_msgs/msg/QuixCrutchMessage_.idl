@@ -24,6 +24,7 @@ module controller_msgs
         controller_msgs::msg::dds::QuixMotionStateMessage requested_motion_state;
         boolean execute_behavior;
         controller_msgs::msg::dds::QuixFlatStepType desired_flat_step_type;
+        boolean desired_continuous_walk;
       };
     };
   };

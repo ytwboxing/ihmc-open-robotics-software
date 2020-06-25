@@ -9,3 +9,4 @@ bool start_behavior false
 controller_msgs/QuixMotionStateMessage requested_motion_state
 bool execute_behavior false
 controller_msgs/QuixFlatStepType desired_flat_step_type
+bool desired_continuous_walk false
