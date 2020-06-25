@@ -105,6 +105,7 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
       toolbox.setFeedbackControllerSettings(walkingControllerParameters.getFeedbackControllerSettings());
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       toolbox.setupForInverseDynamicsSolver(controllerToolbox.getContactablePlaneBodies());
       
 =======
@@ -120,6 +121,10 @@ public class SimpleWalkingControllerState extends HighLevelControllerState
 =======
          toolbox.setupForInverseDynamicsSolver(controllerToolbox.getContactablePlaneBodies());
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+      toolbox.setupForInverseDynamicsSolver(controllerToolbox.getContactablePlaneBodies());
+      
+>>>>>>> 4cde91fd214... Passed correct ICP parameters to customState manager.
       FeedbackControlCommandList template = managerFactory.createFeedbackControlTemplate();
       JointDesiredOutputList lowLevelControllerOutput = new JointDesiredOutputList(controlledJoints);
       controllerCore = new WholeBodyControllerCore(toolbox, template, lowLevelControllerOutput, registry);

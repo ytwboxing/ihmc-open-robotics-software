@@ -58,11 +58,16 @@ public class DRCFlatGroundWalkingTrack
            WalkingProvider.VELOCITY_HEADING_COMPONENT, new HeadingAndVelocityEvaluationScriptParameters(), null, null); // should always be committed as VELOCITY_HEADING_COMPONENT
    }
 <<<<<<< HEAD
+<<<<<<< HEAD
    
    // SimpleAtlas Simulation calls this helper constructor
 =======
 
 >>>>>>> 5bd231838af... set up a custom controller guyyy
+=======
+   
+   // SimpleAtlas Simulation calls this helper constructor
+>>>>>>> 4cde91fd214... Passed correct ICP parameters to customState manager.
    public DRCFlatGroundWalkingTrack(DRCRobotInitialSetup<HumanoidFloatingRootJointRobot> robotInitialSetup, DRCGuiInitialSetup guiInitialSetup, DRCSCSInitialSetup scsInitialSetup,
                                     boolean useVelocityAndHeadingScript, boolean cheatWithGroundHeightAtForFootstep, DRCRobotModel model,
                                     HighLevelControllerStateFactory customControllerState)

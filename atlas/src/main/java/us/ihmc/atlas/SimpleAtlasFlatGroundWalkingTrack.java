@@ -87,6 +87,7 @@ public class SimpleAtlasFlatGroundWalkingTrack
                                     cheatWithGroundHeightAtForFootstep,
                                     model,
 <<<<<<< HEAD
+<<<<<<< HEAD
                                     new SimpleWalkingControllerStateFactory(model.getCapturePointPlannerParameters()));
    }
 
@@ -140,6 +141,9 @@ public class SimpleAtlasFlatGroundWalkingTrack
    }
 =======
                                     new SimpleWalkingControllerStateFactory());
+=======
+                                    new SimpleWalkingControllerStateFactory(model.getCapturePointPlannerParameters()));
+>>>>>>> 4cde91fd214... Passed correct ICP parameters to customState manager.
    }
 
 >>>>>>> 13a03c33b98... set up the simple walking state controller
