@@ -37,6 +37,7 @@ public class SimpleWalkingControllerStateFactory implements HighLevelControllerS
    
    public SimpleWalkingControllerStateFactory(ICPWithTimeFreezingPlannerParameters capturePointPlannerParameters) {
 <<<<<<< HEAD
+<<<<<<< HEAD
       this.capturePointPlannerParameters = capturePointPlannerParameters; // Needed to pass ICPWithTimeFreezingPlannerParameters this way
    }
    
@@ -53,6 +54,9 @@ public class SimpleWalkingControllerStateFactory implements HighLevelControllerS
 >>>>>>> 13a03c33b98... set up the simple walking state controller
 =======
       this.capturePointPlannerParameters = capturePointPlannerParameters;
+=======
+      this.capturePointPlannerParameters = capturePointPlannerParameters; // Needed to pass ICPWithTimeFreezingPlannerParameters this way
+>>>>>>> 7a2fe5448b7... Fixed passing of capture point parameters via constructor.
    }
    
 >>>>>>> 4cde91fd214... Passed correct ICP parameters to customState manager.
