@@ -331,6 +331,7 @@ public class SimpleSingleSupportState extends SimpleWalkingState
    {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       feetManager.setFlatFootContactState(swingSide);
 =======
       balanceManager.resetPushRecovery();
@@ -340,6 +341,10 @@ public class SimpleSingleSupportState extends SimpleWalkingState
 
 =======
 >>>>>>> 2fb58d4d161... did the simple balance manager
+=======
+      feetManager.setFlatFootContactState(swingSide);
+
+>>>>>>> 11a3a73b3c3... set the foot to be in support at the end of swing
       actualFootPoseInWorld.setToZero(fullRobotModel.getSoleFrame(swingSide));
       actualFootPoseInWorld.changeFrame(worldFrame);
 
