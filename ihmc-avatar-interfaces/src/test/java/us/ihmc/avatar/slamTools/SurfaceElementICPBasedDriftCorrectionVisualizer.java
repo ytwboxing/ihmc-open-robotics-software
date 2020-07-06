@@ -41,6 +41,7 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
    private final int bufferSize = (int) (trajectoryTime / dt / recordFrequency + 3);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
    private static final DriftCase DRIFT_CASE = DriftCase.UpStairs3YDriftSmallOverlap;
 //         private static final DriftCase DRIFT_CASE = DriftCase.UpStairs3RollDrift;
 //         private static final DriftCase DRIFT_CASE = DriftCase.UpStairs3HugeDrift;
@@ -51,6 +52,9 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
    //private static final DriftCase DRIFT_CASE = DriftCase.HugeDrift;
    //private static final DriftCase DRIFT_CASE = DriftCase.YawDrift;
 >>>>>>> bbca339f172... Re defined drift cases.
+=======
+   private static final DriftCase DRIFT_CASE = DriftCase.YDrift;
+>>>>>>> faa30e3df3c... Added return line when there is no corresponding point.
 
    private static final String DATA_PATH = DRIFT_CASE.getFilePath();
 
