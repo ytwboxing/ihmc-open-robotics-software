@@ -1,10 +1,16 @@
 package us.ihmc.avatar.slamTools;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
+<<<<<<< HEAD:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPSLAMTest.java
 import org.ejml.data.DenseMatrix64F;
+=======
+import org.ejml.data.DMatrixRMaj;
+import org.junit.jupiter.api.Tag;
+>>>>>>> 336136760f6... Tagged tests.:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPTest.java
 import org.junit.jupiter.api.Test;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
@@ -22,6 +28,7 @@ import us.ihmc.jOctoMap.normalEstimation.NormalEstimationParameters;
 import us.ihmc.jOctoMap.ocTree.NormalOcTree;
 import us.ihmc.jOctoMap.pointCloud.ScanCollection;
 import us.ihmc.log.LogTools;
+<<<<<<< HEAD:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPSLAMTest.java
 import us.ihmc.robotEnvironmentAwareness.communication.converters.PointCloudCompression;
 import us.ihmc.robotEnvironmentAwareness.hardware.StereoVisionPointCloudDataLoader;
 import us.ihmc.robotEnvironmentAwareness.slam.SLAMBasics;
@@ -29,101 +36,70 @@ import us.ihmc.robotEnvironmentAwareness.slam.SLAMFrame;
 import us.ihmc.robotEnvironmentAwareness.slam.SurfaceElementICPSLAM;
 import us.ihmc.robotEnvironmentAwareness.slam.tools.SLAMTools;
 import us.ihmc.robotics.PlanarRegionFileTools;
+=======
+import us.ihmc.robotEnvironmentAwareness.slam.SLAMFrame;
+import us.ihmc.robotEnvironmentAwareness.slam.SurfaceElementICPSLAM;
+import us.ihmc.robotEnvironmentAwareness.slam.tools.SLAMTools;
+import us.ihmc.robotEnvironmentAwareness.ui.io.StereoVisionPointCloudDataLoader;
+>>>>>>> 336136760f6... Tagged tests.:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPTest.java
 import us.ihmc.robotics.optimization.FunctionOutputCalculator;
 import us.ihmc.robotics.optimization.LevenbergMarquardtParameterOptimizer;
 
-public class SurfaceElementICPSLAMTest
+@Tag("point-cloud-drift-correction-test")
+public class SurfaceElementICPTest
 {
-   @Test
-   public void visualizeFrames()
-   {
-      /**
-       * Frame decision : "..\\Data\\20200601_LidarWalking_UpStairs2\\PointCloud\\" 4, 5: small drift.
-       * <p>
-       * 3, 4: small drift on Y dir.
-       * <p>
-       * 4, 5: yaw drift 6, 7 .........? 2, 3??
-       * <p>
-       * 7, 8: small drift.
-       * <p>
-       * 8, 9: medium drift.
-       * <p>
-       * 9, 10: small drift.
-       * <p>
-       * 13, 14: big drift and flat overlap (Very difficult).
-       * <p>
-       * 14, 15: small.
-       */
-      String stereoPath = "C:\\PointCloudData\\Data\\20200601_LidarWalking_UpStairs2\\PointCloud\\";
-      //String stereoPath = "C:\\PointCloudData\\Data\\20200603_LidarWalking_StairUp3\\PointCloud\\";   // 8-9 very big in X. 4-5 small in Y. 7-8 big in X and small overlap in the last vertical
-
-      File pointCloudFile = new File(stereoPath);
-
-      List<StereoVisionPointCloudMessage> messages = StereoVisionPointCloudDataLoader.getMessagesFromFile(pointCloudFile);
-      double octreeResolution = 0.02;
-      for (int i = 0; i < messages.size() - 1; i++)
-      {
-         SLAMBasics slamBasic = new SLAMBasics(octreeResolution);
-         SLAMViewer slamViewer = new SLAMViewer();
-         for (int j = 0; j < i; j++)
-         {
-            slamBasic.addKeyFrame((messages.get(j)));
-         }
-         slamViewer.addOctree(slamBasic.getOctree(), Color.CORAL, octreeResolution, true);
-         slamViewer.addPointCloud(PointCloudCompression.decompressPointCloudToArray(messages.get(i)), Color.CYAN);
-         slamViewer.addPointCloud(PointCloudCompression.decompressPointCloudToArray(messages.get(i + 1)), Color.GREEN);
-         slamViewer.start(i + " frame and " + (i + 1));
-      }
-
-      ThreadTools.sleepForever();
-   }
+   private static final boolean VISUALIZE = false;
 
    @Test
    public void testSurfaceElements()
    {
-      String stereoPath = "C:\\PointCloudData\\Data\\20200601_LidarWalking_UpStairs2\\PointCloud\\";
-      File pointCloudFile = new File(stereoPath);
+      DriftCase driftCase = DriftCase.YDrift;
+      String driftCasePath = driftCase.getFilePath();
+      File pointCloudFile = new File(driftCasePath);
 
       List<StereoVisionPointCloudMessage> messages = StereoVisionPointCloudDataLoader.getMessagesFromFile(pointCloudFile);
       double octreeResolution = 0.02;
       SurfaceElementICPSLAM slam = new SurfaceElementICPSLAM(octreeResolution);
-      slam.addKeyFrame(messages.get(3));
+      slam.addKeyFrame(messages.get(0));
 
       NormalOcTree map = slam.getOctree();
       map.updateNormals();
 
-      SLAMFrame frame2 = new SLAMFrame(slam.getLatestFrame(), messages.get(4));
+      SLAMFrame frame2 = new SLAMFrame(slam.getLatestFrame(), messages.get(1));
       double surfaceElementResolution = 0.04;
       double windowMargin = 0.05;
       int minimumNumberOfHits = 10;
       boolean updateNormal = false;
       frame2.registerSurfaceElements(map, windowMargin, surfaceElementResolution, minimumNumberOfHits, updateNormal);
 
-      SLAMViewer slamViewer = new SLAMViewer();
-      slamViewer.addOctree(map, Color.CORAL, octreeResolution, true);
-      slamViewer.addOctree(map, Color.CORAL, octreeResolution);
-      slamViewer.addOctree(frame2.getFrameMap(), Color.GREEN, surfaceElementResolution, !updateNormal);
+      if (VISUALIZE)
+      {
+         SLAMViewer slamViewer = new SLAMViewer();
+         slamViewer.addOctree(map, Color.CORAL, octreeResolution, true);
+         slamViewer.addOctree(map, Color.CORAL, octreeResolution);
+         slamViewer.addOctree(frame2.getFrameMap(), Color.GREEN, surfaceElementResolution, !updateNormal);
 
-      slamViewer.start("testSurfaceElements");
-      ThreadTools.sleepForever();
+         slamViewer.start("testSurfaceElements");
+         ThreadTools.sleepForever();
+      }
    }
 
    @Test
    public void testDistanceComputation()
    {
-      //String stereoPath = "C:\\PointCloudData\\Data\\20200601_LidarWalking_UpStairs2\\PointCloud\\";
-      String stereoPath = "C:\\PointCloudData\\Data\\20200603_LidarWalking_StairUp3\\PointCloud\\";
-      File pointCloudFile = new File(stereoPath);
+      DriftCase driftCase = DriftCase.YDrift;
+      String driftCasePath = driftCase.getFilePath();
+      File pointCloudFile = new File(driftCasePath);
 
       List<StereoVisionPointCloudMessage> messages = StereoVisionPointCloudDataLoader.getMessagesFromFile(pointCloudFile);
       double octreeResolution = 0.02;
       SurfaceElementICPSLAM slam = new SurfaceElementICPSLAM(octreeResolution);
-      slam.addKeyFrame(messages.get(4));
+      slam.addKeyFrame(messages.get(0));
 
       NormalOcTree map = slam.getOctree();
       map.updateNormals();
 
-      SLAMFrame frame2 = new SLAMFrame(slam.getLatestFrame(), messages.get(5));
+      SLAMFrame frame2 = new SLAMFrame(slam.getLatestFrame(), messages.get(1));
       double surfaceElementResolution = 0.04;
       double windowMargin = 0.05;
       int minimumNumberOfHits = 1;
@@ -168,44 +144,50 @@ public class SurfaceElementICPSLAMTest
          System.out.println(i + " " + bigSurfelIndices.get(i) + " " + bigSurfelDistances.get(i) + " " + bigPoints[i]);
       }
 
-      SLAMViewer slamViewer = new SLAMViewer();
-      slamViewer.addOctree(map, Color.CORAL, octreeResolution, true);
-      slamViewer.addOctree(map, Color.CORAL, octreeResolution);
-      slamViewer.addOctree(frame2.getFrameMap(), Color.GREEN, surfaceElementResolution, !updateNormal);
-      slamViewer.addPointCloud(bigPoints, Color.RED, 0.02);
+      if (VISUALIZE)
+      {
+         SLAMViewer slamViewer = new SLAMViewer();
+         slamViewer.addOctree(map, Color.CORAL, octreeResolution, true);
+         slamViewer.addOctree(map, Color.CORAL, octreeResolution);
+         slamViewer.addOctree(frame2.getFrameMap(), Color.GREEN, surfaceElementResolution, !updateNormal);
+         slamViewer.addPointCloud(bigPoints, Color.RED, 0.02);
 
-      slamViewer.start("testDistanceComputation");
-      ThreadTools.sleepForever();
+         slamViewer.start("testDistanceComputation");
+         ThreadTools.sleepForever();
+      }
    }
 
    @Test
    public void testDriftCorrection()
    {
-      //String stereoPath = "C:\\PointCloudData\\Data\\20200601_LidarWalking_UpStairs2\\PointCloud\\";
-      String stereoPath = "C:\\PointCloudData\\Data\\20200603_LidarWalking_StairUp3\\PointCloud\\";
-      File pointCloudFile = new File(stereoPath);
+      DriftCase driftCase = DriftCase.YDrift;
+      String driftCasePath = driftCase.getFilePath();
+      File pointCloudFile = new File(driftCasePath);
 
       List<StereoVisionPointCloudMessage> messages = StereoVisionPointCloudDataLoader.getMessagesFromFile(pointCloudFile);
       double octreeResolution = 0.02;
       SurfaceElementICPSLAM slam = new SurfaceElementICPSLAM(octreeResolution);
-      slam.addKeyFrame(messages.get(14));
+      slam.addKeyFrame(messages.get(0));
 
       NormalOcTree map = slam.getOctree();
       map.updateNormals();
 
-      SLAMFrame frame2 = new SLAMFrame(slam.getLatestFrame(), messages.get(15));
+      SLAMFrame frame2 = new SLAMFrame(slam.getLatestFrame(), messages.get(1));
       double surfaceElementResolution = 0.04;
       double windowMargin = 0.04;
       int minimumNumberOfHits = 3;
       boolean updateNormal = false;
       frame2.registerSurfaceElements(map, windowMargin, surfaceElementResolution, minimumNumberOfHits, updateNormal);
 
-      SLAMViewer originalViewer = new SLAMViewer();
-      originalViewer.addOctree(map, Color.CORAL, octreeResolution, true);
+      if (VISUALIZE)
+      {
+         SLAMViewer originalViewer = new SLAMViewer();
+         originalViewer.addOctree(map, Color.CORAL, octreeResolution, true);
 
-      originalViewer.addPointCloud(frame2.getPointCloud(), Color.CYAN);
-      originalViewer.addOctree(frame2.getFrameMap(), Color.GREEN, surfaceElementResolution, !updateNormal);
-      originalViewer.start("originalViewer");
+         originalViewer.addPointCloud(frame2.getPointCloud(), Color.CYAN);
+         originalViewer.addOctree(frame2.getFrameMap(), Color.GREEN, surfaceElementResolution, !updateNormal);
+         originalViewer.start("originalViewer");
+      }
 
       int numberOfSurfel = frame2.getSurfaceElementsToSensor().size();
       LogTools.info("numberOfSurfel " + numberOfSurfel);
@@ -256,9 +238,11 @@ public class SurfaceElementICPSLAMTest
       optimizer.setCorrespondenceThreshold(0.05);
 
       // do ICP.
-      for (int i = 0; i < 50; i++)
+      double[] qualityArray = new double[50];
+      for (int i = 0; i < qualityArray.length; i++)
       {
-         optimizer.iterate();
+         qualityArray[i] = optimizer.iterate();
+         System.out.println(i + " : " + qualityArray[i]);
       }
 
       // get parameter.
@@ -286,14 +270,19 @@ public class SurfaceElementICPSLAMTest
       map.setNormalEstimationParameters(normalEstimationParameters);
       map.updateNormals();
 
-      SLAMViewer slamViewer = new SLAMViewer();
-      slamViewer.addOctree(map, Color.CORAL, octreeResolution, true);
-      slamViewer.addPointCloud(frame2.getPointCloud(), Color.GREEN);
-      slamViewer.addSensorPose(frame2.getSensorPose(), Color.GREEN);
-      slamViewer.addSensorPose(frame2.getOriginalSensorPose(), Color.BLUE);
-      slamViewer.start("testDriftCorrection");
+      if (VISUALIZE)
+      {
+         SLAMViewer slamViewer = new SLAMViewer();
+         slamViewer.addOctree(map, Color.CORAL, octreeResolution, true);
+         slamViewer.addPointCloud(frame2.getPointCloud(), Color.GREEN);
+         slamViewer.addSensorPose(frame2.getSensorPose(), Color.GREEN);
+         slamViewer.addSensorPose(frame2.getOriginalSensorPose(), Color.BLUE);
+         slamViewer.start("testDriftCorrection");
 
-      ThreadTools.sleepForever();
+         assertTrue(0.005 > qualityArray[qualityArray.length - 1], "GOOD!");
+
+         ThreadTools.sleepForever();
+      }
    }
 
    private RigidBodyTransform convertTransform(double... transformParameters)
@@ -306,6 +295,7 @@ public class SurfaceElementICPSLAMTest
 
       return transform;
    }
+<<<<<<< HEAD:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPSLAMTest.java
 
    @Test
    public void testEndToEndTestUpStair2()
@@ -387,4 +377,6 @@ public class SurfaceElementICPSLAMTest
 
       ThreadTools.sleepForever();
    }
+=======
+>>>>>>> 336136760f6... Tagged tests.:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPTest.java
 }
