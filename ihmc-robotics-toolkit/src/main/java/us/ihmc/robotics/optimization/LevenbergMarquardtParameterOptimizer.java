@@ -21,8 +21,13 @@ public class LevenbergMarquardtParameterOptimizer
    private int outputDimension;
 
    private final UnaryOperator<DMatrixRMaj> outputCalculator;
+<<<<<<< HEAD
    private boolean useDampingCoefficient = false; // TODO: add setter.
    private final DenseMatrix64F dampingCoefficient;
+=======
+   private boolean useDampingCoefficient = false;
+   private final DMatrixRMaj dampingCoefficient;
+>>>>>>> 14982396e4c... Corrected typo.
    private static final double DEFAULT_RESIDUAL_SCALER = 0.1;
    private double residualScaler = DEFAULT_RESIDUAL_SCALER;
 
@@ -43,7 +48,7 @@ public class LevenbergMarquardtParameterOptimizer
    // lower   : slower approach but better accuracy in near distance.
    private boolean[] correspondence;
    private double correspondenceThreshold = 1.0;
-   private int numberOfCoorespondingPoints = 0;
+   private int numberOfCorespondingPoints = 0;
 
    private double computationTime;
    private double initialQuality;
@@ -188,14 +193,14 @@ public class LevenbergMarquardtParameterOptimizer
       DenseMatrix64F newInput = new DenseMatrix64F(parameterDimension, 1);
 
       // compute correspondence space.
-      numberOfCoorespondingPoints = 0;
+      numberOfCorespondingPoints = 0;
       currentOutput.set(outputCalculator.apply(currentInput));
       for (int i = 0; i < outputDimension; i++)
       {
          if (currentOutput.get(i, 0) < correspondenceThreshold)
          {
             correspondence[i] = true;
-            numberOfCoorespondingPoints++;
+            numberOfCorespondingPoints++;
          }
          else
          {
@@ -203,7 +208,7 @@ public class LevenbergMarquardtParameterOptimizer
          }
       }
 
-      if (numberOfCoorespondingPoints == 0)
+      if (numberOfCorespondingPoints == 0)
       {
          return -1;
       }
@@ -276,14 +281,14 @@ public class LevenbergMarquardtParameterOptimizer
       double iterateTime = Conversions.nanosecondsToSeconds(System.nanoTime() - startTime);
       if (DEBUG)
       {
-         System.out.println("elapsed iteration time is " + iterateTime + " " + numberOfCoorespondingPoints);
+         System.out.println("elapsed iteration time is " + iterateTime + " " + numberOfCorespondingPoints);
       }
       return quality;
    }
 
-   public int getNumberOfCoorespondingPoints()
+   public int getNumberOfCorespondingPoints()
    {
-      return numberOfCoorespondingPoints;
+      return numberOfCorespondingPoints;
    }
 
    public DenseMatrix64F getOptimalParameter()

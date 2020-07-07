@@ -186,7 +186,7 @@ public class ICPBasedPointCloudDriftCorrectionVisualizer
 
          // update yo variables.   
          optimizerQuality.set(optimizer.getQuality());
-         numberOfCorrespondingPoints.set(optimizer.getNumberOfCoorespondingPoints());
+         numberOfCorrespondingPoints.set(optimizer.getNumberOfCorespondingPoints());
 
          scs.tickAndUpdate();
       }
