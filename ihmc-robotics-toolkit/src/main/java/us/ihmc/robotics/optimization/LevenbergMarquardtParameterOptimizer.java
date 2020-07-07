@@ -1,8 +1,16 @@
 package us.ihmc.robotics.optimization;
 
+<<<<<<< HEAD
 import org.ejml.data.DenseMatrix64F;
 import org.ejml.ops.CommonOps;
 import org.ejml.ops.MatrixDimensionException;
+=======
+import java.util.function.UnaryOperator;
+
+import org.ejml.MatrixDimensionException;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+>>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
 
 import us.ihmc.commons.Conversions;
 
@@ -12,7 +20,7 @@ public class LevenbergMarquardtParameterOptimizer
    private int parameterDimension;
    private int outputDimension;
 
-   private FunctionOutputCalculator outputCalculator = null;
+   private final UnaryOperator<DMatrixRMaj> outputCalculator;
    private boolean useDampingCoefficient = false; // TODO: add setter.
    private final DenseMatrix64F dampingCoefficient;
    private static final double DEFAULT_RESIDUAL_SCALER = 0.1;
@@ -46,12 +54,13 @@ public class LevenbergMarquardtParameterOptimizer
    /**
     * iterate the direction to minimize output space, -inv(J^T * J + W_N) * J^T * e
     */
-   public LevenbergMarquardtParameterOptimizer(int inputParameterDimension, int outputDimension)
+   public LevenbergMarquardtParameterOptimizer(int inputParameterDimension, int outputDimension, UnaryOperator<DMatrixRMaj> outputCalculator)
    {
       if (DEBUG)
          System.out.println("Optimizer Info = " + inputParameterDimension + " " + outputDimension + " space solver");
       this.parameterDimension = inputParameterDimension;
       this.outputDimension = outputDimension;
+      this.outputCalculator = outputCalculator;
 
       dampingCoefficient = new DenseMatrix64F(inputParameterDimension, inputParameterDimension);
 
@@ -71,6 +80,7 @@ public class LevenbergMarquardtParameterOptimizer
       correspondence = new boolean[outputDimension];
    }
 
+<<<<<<< HEAD
    public void reShape(int parameterDimension, int outputDimension)
    {
       this.parameterDimension = parameterDimension;
@@ -95,15 +105,13 @@ public class LevenbergMarquardtParameterOptimizer
    }
 
    public void setPerturbationVector(DenseMatrix64F purterbationVector)
+=======
+   public void setPerturbationVector(DMatrixRMaj purterbationVector)
+>>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
    {
       if (this.purterbationVector.getNumCols() != purterbationVector.getNumCols())
          throw new MatrixDimensionException("do reShape first.");
       this.purterbationVector.set(purterbationVector);
-   }
-
-   public void setOutputCalculator(FunctionOutputCalculator functionOutputCalculator)
-   {
-      outputCalculator = functionOutputCalculator;
    }
 
    public void setCorrespondenceThreshold(double correspondenceThreshold)
@@ -181,7 +189,7 @@ public class LevenbergMarquardtParameterOptimizer
 
       // compute correspondence space.
       numberOfCoorespondingPoints = 0;
-      currentOutput.set(outputCalculator.computeOutput(currentInput));
+      currentOutput.set(outputCalculator.apply(currentInput));
       for (int i = 0; i < outputDimension; i++)
       {
          if (currentOutput.get(i, 0) < correspondenceThreshold)
@@ -194,12 +202,12 @@ public class LevenbergMarquardtParameterOptimizer
             correspondence[i] = false;
          }
       }
-      
-      if(numberOfCoorespondingPoints == 0)
+
+      if (numberOfCoorespondingPoints == 0)
       {
          return -1;
       }
-      
+
       quality = computeQuality(currentOutput, correspondence);
       initialQuality = quality;
       if (DEBUG)
@@ -214,7 +222,7 @@ public class LevenbergMarquardtParameterOptimizer
          perturbedInput.set(currentInput);
          perturbedInput.add(i, 0, purterbationVector.get(i));
 
-         perturbedOutput.set(outputCalculator.computeOutput(perturbedInput));
+         perturbedOutput.set(outputCalculator.apply(perturbedInput));
          for (int j = 0; j < outputDimension; j++)
          {
             if (correspondence[j])
@@ -250,7 +258,7 @@ public class LevenbergMarquardtParameterOptimizer
 
       // compute new quality.
       currentInput.set(newInput);
-      currentOutput.set(outputCalculator.computeOutput(currentInput));
+      currentOutput.set(outputCalculator.apply(currentInput));
       for (int i = 0; i < outputDimension; i++)
       {
          if (currentOutput.get(i, 0) < correspondenceThreshold)

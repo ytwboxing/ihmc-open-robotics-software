@@ -1,12 +1,17 @@
 package us.ihmc.robotEnvironmentAwareness.slam;
 
+<<<<<<< HEAD
 import org.ejml.data.DenseMatrix64F;
+=======
+import java.util.function.UnaryOperator;
+
+import org.ejml.data.DMatrixRMaj;
+>>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
 
 import us.ihmc.euclid.geometry.Plane3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.robotEnvironmentAwareness.slam.tools.SLAMTools;
-import us.ihmc.robotics.optimization.FunctionOutputCalculator;
 import us.ihmc.robotics.optimization.LevenbergMarquardtParameterOptimizer;
 
 public class SurfaceElementICPSLAM extends SLAMBasics
@@ -27,11 +32,14 @@ public class SurfaceElementICPSLAM extends SLAMBasics
       frame.registerSurfaceElements(octree, windowMargin, surfaceElementResolution, minimumNumberOfHits, false);
 
       int numberOfSurfel = frame.getSurfaceElementsToSensor().size();
-      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(6, numberOfSurfel);
-      FunctionOutputCalculator functionOutputCalculator = new FunctionOutputCalculator()
+      UnaryOperator<DMatrixRMaj> outputCalculator = new UnaryOperator<DMatrixRMaj>()
       {
          @Override
+<<<<<<< HEAD
          public DenseMatrix64F computeOutput(DenseMatrix64F inputParameter)
+=======
+         public DMatrixRMaj apply(DMatrixRMaj inputParameter)
+>>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
          {
             RigidBodyTransform driftCorrectionTransform = convertTransform(inputParameter.getData());
             RigidBodyTransform correctedSensorPoseToWorld = new RigidBodyTransform(frame.getOriginalSensorPose());
@@ -61,7 +69,12 @@ public class SurfaceElementICPSLAM extends SLAMBasics
             return SLAMTools.computeBoundedPerpendicularDistancePointToNormalOctree(octree, surfel.getPoint(), octree.getResolution());
          }
       };
+<<<<<<< HEAD
       DenseMatrix64F purterbationVector = new DenseMatrix64F(6, 1);
+=======
+      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(6, numberOfSurfel, outputCalculator);
+      DMatrixRMaj purterbationVector = new DMatrixRMaj(6, 1);
+>>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
       purterbationVector.set(0, 0.0005);
       purterbationVector.set(1, 0.0005);
       purterbationVector.set(2, 0.0005);
@@ -69,7 +82,6 @@ public class SurfaceElementICPSLAM extends SLAMBasics
       purterbationVector.set(4, 0.0001);
       purterbationVector.set(5, 0.0001);
       optimizer.setPerturbationVector(purterbationVector);
-      optimizer.setOutputCalculator(functionOutputCalculator);
       optimizer.initialize();
       optimizer.setCorrespondenceThreshold(0.05);
 
