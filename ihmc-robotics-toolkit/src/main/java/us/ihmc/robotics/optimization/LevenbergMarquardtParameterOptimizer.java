@@ -54,9 +54,16 @@ public class LevenbergMarquardtParameterOptimizer
    private final DMatrixRMaj jacobian;
 >>>>>>> 2db4111f4b8... Defined input space and output space.
 
+<<<<<<< HEAD
    private final DenseMatrix64F jacobianTranspose;
    private final DenseMatrix64F squaredJacobian;
    private final DenseMatrix64F invMultJacobianTranspose;
+=======
+   private final DMatrixRMaj jacobianTranspose;
+   private final DMatrixRMaj squaredJacobian;
+   private final DMatrixRMaj dampingMatrix;
+   private final DMatrixRMaj invMultJacobianTranspose;
+>>>>>>> 5fd145d18c3... Enabled damping matrix.
 
    private final DenseMatrix64F optimizeDirection;
 
@@ -110,7 +117,14 @@ public class LevenbergMarquardtParameterOptimizer
       invMultJacobianTranspose = new DenseMatrix64F(inputParameterDimension, outputDimension);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       optimizeDirection = new DenseMatrix64F(inputParameterDimension, 1);
+=======
+      jacobianTranspose = new DMatrixRMaj(outputDimension, inputParameterDimension);
+      squaredJacobian = new DMatrixRMaj(inputParameterDimension, inputParameterDimension);
+      dampingMatrix = new DMatrixRMaj(inputParameterDimension, inputParameterDimension);
+      invMultJacobianTranspose = new DMatrixRMaj(inputParameterDimension, outputDimension);
+>>>>>>> 5fd145d18c3... Enabled damping matrix.
 
       correspondence = new boolean[outputDimension];
 =======
@@ -205,6 +219,16 @@ public class LevenbergMarquardtParameterOptimizer
    {
       iteration = 0;
       optimized = false;
+      for (int i = 0; i < inputDimension; i++)
+      {
+         for (int j = 0; j < inputDimension; j++)
+         {
+            if (i == j)
+            {
+               dampingMatrix.set(i, j, DEFAULT_DAMPING_COEFFICIENT);
+            }
+         }
+      }
       currentOutputSpace.updateOutputSpace(outputCalculator.apply(currentInput));
 
       return currentOutputSpace.computeCorrespondence();
@@ -268,6 +292,10 @@ public class LevenbergMarquardtParameterOptimizer
       CommonOps.mult(invMultJacobianTranspose, currentOutput, optimizeDirection);
 =======
       CommonOps_DDRM.mult(jacobianTranspose, jacobian, squaredJacobian);
+      if (useDamping)
+      {
+         CommonOps_DDRM.add(squaredJacobian, dampingMatrix, squaredJacobian);
+      }
       CommonOps_DDRM.invert(squaredJacobian);
 
       CommonOps_DDRM.mult(squaredJacobian, jacobianTranspose, invMultJacobianTranspose);
