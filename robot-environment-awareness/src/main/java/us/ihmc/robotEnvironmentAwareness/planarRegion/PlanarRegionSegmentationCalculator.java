@@ -47,6 +47,7 @@ public class PlanarRegionSegmentationCalculator
       regionsNodeData = regionsNodeData.parallelStream().filter(region -> !region.isEmpty()).collect(Collectors.toList());
       regionsNodeData.forEach(region -> region.nodeStream().forEach(allRegionNodes::add));
       regionsNodeData.forEach(region -> growPlanarRegion(root, region, boundingBox, parameters));
+      // TODO have a filter for the number of points, as well
       regionsNodeData = regionsNodeData.stream().filter(region -> region.getNumberOfNodes() > parameters.getMinRegionSize()).collect(Collectors.toList());
 
       Set<NormalOcTreeNode> nodeSet = new HashSet<>();
@@ -168,7 +169,7 @@ public class PlanarRegionSegmentationCalculator
       PlanarRegionSegmentationNodeData regionToNavigate;
       PlanarRegionSegmentationNodeData otherRegion;
 
-      if (potentialRegionToMerge.getNumberOfNodes() < currentRegion.getNumberOfNodes())
+      if (potentialRegionToMerge.getNumberOfPoints() < currentRegion.getNumberOfPoints())
       {
          regionToNavigate = potentialRegionToMerge;
          otherRegion = currentRegion;
@@ -225,6 +226,7 @@ public class PlanarRegionSegmentationCalculator
             regionId = random.nextInt(Integer.MAX_VALUE);
          PlanarRegionSegmentationNodeData region = createNewOcTreeNodePlanarRegion(root, node, regionId, boundingBox, parameters);
 
+         // TODO should use number of points?
          if (region.getNumberOfNodes() > parameters.getMinRegionSize())
             newRegions.add(region);
       }

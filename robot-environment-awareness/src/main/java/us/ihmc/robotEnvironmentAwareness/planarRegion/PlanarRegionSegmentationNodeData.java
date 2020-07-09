@@ -37,6 +37,7 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
    private final Point3D max = new Point3D(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY);
 
    private final List<NormalOcTreeNode> nodes = new ArrayList<>();
+   private int size = 0;
    private final Set<NormalOcTreeNode> nodeSet = new HashSet<>();
 
    public PlanarRegionSegmentationNodeData(int id)
@@ -44,32 +45,36 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       this.id = id;
    }
 
-   public PlanarRegionSegmentationNodeData(int id, Collection<NormalOcTreeNode> nodes)
+   public PlanarRegionSegmentationNodeData(int id, Collection<NormalOcTreeNode> nodes, boolean weightByNumberOfHits)
    {
       this(id);
-      addNodes(nodes);
+      addNodes(nodes, weightByNumberOfHits);
    }
 
-   public boolean addNode(NormalOcTreeNode node)
+   public boolean addNode(NormalOcTreeNode node, boolean weightByNumberOfHits)
    {
       boolean isRegionModified = nodeSet.add(node);
       if (isRegionModified)
       {
-         updateNormalAndOriginOnly(node);
+         updateNormalAndOriginOnly(node, weightByNumberOfHits);
          nodes.add(node);
+         if (weightByNumberOfHits)
+            size += node.getSize();
+         else
+            size++;
          updateBoundingBoxWithNewNode(node);
       }
       return isRegionModified;
    }
 
-   public boolean addNodes(Collection<NormalOcTreeNode> nodes)
+   public boolean addNodes(Collection<NormalOcTreeNode> nodes, boolean weightByNumberOfHits)
    {
-      return nodes.stream().filter(this::addNode).findFirst().isPresent();
+      return nodes.stream().anyMatch(node -> this.addNode(node, weightByNumberOfHits));
    }
 
-   public boolean addNodesFromOtherRegion(PlanarRegionSegmentationNodeData other)
+   public boolean addNodesFromOtherRegion(PlanarRegionSegmentationNodeData other, boolean weightByNumberOfHits)
    {
-      return other.nodeStream().filter(this::addNode).findFirst().isPresent();
+      return other.nodeStream().anyMatch(node -> addNode(node, weightByNumberOfHits));
    }
 
    public boolean contains(NormalOcTreeNode node)
@@ -77,21 +82,22 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       return nodeSet.contains(node);
    }
 
-   public void removeNodesAndUpdate(Collection<NormalOcTreeNode> nodesToRemove)
+   public void removeNodesAndUpdate(Collection<NormalOcTreeNode> nodesToRemove, boolean weightByNumberOfHits)
    {
-      boolean containsAtLeastOne = nodesToRemove.parallelStream().filter(nodeSet::contains).findFirst().isPresent();
+      boolean containsAtLeastOne = nodesToRemove.parallelStream().anyMatch(nodeSet::contains);
 
       if (containsAtLeastOne)
       {
          nodes.removeAll(nodesToRemove);
-         recomputeNormalAndOrigin();
+         recomputeNormalAndOrigin(weightByNumberOfHits);
          nodesToRemove.stream().filter(nodeSet::remove).forEach(this::updateBoundingBoxAfterRemovingNode);
       }
    }
 
-   public void recomputeNormalAndOrigin()
+   public void recomputeNormalAndOrigin(boolean weightByNumberOfHits)
    {
       pca.clear();
+      // TODO use number of hits
       nodes.forEach(node -> pca.addPoint(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ()));
       pca.compute();
 
@@ -99,6 +105,7 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       pca.getMean(mean);
 
       point.clear();
+      // TODO use number of hits
       point.update(mean, getNumberOfNodes());
 
       Vector3D thirdVector = new Vector3D();
@@ -108,17 +115,28 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       if (thirdVector.dot(normal) < 0.0)
          thirdVector.negate();
       normal.clear();
+      // TODO use number of hits
       normal.update(thirdVector, getNumberOfNodes());
    }
 
-   private void updateNormalAndOriginOnly(NormalOcTreeNode node)
+   private void updateNormalAndOriginOnly(NormalOcTreeNode node, boolean weightByNumberOfHits)
    {
       node.getNormal(temporaryVector);
       // TODO Review and possibly improve dealing with normal flips.
       if (getNumberOfNodes() >= 1 && temporaryVector.dot(normal) < 0.0)
          temporaryVector.negate();
-      normal.update(temporaryVector);
-      point.update(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ());
+
+      if (weightByNumberOfHits)
+      {
+         int size = (int) Math.floor(node.getSize());
+         normal.update(temporaryVector, size);
+         point.update(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ(), size);
+      }
+      else
+      {
+         normal.update(temporaryVector);
+         point.update(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ());
+      }
    }
 
    public boolean isInsideBoundingBox(NormalOcTreeNode node)
@@ -331,6 +349,11 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
    public int getNumberOfNodes()
    {
       return nodes.size();
+   }
+
+   public int getNumberOfPoints()
+   {
+      return size;
    }
 
    public Stream<NormalOcTreeNode> nodeStream()
