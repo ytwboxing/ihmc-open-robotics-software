@@ -2,6 +2,7 @@ package us.ihmc.avatar.slamTools;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.ejml.data.DenseMatrix64F;
@@ -57,6 +58,7 @@ public class ICPBasedPointCloudDriftCorrectionVisualizer
 
    private static final boolean VISUALIZE_OCTREE = false;
 
+   private final Function<DMatrixRMaj, RigidBodyTransform> inputFunction = LevenbergMarquardtParameterOptimizer.createSpatialInputFunction();
    private final static double OCTREE_RESOLUTION = 0.02;
    private NormalOcTree octreeMap;
 
@@ -167,7 +169,7 @@ public class ICPBasedPointCloudDriftCorrectionVisualizer
          optimizer.iterate();
 
          // get parameter.
-         icpTransformer.set(convertTransform(optimizer.getOptimalParameter().getData()));
+         icpTransformer.set(inputFunction.apply(optimizer.getOptimalParameter()));
          correctedSensorPoseToWorld.set(frameForSourcePoints.getInitialSensorPoseToWorld());
          correctedSensorPoseToWorld.multiply(icpTransformer);
          for (int i = 0; i < correctedData.length; i++)
@@ -200,17 +202,6 @@ public class ICPBasedPointCloudDriftCorrectionVisualizer
       new ICPBasedPointCloudDriftCorrectionVisualizer();
    }
 
-   private RigidBodyTransform convertTransform(double... transformParameters)
-   {
-      RigidBodyTransform transform = new RigidBodyTransform();
-      transform.setTranslationAndIdentityRotation(transformParameters[0], transformParameters[1], transformParameters[2]);
-      transform.appendRollRotation(transformParameters[3]);
-      transform.appendPitchRotation(transformParameters[4]);
-      transform.appendYawRotation(transformParameters[5]);
-
-      return transform;
-   }
-
    private LevenbergMarquardtParameterOptimizer createOptimizer(NormalOcTree map, Point3DReadOnly[] sourcePointsToSensorPose,
                                                                 RigidBodyTransformReadOnly sensorPoseToWorld)
    {
@@ -223,7 +214,7 @@ public class ICPBasedPointCloudDriftCorrectionVisualizer
          public DMatrixRMaj apply(DMatrixRMaj inputParameter)
 >>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
          {
-            RigidBodyTransform driftCorrectionTransform = convertTransform(inputParameter.getData());
+            RigidBodyTransform driftCorrectionTransform = new RigidBodyTransform(inputFunction.apply(inputParameter));
             RigidBodyTransform correctedSensorPoseToWorld = new RigidBodyTransform(sensorPoseToWorld);
             correctedSensorPoseToWorld.multiply(driftCorrectionTransform);
 
@@ -250,9 +241,16 @@ public class ICPBasedPointCloudDriftCorrectionVisualizer
          }
       };
 <<<<<<< HEAD
+<<<<<<< HEAD
       DenseMatrix64F purterbationVector = new DenseMatrix64F(6, 1);
 =======
       LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(6, sourcePointsToSensorPose.length, outputCalculator);
+=======
+      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(inputFunction,
+                                                                                                outputCalculator,
+                                                                                                6,
+                                                                                                sourcePointsToSensorPose.length);
+>>>>>>> 2db4111f4b8... Defined input space and output space.
       DMatrixRMaj purterbationVector = new DMatrixRMaj(6, 1);
 >>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
       purterbationVector.set(0, 0.0001);

@@ -3,6 +3,7 @@ package us.ihmc.avatar.slamTools;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.ejml.data.DenseMatrix64F;
@@ -55,6 +56,8 @@ public class LevenbergMarquardtICPVisualizer
 
    private final List<YoDouble[]> yoModelPointsHolder;
    private final List<YoDouble[]> yoDataPointsHolder;
+
+   private final Function<DMatrixRMaj, RigidBodyTransform> inputFunction = LevenbergMarquardtParameterOptimizer.createSpatialInputFunction();
 
    public LevenbergMarquardtICPVisualizer()
    {
@@ -158,7 +161,7 @@ public class LevenbergMarquardtICPVisualizer
          DenseMatrix64F optimalParameter = optimizer.getOptimalParameter();
          for (int i = 0; i < driftedCowPointCloud.length; i++)
             transformedData[i].set(driftedCowPointCloud[i]);
-         RigidBodyTransform transform = convertTransform(optimalParameter.getData());
+         RigidBodyTransform transform = new RigidBodyTransform(inputFunction.apply(optimalParameter));
          transformPointCloud(transformedData, transform);
          dataLocation.set(initialDataLocation);
          dataOrientation.set(initialDataOrientation);
@@ -189,17 +192,6 @@ public class LevenbergMarquardtICPVisualizer
       new LevenbergMarquardtICPVisualizer();
    }
 
-   private RigidBodyTransform convertTransform(double... transformParameters)
-   {
-      RigidBodyTransform transform = new RigidBodyTransform();
-      transform.setTranslationAndIdentityRotation(transformParameters[0], transformParameters[1], transformParameters[2]);
-      transform.appendRollRotation(transformParameters[3]);
-      transform.appendPitchRotation(transformParameters[4]);
-      transform.appendYawRotation(transformParameters[5]);
-
-      return transform;
-   }
-
    private void transformPointCloud(Point3D[] pointCloud, RigidBodyTransform transform)
    {
       for (int i = 0; i < pointCloud.length; i++)
@@ -223,7 +215,7 @@ public class LevenbergMarquardtICPVisualizer
             Point3D[] transformedData = new Point3D[newPointCloud.length];
             for (int i = 0; i < newPointCloud.length; i++)
                transformedData[i] = new Point3D(newPointCloud[i]);
-            RigidBodyTransform transform = convertTransform(inputParameter.getData());
+            RigidBodyTransform transform = new RigidBodyTransform(inputFunction.apply(inputParameter));
             transformPointCloud(transformedData, transform);
 
             DenseMatrix64F errorSpace = new DenseMatrix64F(transformedData.length, 1);
@@ -242,9 +234,13 @@ public class LevenbergMarquardtICPVisualizer
          }
       };
 <<<<<<< HEAD
+<<<<<<< HEAD
       DenseMatrix64F purterbationVector = new DenseMatrix64F(6, 1);
 =======
       LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(6, newPointCloud.length, outputCalculator);
+=======
+      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(inputFunction, outputCalculator, 6, newPointCloud.length);
+>>>>>>> 2db4111f4b8... Defined input space and output space.
       DMatrixRMaj purterbationVector = new DMatrixRMaj(6, 1);
 >>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
       purterbationVector.set(0, 0.00001);

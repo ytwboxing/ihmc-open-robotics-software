@@ -28,7 +28,7 @@ import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.log.LogTools;
-import us.ihmc.robotics.optimization.LevenbergMarquardtParameterOptimizer2;
+import us.ihmc.robotics.optimization.LevenbergMarquardtParameterOptimizer;
 
 @Tag("point-cloud-drift-correction-test")
 public class LevenbergMarquardtICPTest
@@ -311,12 +311,16 @@ public class LevenbergMarquardtICPTest
       };
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       DenseMatrix64F purterbationVector = new DenseMatrix64F(3, 1);
 =======
       LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(3, data1.size(), outputCalculator);
 =======
       LevenbergMarquardtParameterOptimizer2 optimizer = new LevenbergMarquardtParameterOptimizer2(inputFunction, outputCalculator, 3, data1.size());
 >>>>>>> 811a37080f4... Cleaned optimizer class.
+=======
+      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(inputFunction, outputCalculator, 3, data1.size());
+>>>>>>> 2db4111f4b8... Defined input space and output space.
       DMatrixRMaj purterbationVector = new DMatrixRMaj(3, 1);
 >>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
       purterbationVector.set(0, 0.00001);
@@ -363,6 +367,10 @@ public class LevenbergMarquardtICPTest
       }
    }
 
+   /**
+    * method finding the closest point for the given point with brute force.
+    * for point cloud data, we will use k-d tree (joctomap).
+    */
    private double computeClosestDistance(Point2D point, List<Point2D> pointCloud)
    {
       double minDistance = Double.MAX_VALUE;

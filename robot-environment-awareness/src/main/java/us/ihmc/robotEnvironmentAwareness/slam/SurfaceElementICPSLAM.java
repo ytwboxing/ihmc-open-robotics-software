@@ -1,8 +1,12 @@
 package us.ihmc.robotEnvironmentAwareness.slam;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.ejml.data.DenseMatrix64F;
 =======
+=======
+import java.util.function.Function;
+>>>>>>> 2db4111f4b8... Defined input space and output space.
 import java.util.function.UnaryOperator;
 
 import org.ejml.data.DMatrixRMaj;
@@ -32,6 +36,7 @@ public class SurfaceElementICPSLAM extends SLAMBasics
       frame.registerSurfaceElements(octree, windowMargin, surfaceElementResolution, minimumNumberOfHits, false);
 
       int numberOfSurfel = frame.getSurfaceElementsToSensor().size();
+      Function<DMatrixRMaj, RigidBodyTransform> inputFunction = LevenbergMarquardtParameterOptimizer.createSpatialInputFunction();
       UnaryOperator<DMatrixRMaj> outputCalculator = new UnaryOperator<DMatrixRMaj>()
       {
          @Override
@@ -70,9 +75,13 @@ public class SurfaceElementICPSLAM extends SLAMBasics
          }
       };
 <<<<<<< HEAD
+<<<<<<< HEAD
       DenseMatrix64F purterbationVector = new DenseMatrix64F(6, 1);
 =======
       LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(6, numberOfSurfel, outputCalculator);
+=======
+      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(inputFunction, outputCalculator, 6, numberOfSurfel);
+>>>>>>> 2db4111f4b8... Defined input space and output space.
       DMatrixRMaj purterbationVector = new DMatrixRMaj(6, 1);
 >>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
       purterbationVector.set(0, 0.0005);

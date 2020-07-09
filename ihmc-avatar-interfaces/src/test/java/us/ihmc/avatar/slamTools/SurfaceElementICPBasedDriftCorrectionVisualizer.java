@@ -2,6 +2,7 @@ package us.ihmc.avatar.slamTools;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.ejml.data.DenseMatrix64F;
@@ -65,6 +66,7 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
 
    private static final int NUMBER_OF_POINTS_TO_VISUALIZE = 2000;
 
+   private final Function<DMatrixRMaj, RigidBodyTransform> inputFunction = LevenbergMarquardtParameterOptimizer.createSpatialInputFunction();
    private final static double OCTREE_RESOLUTION = 0.02;
    private NormalOcTree octreeMap;
 
@@ -81,7 +83,6 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
    private final YoDouble optimizerRotationalEffort;
    private final YoDouble optimizerTranslationalEffortDiff;
    private final YoDouble optimizerRotationalEffortDiff;
-   private final YoDouble optimizerDampingCoefficient;
    private final YoInteger numberOfCorrespondingPoints;
    private final YoInteger numberOfSourcePoints;
 
@@ -107,7 +108,6 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
       optimizerRotationalEffort = new YoDouble("optimizerRotationalEffort", registry);
       optimizerTranslationalEffortDiff = new YoDouble("optimizerTranslationalEffortDiff", registry);
       optimizerRotationalEffortDiff = new YoDouble("optimizerRotationalEffortDiff", registry);
-      optimizerDampingCoefficient = new YoDouble("optimizerDampingCoefficient", registry);
       numberOfCorrespondingPoints = new YoInteger("numberOfCorrespondingPoints", registry);
       numberOfSourcePoints = new YoInteger("numberOfSourcePoints", registry);
 
@@ -176,8 +176,13 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
          optimizer.iterate();
 
          // get parameter.
+<<<<<<< HEAD
          DenseMatrix64F optimalParameter = optimizer.getOptimalParameter();
          icpTransformer.set(convertTransform(optimalParameter.getData()));
+=======
+         DMatrixRMaj optimalParameter = optimizer.getOptimalParameter();
+         icpTransformer.set(inputFunction.apply(optimalParameter));
+>>>>>>> 2db4111f4b8... Defined input space and output space.
          correctedSensorPoseToWorld.set(frame2.getInitialSensorPoseToWorld());
          correctedSensorPoseToWorld.multiply(icpTransformer);
          for (int i = 0; i < correctedData.length; i++)
@@ -236,7 +241,6 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
          optimizerRotationalEffortDiff.set(rotationalEffortDiff);
          optimizerTranslationalEffort.set(translationalEffort);
          optimizerRotationalEffort.set(rotationalEffort);
-         optimizerDampingCoefficient.set(optimizer.getDampingCoefficient());
          numberOfCorrespondingPoints.set(optimizer.getNumberOfCorespondingPoints());
 
          previousIcpTransformer.set(icpTransformer);
@@ -269,17 +273,6 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
       new SurfaceElementICPBasedDriftCorrectionVisualizer();
    }
 
-   private RigidBodyTransform convertTransform(double... transformParameters)
-   {
-      RigidBodyTransform transform = new RigidBodyTransform();
-      transform.setTranslationAndIdentityRotation(transformParameters[0], transformParameters[1], transformParameters[2]);
-      transform.appendRollRotation(transformParameters[3]);
-      transform.appendPitchRotation(transformParameters[4]);
-      transform.appendYawRotation(transformParameters[5]);
-
-      return transform;
-   }
-
    private LevenbergMarquardtParameterOptimizer createOptimizer(NormalOcTree map, SLAMFrame frame)
    {
       int numberOfSurfel = frame.getSurfaceElementsToSensor().size();
@@ -292,7 +285,7 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
          public DMatrixRMaj apply(DMatrixRMaj inputParameter)
 >>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
          {
-            RigidBodyTransform driftCorrectionTransform = convertTransform(inputParameter.getData());
+            RigidBodyTransform driftCorrectionTransform = new RigidBodyTransform(inputFunction.apply(inputParameter));
             RigidBodyTransform correctedSensorPoseToWorld = new RigidBodyTransform(frame.getOriginalSensorPose());
             correctedSensorPoseToWorld.multiply(driftCorrectionTransform);
 
@@ -321,9 +314,13 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
          }
       };
 <<<<<<< HEAD
+<<<<<<< HEAD
       DenseMatrix64F purterbationVector = new DenseMatrix64F(6, 1);
 =======
       LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(6, numberOfSurfel, outputCalculator);
+=======
+      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(inputFunction, outputCalculator, 6, numberOfSurfel);
+>>>>>>> 2db4111f4b8... Defined input space and output space.
       DMatrixRMaj purterbationVector = new DMatrixRMaj(6, 1);
 >>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
       purterbationVector.set(0, map.getResolution() * 0.002);

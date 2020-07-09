@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 <<<<<<< HEAD:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPSLAMTest.java
@@ -52,7 +53,7 @@ import us.ihmc.robotics.optimization.LevenbergMarquardtParameterOptimizer;
 @Tag("point-cloud-drift-correction-test")
 public class SurfaceElementICPTest
 {
-   private static final boolean VISUALIZE = false;
+   private static final boolean VISUALIZE = true;
 
    @Test
    public void testSurfaceElements()
@@ -195,6 +196,18 @@ public class SurfaceElementICPTest
 
       int numberOfSurfel = frame2.getSurfaceElementsToSensor().size();
       LogTools.info("numberOfSurfel " + numberOfSurfel);
+      Function<DMatrixRMaj, RigidBodyTransform> inputFunction = new Function<DMatrixRMaj, RigidBodyTransform>()
+      {
+         @Override
+         public RigidBodyTransform apply(DMatrixRMaj input)
+         {
+            RigidBodyTransform transform = new RigidBodyTransform();
+
+            transform.setRotationYawPitchRollAndZeroTranslation(input.get(5), input.get(4), input.get(3));
+            transform.getTranslation().set(input.get(0), input.get(1), input.get(2));
+            return transform;
+         }
+      };
       UnaryOperator<DMatrixRMaj> outputCalculator = new UnaryOperator<DMatrixRMaj>()
       {
          @Override
@@ -204,7 +217,7 @@ public class SurfaceElementICPTest
          public DMatrixRMaj apply(DMatrixRMaj inputParameter)
 >>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
          {
-            RigidBodyTransform driftCorrectionTransform = convertTransform(inputParameter.getData());
+            RigidBodyTransform driftCorrectionTransform = new RigidBodyTransform(inputFunction.apply(inputParameter));
             RigidBodyTransform correctedSensorPoseToWorld = new RigidBodyTransform(frame2.getOriginalSensorPose());
             correctedSensorPoseToWorld.multiply(driftCorrectionTransform);
 
@@ -233,9 +246,13 @@ public class SurfaceElementICPTest
          }
       };
 <<<<<<< HEAD
+<<<<<<< HEAD
       DenseMatrix64F purterbationVector = new DenseMatrix64F(6, 1);
 =======
       LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(6, numberOfSurfel, outputCalculator);
+=======
+      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(inputFunction, outputCalculator, 6, numberOfSurfel);
+>>>>>>> 2db4111f4b8... Defined input space and output space.
       DMatrixRMaj purterbationVector = new DMatrixRMaj(6, 1);
 >>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
       purterbationVector.set(0, 0.0005);
@@ -257,9 +274,8 @@ public class SurfaceElementICPTest
       }
 
       // get parameter.
-      RigidBodyTransform icpTransformer = new RigidBodyTransform();
+      RigidBodyTransform icpTransformer = new RigidBodyTransform(inputFunction.apply(optimizer.getOptimalParameter()));
       System.out.println(optimizer.getOptimalParameter());
-      icpTransformer.set(convertTransform(optimizer.getOptimalParameter().getData()));
       frame2.updateOptimizedCorrection(icpTransformer);
       System.out.println("icpTransformer");
       System.out.println(icpTransformer);
@@ -296,6 +312,7 @@ public class SurfaceElementICPTest
       }
    }
 
+<<<<<<< HEAD
    private RigidBodyTransform convertTransform(double... transformParameters)
    {
       RigidBodyTransform transform = new RigidBodyTransform();
@@ -390,4 +407,6 @@ public class SurfaceElementICPTest
    }
 =======
 >>>>>>> 336136760f6... Tagged tests.:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPTest.java
+=======
+>>>>>>> 2db4111f4b8... Defined input space and output space.
 }
