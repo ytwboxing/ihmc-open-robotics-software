@@ -27,6 +27,8 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
 {
    private int id = PlanarRegion.NO_REGION_ID;
 
+   private final boolean weightByNumberOfHits;
+
    private final PrincipalComponentAnalysis3D pca = new PrincipalComponentAnalysis3D();
    private final VectorMean normal = new VectorMean();
    private final PointMean point = new PointMean();
@@ -40,23 +42,24 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
    private int size = 0;
    private final Set<NormalOcTreeNode> nodeSet = new HashSet<>();
 
-   public PlanarRegionSegmentationNodeData(int id)
+   public PlanarRegionSegmentationNodeData(int id, boolean weightByNumberOfHits)
    {
       this.id = id;
+      this.weightByNumberOfHits = weightByNumberOfHits;
    }
 
    public PlanarRegionSegmentationNodeData(int id, Collection<NormalOcTreeNode> nodes, boolean weightByNumberOfHits)
    {
-      this(id);
-      addNodes(nodes, weightByNumberOfHits);
+      this(id, weightByNumberOfHits);
+      addNodes(nodes);
    }
 
-   public boolean addNode(NormalOcTreeNode node, boolean weightByNumberOfHits)
+   public boolean addNode(NormalOcTreeNode node)
    {
       boolean isRegionModified = nodeSet.add(node);
       if (isRegionModified)
       {
-         updateNormalAndOriginOnly(node, weightByNumberOfHits);
+         updateNormalAndOriginOnly(node);
          nodes.add(node);
          if (weightByNumberOfHits)
             size += node.getSize();
@@ -67,14 +70,14 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       return isRegionModified;
    }
 
-   public boolean addNodes(Collection<NormalOcTreeNode> nodes, boolean weightByNumberOfHits)
+   public boolean addNodes(Collection<NormalOcTreeNode> nodes)
    {
-      return nodes.stream().anyMatch(node -> this.addNode(node, weightByNumberOfHits));
+      return nodes.stream().anyMatch(this::addNode);
    }
 
-   public boolean addNodesFromOtherRegion(PlanarRegionSegmentationNodeData other, boolean weightByNumberOfHits)
+   public boolean addNodesFromOtherRegion(PlanarRegionSegmentationNodeData other)
    {
-      return other.nodeStream().anyMatch(node -> addNode(node, weightByNumberOfHits));
+      return other.nodeStream().anyMatch(this::addNode);
    }
 
    public boolean contains(NormalOcTreeNode node)
@@ -82,31 +85,36 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       return nodeSet.contains(node);
    }
 
-   public void removeNodesAndUpdate(Collection<NormalOcTreeNode> nodesToRemove, boolean weightByNumberOfHits)
+   public void removeNodesAndUpdate(Collection<NormalOcTreeNode> nodesToRemove)
    {
       boolean containsAtLeastOne = nodesToRemove.parallelStream().anyMatch(nodeSet::contains);
 
       if (containsAtLeastOne)
       {
          nodes.removeAll(nodesToRemove);
-         recomputeNormalAndOrigin(weightByNumberOfHits);
+         recomputeNormalAndOrigin();
          nodesToRemove.stream().filter(nodeSet::remove).forEach(this::updateBoundingBoxAfterRemovingNode);
       }
    }
 
-   public void recomputeNormalAndOrigin(boolean weightByNumberOfHits)
+   public void recomputeNormalAndOrigin()
    {
       pca.clear();
       // TODO use number of hits
-      nodes.forEach(node -> pca.addPoint(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ()));
+      if (weightByNumberOfHits)
+         nodes.forEach(node -> pca.addPoint(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ()));
+      else
+         nodes.forEach(node -> pca.addPoint(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ()));
       pca.compute();
 
       Point3D mean = new Point3D();
       pca.getMean(mean);
 
       point.clear();
-      // TODO use number of hits
-      point.update(mean, getNumberOfNodes());
+      if (weightByNumberOfHits)
+         point.update(mean, getNumberOfPoints());
+      else
+         point.update(mean, getNumberOfNodes());
 
       Vector3D thirdVector = new Vector3D();
       pca.getThirdVector(thirdVector);
@@ -115,11 +123,13 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       if (thirdVector.dot(normal) < 0.0)
          thirdVector.negate();
       normal.clear();
-      // TODO use number of hits
-      normal.update(thirdVector, getNumberOfNodes());
+      if (weightByNumberOfHits)
+         normal.update(thirdVector, getNumberOfPoints());
+      else
+         normal.update(thirdVector, getNumberOfNodes());
    }
 
-   private void updateNormalAndOriginOnly(NormalOcTreeNode node, boolean weightByNumberOfHits)
+   private void updateNormalAndOriginOnly(NormalOcTreeNode node)
    {
       node.getNormal(temporaryVector);
       // TODO Review and possibly improve dealing with normal flips.

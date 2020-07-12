@@ -13,6 +13,7 @@ public class PlanarRegionSegmentationParameters
    private static final int DEFAULT_MIN_REGION_SIZE = 50;
    private static final double DEFAULT_MAX_STANDARD_DEVIATION = 0.015;
    private static final double DEFAULT_VOLUMIC_DENSITY = 0.10 * 1.0e6; // cm^3 to m^3
+   private static final boolean DEFAULT_WEIGHT_BY_NUMBER_OF_HITS = false;
 
    private double searchRadius;
    private double maxDistanceFromPlane;
@@ -22,6 +23,8 @@ public class PlanarRegionSegmentationParameters
 
    private double maxStandardDeviation;
    private double minVolumicDensity;
+
+   private boolean weightByNumberOfHits;
 
    public PlanarRegionSegmentationParameters()
    {
@@ -43,6 +46,8 @@ public class PlanarRegionSegmentationParameters
 
       maxStandardDeviation = DEFAULT_MAX_STANDARD_DEVIATION;
       minVolumicDensity = DEFAULT_VOLUMIC_DENSITY;
+
+      weightByNumberOfHits = DEFAULT_WEIGHT_BY_NUMBER_OF_HITS;
    }
 
    public void set(PlanarRegionSegmentationParameters other)
@@ -54,6 +59,7 @@ public class PlanarRegionSegmentationParameters
       minRegionSize = other.minRegionSize;
       maxStandardDeviation = other.maxStandardDeviation;
       minVolumicDensity = other.minVolumicDensity;
+      weightByNumberOfHits = other.weightByNumberOfHits;
    }
 
    public void setSearchRadius(double searchRadius)
@@ -91,6 +97,11 @@ public class PlanarRegionSegmentationParameters
       this.minVolumicDensity = minVolumicDensity;
    }
 
+   public void setWeightByNumberOfHits(boolean weightByNumberOfHits)
+   {
+      this.weightByNumberOfHits = weightByNumberOfHits;
+   }
+
    public double getSearchRadius()
    {
       return searchRadius;
@@ -126,12 +137,18 @@ public class PlanarRegionSegmentationParameters
       return minVolumicDensity;
    }
 
+   public boolean getWeightByNumberOfHits()
+   {
+      return weightByNumberOfHits;
+   }
+
    @Override
    public String toString()
    {
       return "search radius: " + searchRadius + ", max distance from plane: " + maxDistanceFromPlane
             + ", maxAngleFromPlane: " + maxAngleFromPlane + ", minNormalQuality: " + minNormalQuality + ", min region size: " + minRegionSize
-            + ", max standard deviation: " + maxStandardDeviation + ", min volumic density: " + minVolumicDensity;
+            + ", max standard deviation: " + maxStandardDeviation + ", min volumic density: " + minVolumicDensity
+            + ", weight by number of hits: " + weightByNumberOfHits;
    }
 
    public static PlanarRegionSegmentationParameters parse(String parametersAsString)
@@ -146,6 +163,7 @@ public class PlanarRegionSegmentationParameters
       parameters.setMinRegionSize(ScannerTools.readNextInt(scanner, parameters.getMinRegionSize()));
       parameters.setMaxStandardDeviation(ScannerTools.readNextDouble(scanner, parameters.getMaxStandardDeviation()));
       parameters.setMinVolumicDensity(ScannerTools.readNextDouble(scanner, parameters.getMinVolumicDensity()));
+      parameters.setWeightByNumberOfHits(ScannerTools.readNextBoolean(scanner, parameters.getWeightByNumberOfHits()));
       scanner.close();
       return parameters;
    }

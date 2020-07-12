@@ -238,7 +238,7 @@ public class PlanarRegionSegmentationCalculator
                                                                            OcTreeBoundingBoxInterface boundingBox,
                                                                            PlanarRegionSegmentationParameters parameters)
    {
-      PlanarRegionSegmentationNodeData newRegion = new PlanarRegionSegmentationNodeData(regionId);
+      PlanarRegionSegmentationNodeData newRegion = new PlanarRegionSegmentationNodeData(regionId, parameters.getWeightByNumberOfHits());
       newRegion.addNode(seedNode);
       growPlanarRegion(root, newRegion, boundingBox, parameters);
       return newRegion;
