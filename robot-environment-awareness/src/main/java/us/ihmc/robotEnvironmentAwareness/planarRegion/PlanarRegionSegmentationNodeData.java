@@ -102,7 +102,9 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
       pca.clear();
       // TODO use number of hits
       if (weightByNumberOfHits)
-         nodes.forEach(node -> pca.addPoint(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ()));
+      {
+         nodes.forEach(node -> pca.addPoint(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ(), (int) Math.floor(node.getNumberOfHits())));
+      }
       else
          nodes.forEach(node -> pca.addPoint(node.getHitLocationX(), node.getHitLocationY(), node.getHitLocationZ()));
       pca.compute();

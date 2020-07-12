@@ -47,6 +47,44 @@ public class IncrementalCovariance3DTest
    }
 
    @Test
+   public void testEasyMultiplePoints()
+   {
+      Random random = new Random(51651L);
+      IncrementalCovariance3D incrementalCovariance3D = new IncrementalCovariance3D();
+
+      Point3D average = new Point3D();
+      int length = 100;
+      Vector3D maxAmplitude = new Vector3D(1.0, 1.0, 1.0);
+
+      Point3D point1 = new Point3D(1, 1, 1);
+      Point3D point2 = new Point3D(1, 2, 3);
+      Point3D point3 = new Point3D(3, 2, 1);
+      Point3D point4 = new Point3D(7, 6, 5);
+
+      List<Point3D> dataset = new ArrayList<>();
+      dataset.add(point1);
+      dataset.add(point1);
+      dataset.add(point1);
+      dataset.add(point2);
+      dataset.add(point2);
+      dataset.add(point3);
+      dataset.add(point3);
+      dataset.add(point3);
+      dataset.add(point3);
+      dataset.add(point4);
+      dataset.add(point4);
+
+
+         incrementalCovariance3D.clear();
+         incrementalCovariance3D.addDataPoint(point1, 3);
+         incrementalCovariance3D.addDataPoint(point2, 2);
+         incrementalCovariance3D.addDataPoint(point3, 4);
+         incrementalCovariance3D.addDataPoint(point4, 2);
+         assertCovarianceIsCorrect(incrementalCovariance3D, dataset);
+
+   }
+
+   @Test
    public void testNonZeroMean()
    {
       Random random = new Random(51651L);

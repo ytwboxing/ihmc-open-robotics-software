@@ -30,8 +30,8 @@ import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
  *     <li> mean(X) is the 1-by-3 average vector of the dataset X.
  *   </ul>
  * </ul>
- * @author Sylvain
  *
+ * @author Sylvain
  */
 public class IncrementalCovariance3D
 {
@@ -56,6 +56,7 @@ public class IncrementalCovariance3D
 
    /**
     * Inserts a list of data points and updates the covariance matrix.
+    *
     * @param tuples the list of data points to insert.
     */
    public void addAllDataPoints(List<? extends Tuple3DReadOnly> tuples)
@@ -94,6 +95,7 @@ public class IncrementalCovariance3D
 
    /**
     * Inserts a new data point and updates the covariance matrix.
+    *
     * @param tuple the new data point.
     */
    public void addDataPoint(Tuple3DReadOnly tuple)
@@ -102,7 +104,18 @@ public class IncrementalCovariance3D
    }
 
    /**
+    * Inserts a new data point and updates the covariance matrix.
+    *
+    * @param tuple the new data point.
+    */
+   public void addDataPoint(Tuple3DReadOnly tuple, int sizeOfData)
+   {
+      addDataPoint(tuple.getX(), tuple.getY(), tuple.getZ(), sizeOfData);
+   }
+
+   /**
     * Inserts a new data point (x, y, z) and updates the covariance matrix.
+    *
     * @param x the x-coordinate of the new data point.
     * @param y the y-coordinate of the new data point.
     * @param z the z-coordinate of the new data point.
@@ -139,7 +152,50 @@ public class IncrementalCovariance3D
    }
 
    /**
+    * Inserts a new data point (x, y, z) and updates the covariance matrix.
+    * Uses the method proposed by Chan et al. Chan, Tony F.; Golub, Gene H.; LeVeque, Randall J. (1979), "Updating Formulae and a Pairwise Algorithm for
+    * Computing Sample Variances." (PDF), Technical Report STAN-CS-79-773, Department of Computer Science, Stanford University.
+    *
+    * @param x the x-coordinate of the new data point.
+    * @param y the y-coordinate of the new data point.
+    * @param z the z-coordinate of the new data point.
+    */
+   public void addDataPoint(double x, double y, double z, int sizeOfData)
+   {
+      int previousSize = sampleSize;
+      sampleSize += sizeOfData;
+      double devX = x - mean.getX();
+      double devY = y - mean.getY();
+      double devZ = z - mean.getZ();
+      double nInv = (double) sizeOfData / sampleSize;
+
+      mean.setX(mean.getX() + devX * nInv);
+      mean.setY(mean.getY() + devY * nInv);
+      mean.setZ(mean.getZ() + devZ * nInv);
+
+      // Using the known symmetricity of the covariance matrix.
+      double inv = (double) sizeOfData * previousSize / sampleSize;
+      double m00 = inv * devX * devX;
+      double m11 = inv * devY * devY;
+      double m22 = inv * devZ * devZ;
+      double m01 = inv * devX * devY;
+      double m02 = inv * devX * devZ;
+      double m12 = inv * devY * devZ;
+
+      secondMoment.add(0, 0, m00);
+      secondMoment.add(0, 1, m01);
+      secondMoment.add(0, 2, m02);
+      secondMoment.add(1, 0, m01);
+      secondMoment.add(1, 1, m11);
+      secondMoment.add(1, 2, m12);
+      secondMoment.add(2, 0, m02);
+      secondMoment.add(2, 1, m12);
+      secondMoment.add(2, 2, m22);
+   }
+
+   /**
     * Get the the average of the current dataset.
+    *
     * @param meanToPack
     */
    public void getMean(Tuple3DBasics meanToPack)
@@ -149,6 +205,7 @@ public class IncrementalCovariance3D
 
    /**
     * Get the covariance matrix corresponding to the dataset added beforehand.
+    *
     * @param covarianceToPack the 3-by-3 covariance matrix.
     */
    public void getCovariance(DMatrixRMaj covarianceToPack)
@@ -159,7 +216,9 @@ public class IncrementalCovariance3D
    }
 
    /**
-    * Get the covariance matrix corresponding to the dataset added beforehand using <a href="https://en.wikipedia.org/wiki/Bessel%27s_correction"> Bessel's Correction </a>.
+    * Get the covariance matrix corresponding to the dataset added beforehand using <a href="https://en.wikipedia.org/wiki/Bessel%27s_correction"> Bessel's
+    * Correction </a>.
+    *
     * @param covarianceToPack the 3-by-3 covariance matrix.
     */
    public void getCovarianceCorrected(DMatrixRMaj covarianceToPack)

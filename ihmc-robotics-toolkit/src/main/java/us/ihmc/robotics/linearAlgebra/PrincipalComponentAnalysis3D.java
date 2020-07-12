@@ -84,6 +84,11 @@ public class PrincipalComponentAnalysis3D
       covarianceCalculator.addDataPoint(x, y, z);
    }
 
+   public void addPoint(double x, double y, double z, int sizeToAdd)
+   {
+      covarianceCalculator.addDataPoint(x, y, z, sizeToAdd);
+   }
+
    public void addDataPoint(Tuple3DReadOnly tuple)
    {
       covarianceCalculator.addDataPoint(tuple);
