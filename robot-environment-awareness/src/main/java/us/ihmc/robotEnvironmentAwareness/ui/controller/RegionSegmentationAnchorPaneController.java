@@ -27,6 +27,8 @@ public class RegionSegmentationAnchorPaneController extends REABasicUIController
    private Slider maxStandardDeviationSlider;
    @FXML
    private Slider minVolumicDensitySlider;
+   @FXML
+   private ToggleButton weightNumberOfHits;
 
    private final PlanarRegionSegmentationParametersProperty planarRegionSegmentationParametersProperty = new PlanarRegionSegmentationParametersProperty(this, "planarRegionSegmentationParameters");
 
@@ -83,6 +85,7 @@ public class RegionSegmentationAnchorPaneController extends REABasicUIController
       planarRegionSegmentationParametersProperty.bindBidirectionalMinRegionSize(minRegionSizeSlider.valueProperty());
       planarRegionSegmentationParametersProperty.bindBidirectionalMaxStandardDeviation(maxStandardDeviationSlider.valueProperty());
       planarRegionSegmentationParametersProperty.bindBidirectionalMinVolumicDensity(minVolumicDensitySlider.valueProperty());
+      planarRegionSegmentationParametersProperty.bindBidirectionalWeightByNumberOfHits(weightNumberOfHits.selectedProperty());
       uiMessager.bindBidirectionalGlobal(planarRegionsSegmentationParametersTopic, planarRegionSegmentationParametersProperty);
    }
 

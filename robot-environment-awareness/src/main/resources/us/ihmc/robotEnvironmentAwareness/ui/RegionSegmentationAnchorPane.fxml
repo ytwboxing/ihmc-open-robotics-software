@@ -45,6 +45,7 @@
                   <Slider fx:id="maxDistanceFromPlaneSlider" blockIncrement="0.01" majorTickUnit="0.05" max="0.2" maxWidth="1.7976931348623157E308" prefHeight="38.0" prefWidth="209.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.05" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                   <Slider fx:id="maxAngleFromPlaneSlider" blockIncrement="0.01" majorTickUnit="0.0872665" max="0.5236" maxWidth="1.7976931348623157E308" minorTickCount="4" prefHeight="38.0" prefWidth="209.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.174533" GridPane.columnIndex="3" />
                   <Slider fx:id="minNormalQualitySlider" blockIncrement="0.01" majorTickUnit="0.02" max="0.1" maxWidth="1.7976931348623157E308" prefHeight="38.0" prefWidth="209.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.01" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                  <ToggleButton fx:id="weightNumberOfHits" text="Weight Number of Hits" GridPane.columnIndex="3" GridPane.rowIndex="2" />
                   <Slider fx:id="minRegionSizeSlider" majorTickUnit="50.0" max="300.0" maxWidth="1.7976931348623157E308" minorTickCount="4" prefHeight="38.0" prefWidth="209.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                   <Label maxWidth="1.7976931348623157E308" text="Min region size:" GridPane.rowIndex="2" />
                   <Label text="Max standard deviation (mm):" GridPane.columnIndex="4" />

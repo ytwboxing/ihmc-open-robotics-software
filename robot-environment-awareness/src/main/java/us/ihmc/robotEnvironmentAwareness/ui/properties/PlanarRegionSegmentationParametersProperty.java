@@ -1,5 +1,6 @@
 package us.ihmc.robotEnvironmentAwareness.ui.properties;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import us.ihmc.robotEnvironmentAwareness.planarRegion.PlanarRegionSegmentationParameters;
 
@@ -12,7 +13,8 @@ public class PlanarRegionSegmentationParametersProperty extends ParametersProper
    private final IntegerField minRegionSize = new IntegerField(PlanarRegionSegmentationParameters::getMinRegionSize, (p, v) -> p.setMinRegionSize(v));
    private final DoubleField maxStandardDeviation = new DoubleField(PlanarRegionSegmentationParameters::getMaxStandardDeviation, (p, v) -> p.setMaxStandardDeviation(v));
    private final DoubleField minVolumicDensity = new DoubleField(PlanarRegionSegmentationParameters::getMinVolumicDensity, (p, v) -> p.setMinVolumicDensity(v));
-
+   private final BooleanField weightNumberOfHits = new BooleanField(PlanarRegionSegmentationParameters::getWeightByNumberOfHits, (p, v) -> p.setWeightByNumberOfHits(v));
+   
    public PlanarRegionSegmentationParametersProperty(Object bean, String name)
    {
       super(bean, name, new PlanarRegionSegmentationParameters());
@@ -51,6 +53,11 @@ public class PlanarRegionSegmentationParametersProperty extends ParametersProper
    public void bindBidirectionalMinVolumicDensity(Property<? extends Number> property)
    {
       bindFieldBidirectionalToNumberProperty(property, minVolumicDensity);
+   }
+   
+   public void bindBidirectionalWeightByNumberOfHits(BooleanProperty property)
+   {
+      bindFieldBidirectionalToBooleanProperty(property, weightNumberOfHits);
    }
 
    @Override
