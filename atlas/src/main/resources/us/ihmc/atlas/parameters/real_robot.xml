@@ -89,6 +89,7 @@
                         </registry>
                         <registry name="BalanceManager">
                             <parameter name="ellipticICPErrorForMomentumRecovery" type="DoubleParameter" min="0.0" max="1.0" value="Infinity"/>
+                            <parameter name="maxICPErrorBeforeSingleSupportOuterY" type="DoubleParameter" min="0.0" max="1.0" value="0.0135"/>
                         </registry>
                     </registry>
                     <registry name="MomentumOptimizationSettings">
