@@ -216,7 +216,7 @@ public class SimpleLQRMomentumControllerSimulation
       initialContactStateProvider.setStartCopPosition(new FramePoint3D(worldFrame, contactX, contactY, 0.0));
       contactY += width / 2;
       initialContactStateProvider.setEndCopPosition(new FramePoint3D(worldFrame, contactX, contactY, 0.0));
-      initialContactStateProvider.setContactState(ContactState.IN_CONTACT);
+      initialContactStateProvider.setContactState(ContactState.IN_CONTACT); //contact or flight
       dcmPlan.addStepToSequence(initialContactStateProvider);
       double currentTime = initialTransferDuration;
 
@@ -253,6 +253,13 @@ public class SimpleLQRMomentumControllerSimulation
    private final static double transferSplitFraction = 0.5;
    private final static double transferWeightDistribution = 0.5;
 
+   
+   /*
+    * Footsteps contain information by the position of a planned footstep. The RobotSide of the footstep is the 
+    * side that will swing to touch down at the planned position. The footstep timing begins at the lift_off of
+    * this swing foot. The swing takes swingDuration time, then the double support takes transitionDuration where
+    * the COP moves from previous foot to new (formerly swinging) foot.
+    */
    private static void AddFootstepAndTimingStepsToDCMPlan(SimpleBipedCoMTrajectoryPlanner dcmPlan, Vector3DReadOnly shift)
    {
       FootstepShiftFractions newShiftFractions = 
@@ -261,29 +268,34 @@ public class SimpleLQRMomentumControllerSimulation
       double contactX = shift.getX();
       double contactY = shift.getY();
       double width = stepWidth;
-      RobotSide currentSide = RobotSide.RIGHT;
+      double stepStartTime = initialTransferDuration;
+      RobotSide currentSide = RobotSide.LEFT;
       dcmPlan.clearConvertedStepSequence();
 
       //Initial Position
       //Footstep InitStep = GenerateFootstep(currentSide, new Point3D(contactX,contactY,0), new Quaternion(0, 0, 0, 1));
       //dcmPlan.addStepToSequence(InitStep, new FootstepTiming(initialTransferDuration, 0), newShiftFractions, 0);
-      contactY += -stepWidth / 2;
+      contactY += stepWidth / 2; //begin planning ctnctY at pos of left foot
 
       //Main Steps
       for (int i = 0; i < numberOfSteps; i++)
       {
          contactX += stepLength;
-         contactY += width;
          width = -width;
+         contactY += width;
          currentSide = currentSide.getOppositeSide();
          Footstep newStep = GenerateFootstep(currentSide, new Point3D(contactX, contactY, 0), new Quaternion(0, 0, 0, 1));
-         dcmPlan.addStepToSequence(newStep, new FootstepTiming(swingDuration, stanceDuration), newShiftFractions, 0);
+         FootstepTiming newTiming = new FootstepTiming(swingDuration, stanceDuration);
+         newTiming.setAbsoluteTime(0, stepStartTime);
+         dcmPlan.addStepToSequence(newStep, newTiming, newShiftFractions, 0);
+         stepStartTime += newTiming.getStepTime();
       }
-
+      
       //Final Position
-      contactY += stepWidth / 2;
-      Footstep FinStep = GenerateFootstep(currentSide, new Point3D(contactX, contactY, 0), new Quaternion(0, 0, 0, 1));
-      dcmPlan.addStepToSequence(FinStep, new FootstepTiming(finalTransferDuration, 0), newShiftFractions, 0);
+      Footstep finStep = GenerateFootstep(currentSide, new Point3D(contactX, 0, 0), new Quaternion(0, 0, 0, 1));
+      FootstepTiming finTiming = new FootstepTiming(swingDuration, finalTransferDuration);
+      finTiming.setAbsoluteTime(0, stepStartTime);
+      dcmPlan.addStepToSequence(finStep, finTiming, newShiftFractions, 0);
    }
 
    private static Footstep GenerateFootstep(RobotSide robotSide, Point3D posePoint, Quaternion poseQuaternion)

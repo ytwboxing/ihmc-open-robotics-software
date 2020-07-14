@@ -178,17 +178,16 @@ public class SimpleBipedCoMTrajectoryPlanner
    public void convertFootstepToBTS(double currentTime)
    {
       stepSequence.clear();
-      double StepStartTime = currentTime;
 
       for(int i = 0; i<footstepList.size(); i++) 
       {
          BipedTimedStep step = new BipedTimedStep();
-         step.getTimeInterval().setInterval(StepStartTime, StepStartTime + footstepTimingList.get(i).getSwingTime());
+         double SwingStartTime = footstepTimingList.get(i).getExecutionStartTime() + footstepTimingList.get(i).getSwingStartTime();
+         //BipedTimedStep uses time intervals of start of swing to end of swing. Must fill in stance with CSP
+         step.getTimeInterval().setInterval(SwingStartTime, SwingStartTime + footstepTimingList.get(i).getSwingTime());
          step.setRobotSide(footstepList.get(i).getRobotSide());
          step.setGoalPose(footstepList.get(i).getFootstepPose());
          stepSequence.add(step);
-  
-         StepStartTime += footstepTimingList.get(i).getStepTime();
       }  
    }
    
@@ -197,17 +196,16 @@ public class SimpleBipedCoMTrajectoryPlanner
       if (UseConvertedCSP)
       {
          feetInContact.clear();
-         for (RobotSide robotSide : RobotSide.values)
-            feetInContact.add(robotSide);
-         //feetInContact.add(RobotSide.RIGHT);
+         feetInContact.addAll(GetFeetInContactFromBTSPlan(currentTime));
          sequenceUpdater.update(stepSequence, feetInContact, currentTime);
+         ControlStepSequence.clear();
          ControlStepSequence.addAll(sequenceUpdater.getContactSequence());
          comTrajectoryPlanner.setInitialCenterOfMassState(centerOfMassPosition, new FrameVector3D());
          comTrajectoryPlanner.solveForTrajectory(ControlStepSequence);
       }
       int Curri = getSegmentNumber(currentTime);
       double timeInPhase = currentTime - ControlStepSequence.get(0).getTimeInterval().getStartTime();
-      timeInContactPhase.set(timeInPhase);
+      timeInContactPhase.set(currentTime);
       comTrajectoryPlanner.compute(Curri, timeInContactPhase.getDoubleValue());
    }
    
@@ -261,6 +259,29 @@ public class SimpleBipedCoMTrajectoryPlanner
    public double getTimeInPhase(double currentTime, int phase)
    {
       return currentTime - ControlStepSequence.get(phase).getTimeInterval().getStartTime();
+   }
+   
+   //Currently doesn't account for flight
+   public List<RobotSide> GetFeetInContactFromBTSPlan(double currentTime)
+   {
+      List<RobotSide> CurrentFeetInContact = new ArrayList<>();
+      CurrentFeetInContact.clear();
+      for (int i = 0; i < footstepTimingList.size(); i++)
+      {
+         double stepSwingStartTime = footstepTimingList.get(i).getExecutionStartTime() + footstepTimingList.get(i).getSwingStartTime();
+         double stepSwingEndTime = stepSwingStartTime + footstepTimingList.get(i).getSwingTime();
+         //Note: if current time = a transition time then it should be in the next state, as that is what the CSPUpdater does
+         if (MathTools.intervalContains(currentTime, stepSwingStartTime, stepSwingEndTime, true, false))
+         {
+            CurrentFeetInContact.add(footstepList.get(i).getRobotSide().getOppositeSide());
+            return CurrentFeetInContact;
+         }
+            
+      }
+      for (RobotSide robotSide : RobotSide.values)
+         CurrentFeetInContact.add(robotSide);
+      
+      return CurrentFeetInContact;
    }
    
    /*

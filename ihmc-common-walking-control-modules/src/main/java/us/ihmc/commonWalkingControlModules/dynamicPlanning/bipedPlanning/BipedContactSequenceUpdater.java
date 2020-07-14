@@ -331,7 +331,8 @@ public class BipedContactSequenceUpdater implements ContactSequenceProvider
       }
 
       SimpleBipedContactPhase contactPhase = contactSequenceInAbsoluteTime.getLast();
-      contactPhase.getTimeInterval().setEndTime(Double.POSITIVE_INFINITY);
+      //contactPhase.getTimeInterval().setEndTime(Double.POSITIVE_INFINITY);
+      contactPhase.getTimeInterval().setEndTime(contactPhase.getTimeInterval().getStartTime()+10);//temporary
       for (int i = 0; i < feetInContact.size(); i++)
          contactPhase.addEndFoot(feetInContact.get(i), solePoses.get(feetInContact.get(i)));
       contactPhase.update();
