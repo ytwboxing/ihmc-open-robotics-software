@@ -195,8 +195,10 @@ public class SimpleBipedCoMTrajectoryPlanner
    {
       if (UseConvertedCSP)
       {
+         int currentBTSStep =  getCurrentStepInBTSPlan(currentTime);
          feetInContact.clear();
-         feetInContact.addAll(GetFeetInContactFromBTSPlan(currentTime));
+         feetInContact.addAll(GetFeetInContactFromBTSPlan(currentTime, currentBTSStep));
+         
          sequenceUpdater.update(stepSequence, feetInContact, currentTime);
          ControlStepSequence.clear();
          ControlStepSequence.addAll(sequenceUpdater.getContactSequence());
@@ -204,7 +206,7 @@ public class SimpleBipedCoMTrajectoryPlanner
       }
       int Curri = getSegmentNumber(currentTime);
       double timeInPhase = currentTime - ControlStepSequence.get(0).getTimeInterval().getStartTime();
-      timeInContactPhase.set(currentTime);
+      timeInContactPhase.set(timeInPhase);
       comTrajectoryPlanner.compute(Curri, timeInContactPhase.getDoubleValue());
    }
    
@@ -260,34 +262,74 @@ public class SimpleBipedCoMTrajectoryPlanner
       return currentTime - ControlStepSequence.get(phase).getTimeInterval().getStartTime();
    }
    
-   //Currently doesn't account for flight
-   public List<RobotSide> GetFeetInContactFromBTSPlan(double currentTime)
+   
+   public int getCurrentStepInBTSPlan(double currentTime)
    {
-      List<RobotSide> CurrentFeetInContact = new ArrayList<>();
-      CurrentFeetInContact.clear();
+      if(currentTime < footstepTimingList.get(0).getExecutionStartTime())
+      {
+         return -1; //Simulation is in transfer prior to beginning steps
+      }
       for (int i = 0; i < footstepTimingList.size(); i++)
       {
-         double stepSwingStartTime = footstepTimingList.get(i).getExecutionStartTime() + footstepTimingList.get(i).getSwingStartTime();
-         double stepSwingEndTime = stepSwingStartTime + footstepTimingList.get(i).getSwingTime();
+         double stepStartTime = footstepTimingList.get(i).getExecutionStartTime();
+         double stepEndTime = stepStartTime + footstepTimingList.get(i).getStepTime();
          //Note: if current time = a transition time then it should be in the next state, as that is what the CSPUpdater does
-         if (MathTools.intervalContains(currentTime, stepSwingStartTime, stepSwingEndTime, Epsilons.ONE_TEN_THOUSANDTH, 
+         if (MathTools.intervalContains(currentTime, stepStartTime, stepEndTime, Epsilons.ONE_TEN_THOUSANDTH, 
                                         true, false))
          {
-            CurrentFeetInContact.add(footstepList.get(i).getRobotSide().getOppositeSide());
-            return CurrentFeetInContact;
+            return i; //Return current step
          }
             
       }
+      return footstepTimingList.size(); //Simulation has finished all planned steps
+   }
+   
+   //Currently doesn't account for flight
+   public List<RobotSide> GetFeetInContactFromBTSPlan(double currentTime, int currentStep)
+   {
+      List<RobotSide> CurrentFeetInContact = new ArrayList<>();
+      CurrentFeetInContact.clear();
+      
+      if (!(currentStep < 0 || currentStep == footstepTimingList.size()))
+      {
+         double stepSwingStartTime = footstepTimingList.get(currentStep).getExecutionStartTime() + footstepTimingList.get(currentStep).getSwingStartTime();
+         double stepSwingEndTime = stepSwingStartTime + footstepTimingList.get(currentStep).getSwingTime();
+         //Note: if current time = a transition time then it should be in the next state, as that is what the CSPUpdater does
+         if (MathTools.intervalContains(currentTime, stepSwingStartTime, stepSwingEndTime, Epsilons.ONE_TEN_THOUSANDTH, true, false))
+         {
+            CurrentFeetInContact.add(footstepList.get(currentStep).getRobotSide().getOppositeSide());
+            return CurrentFeetInContact;
+         }
+      }
+         
       for (RobotSide robotSide : RobotSide.values)
          CurrentFeetInContact.add(robotSide);
       
       return CurrentFeetInContact;
+      
    }
    
    public List<RobotSide> getFeetInContact()
    {
       return feetInContact;
    }
+
+   
+   public FramePoint3DReadOnly getFootPositionUpdate(RobotSide robotSide, double currentTime)
+   {
+      int currentBTSStep = getCurrentStepInBTSPlan(currentTime);
+      
+      if (currentBTSStep>0)
+      {
+         if (robotSide == stepSequence.get(currentBTSStep-1).getRobotSide())
+         {
+            return stepSequence.get(currentBTSStep-1).getGoalPose().getPosition();            
+         }
+      }
+      
+      return null;
+   }
+   
    /*
    public void setSupportLeg(RobotSide robotSide)
    {
@@ -434,5 +476,7 @@ public class SimpleBipedCoMTrajectoryPlanner
       return true;
    }
    */
-   
+
+
+
 }
