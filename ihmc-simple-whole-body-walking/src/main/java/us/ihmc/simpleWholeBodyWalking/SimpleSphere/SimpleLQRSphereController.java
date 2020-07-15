@@ -57,9 +57,13 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
       scsRobot.updateJointPositions_SCS_to_ID();
       scsRobot.updateJointVelocities_SCS_to_ID();
 
-      sphereRobot.updateFrames();
-
       double currentTime = sphereRobot.getScsRobot().getYoTime().getDoubleValue();
+      sphereRobot.updateFrames();
+      
+      
+      sphereRobot.updateSoleFrame(RobotSide.LEFT, dcmPlan.getFootPositionUpdate(RobotSide.LEFT, currentTime));
+      sphereRobot.updateSoleFrame(RobotSide.RIGHT, dcmPlan.getFootPositionUpdate(RobotSide.RIGHT, currentTime));
+
       dcmPlan.setInitialCenterOfMassState(sphereRobot.getCenterOfMass(), sphereRobot.getCenterOfMassVelocity());
       dcmPlan.compute(currentTime);
 

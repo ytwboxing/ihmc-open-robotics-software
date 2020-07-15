@@ -10,6 +10,7 @@ import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -87,7 +88,6 @@ public class SimpleLQRMomentumControllerSimulation
    private final SimulationConstructionSet scs;
    
    private final Graphics3DObject worldGraphics = new Graphics3DObject();
-   private final SideDependentList<MovingReferenceFrame> soleFrames = createSoleFrames();
    
    private final YoDouble yoTime = new YoDouble("time", registry);
    private final ExecutionTimer stopwatch = new ExecutionTimer("timer", 0.0, registry);
@@ -116,8 +116,11 @@ public class SimpleLQRMomentumControllerSimulation
                                                 yoGraphicsListRegistries.get(i)));
          sphereRobots.get(i).initRobot(initialPositions.get(i), new Vector3D());
          robots.add(sphereRobots.get(i).getScsRobot());
-
-         dcmPlans.add(new SimpleBipedCoMTrajectoryPlanner(soleFrames,
+         //Initialize Robot Feet
+         sphereRobots.get(i).updateSoleFrame(RobotSide.LEFT, new FramePoint3D(worldFrame,0,stepWidth/2,0));
+         sphereRobots.get(i).updateSoleFrame(RobotSide.RIGHT, new FramePoint3D(worldFrame,0,-stepWidth/2,0));
+         
+         dcmPlans.add(new SimpleBipedCoMTrajectoryPlanner(sphereRobots.get(i).getSoleFrames(),
                                                           gravity,
                                                           nominalHeight,
                                                           sphereRobots.get(i).getOmega0Provider(),
@@ -187,27 +190,7 @@ public class SimpleLQRMomentumControllerSimulation
       //omega.set(Math.sqrt(gravity / nominalHeight));
    }
 
-   //Create SoleFrames to feed into the Planner
-   private static SideDependentList<MovingReferenceFrame> createSoleFrames()
-   {
-      SideDependentList<MovingReferenceFrame> soleFrames = new SideDependentList<>();
-      for (RobotSide robotSide : RobotSide.values)
-      {
-         TranslationMovingReferenceFrame soleFrame = new TranslationMovingReferenceFrame(robotSide + "SoleFrame", worldFrame);
-         Vector3D translation = new Vector3D();
-         translation.setY(robotSide.negateIfRightSide(stepWidth / 2));
-         soleFrame.updateTranslation(translation);
-
-         soleFrames.put(robotSide, soleFrame);
-      }
-
-      return soleFrames;
-   }
-
-   public SideDependentList<MovingReferenceFrame> getSoleFrames()
-   {
-      return soleFrames;
-   }
+   
 
    public Graphics3DObject getWorldGraphics()
    {

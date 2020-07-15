@@ -1,5 +1,6 @@
 package us.ihmc.simpleWholeBodyWalking.SimpleSphere;
 
+import us.ihmc.commonWalkingControlModules.dynamicPlanning.comPlanning.TranslationMovingReferenceFrame;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
@@ -19,9 +20,12 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.mecano.algorithms.CenterOfMassJacobian;
 import us.ihmc.mecano.frames.CenterOfMassReferenceFrame;
+import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.robotics.robotSide.RobotSide;
+import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.screwTheory.TotalMassCalculator;
 import us.ihmc.simulationConstructionSetTools.tools.RobotTools;
 import us.ihmc.simulationConstructionSetTools.tools.RobotTools.SCSRobotFromInverseDynamicsRobotModel;
@@ -77,6 +81,9 @@ public class SimpleSphereRobot
    private final double controlDT;
    private final double desiredHeight;
    private final double gravityZ;
+   
+   private final SideDependentList<TranslationMovingReferenceFrame> soleFramesForModifying = createSoleFrames();
+   private final SideDependentList<MovingReferenceFrame> soleFrames;
 
    private final HashMap<Integer, AppearanceDefinition> hmap = new HashMap<Integer, AppearanceDefinition>();
    {
@@ -144,6 +151,9 @@ public class SimpleSphereRobot
       scsRobot.update();
 
       totalMass = TotalMassCalculator.computeSubTreeMass(body);
+      
+      soleFrames = new SideDependentList<>();
+      soleFrames.putAll(soleFramesForModifying);
    }
 
    public SCSRobotFromInverseDynamicsRobotModel getScsRobot()
@@ -316,5 +326,37 @@ public class SimpleSphereRobot
    public void updateJointTorques_ID_to_SCS()
    {
       scsRobot.updateJointTorques_ID_to_SCS();
+   }
+   
+   //Create SoleFrames to feed into the Planner
+   private static SideDependentList<TranslationMovingReferenceFrame> createSoleFrames()
+   {
+      double stepWidth = 0.3;
+      
+      SideDependentList<TranslationMovingReferenceFrame> soleFrames = new SideDependentList<>();
+      for (RobotSide robotSide : RobotSide.values)
+      {
+         TranslationMovingReferenceFrame soleFrame = new TranslationMovingReferenceFrame(robotSide + "SoleFrame", worldFrame);
+         Vector3D translation = new Vector3D();
+         translation.setY(robotSide.negateIfRightSide(stepWidth / 2));
+         soleFrame.updateTranslation(translation);
+
+         soleFrames.put(robotSide, soleFrame);
+      }
+
+      return soleFrames;
+   }
+   
+   public SideDependentList<MovingReferenceFrame> getSoleFrames()
+   {
+      return soleFrames;
+   }
+   
+   public void updateSoleFrame(RobotSide robotSide, FramePoint3DReadOnly newPosition)
+   {
+      if (newPosition != null)
+      {         
+         this.soleFramesForModifying.get(robotSide).updateTranslation(newPosition);
+      }
    }
 }
