@@ -93,6 +93,7 @@ public class AvatarEstimatorThreadFactory
    private final OptionalFactoryField<RealtimeRos2Node> realtimeRos2NodeField = new OptionalFactoryField<>("realtimeRos2Node");
    private final OptionalFactoryField<ROS2Topic> outputTopicField = new OptionalFactoryField<>("outputTopic");
    private final OptionalFactoryField<ROS2Topic> inputTopicField = new OptionalFactoryField<>("inputTopic");
+   private final OptionalFactoryField<Long> publishFrequencyField = new OptionalFactoryField<>("publishFrequency");
 
    private final OptionalFactoryField<SensorDataContext> sensorDataContextField = new OptionalFactoryField<>("sensorDataContext");
    private final OptionalFactoryField<HumanoidRobotContextData> humanoidRobotContextDataField = new OptionalFactoryField<>("humanoidRobotContextData");
@@ -209,18 +210,30 @@ public class AvatarEstimatorThreadFactory
    /**
     * ROS 2 necessary information to create the real-time publisher/subscriber.
     *
-    * @param ros2Node                     the real-time node to create the publisher with.
-    * @param outputTopic  the generator to use for creating the topic name for
-    *                                     publishers.
-    * @param inputTopic the generator to use for creating the topic name for
-    *                                     subscribers.
+    * @param ros2Node    the real-time node to create the publisher with.
+    * @param outputTopic the generator to use for creating the topic name for publishers.
+    * @param inputTopic  the generator to use for creating the topic name for subscribers.
     */
-   public void setROS2Info(RealtimeRos2Node ros2Node, ROS2Topic outputTopic,
-                           ROS2Topic inputTopic)
+   public void setROS2Info(RealtimeRos2Node ros2Node, ROS2Topic outputTopic, ROS2Topic inputTopic)
+   {
+      setROS2Info(ros2Node, outputTopic, inputTopic, 1000L);
+   }
+
+   /**
+    * ROS 2 necessary information to create the real-time publisher/subscriber.
+    *
+    * @param ros2Node         the real-time node to create the publisher with.
+    * @param outputTopic      the generator to use for creating the topic name for publishers.
+    * @param inputTopic       the generator to use for creating the topic name for subscribers.
+    * @param publishFrequency the frequency (in Hz) at which the messages are attempted to be
+    *                         published.
+    */
+   public void setROS2Info(RealtimeRos2Node ros2Node, ROS2Topic outputTopic, ROS2Topic inputTopic, Long publishFrequency)
    {
       realtimeRos2NodeField.set(ros2Node);
       outputTopicField.set(outputTopic);
       inputTopicField.set(inputTopic);
+      publishFrequencyField.set(publishFrequency);
    }
 
    /**
@@ -498,6 +511,16 @@ public class AvatarEstimatorThreadFactory
          return null;
    }
 
+   public Long getPublishFrequency()
+   {
+      if (publishFrequencyField.hasValue())
+         return publishFrequencyField.get();
+      else
+         // Get default value of 120 Hz if publishFrequency has not been set.
+         // This ensures things don't break because of missing frequency.
+         return 120L;
+   }
+
    public ForceSensorStateUpdater getForceSensorStateUpdater()
    {
       if (!useStateEstimator())
@@ -520,7 +543,7 @@ public class AvatarEstimatorThreadFactory
             ROS2Tools.createCallbackSubscriptionTypeNamed(realtimeRos2NodeField.get(),
                                                           RequestWristForceSensorCalibrationPacket.class,
                                                           inputTopicField.get(),
-                                                 subscriber -> requestWristForceSensorCalibrationSubscriber.receivedPacket(subscriber.takeNextData()));
+                                                          subscriber -> requestWristForceSensorCalibrationSubscriber.receivedPacket(subscriber.takeNextData()));
             forceSensorStateUpdaterField.get().setRequestWristForceSensorCalibrationSubscriber(requestWristForceSensorCalibrationSubscriber);
          }
       }
@@ -764,7 +787,7 @@ public class AvatarEstimatorThreadFactory
          factory.setSensorSource(getEstimatorFullRobotModel(), forceSensorDataHolderToSend, getRawSensorOutputMap());
          factory.setRobotMotionStatusHolder(getRobotMotionStatusFromController());
          factory.setROS2Info(realtimeRos2NodeField.get(), outputTopicField.get());
-         factory.setPublishPeriod(Conversions.secondsToNanoseconds(UnitConversions.hertzToSeconds(120)));
+         factory.setPublishPeriod(Conversions.secondsToNanoseconds(UnitConversions.hertzToSeconds(this.getPublishFrequency())));
          robotConfigurationDataPublisherField.set(factory.createRobotConfigurationDataPublisher());
       }
       return robotConfigurationDataPublisherField.get();
