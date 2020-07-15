@@ -10,6 +10,7 @@ import us.ihmc.commonWalkingControlModules.dynamicPlanning.comPlanning.CoMTrajec
 import us.ihmc.commonWalkingControlModules.dynamicPlanning.comPlanning.ContactStateProvider;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.simulationConstructionSetTools.tools.RobotTools;
 import us.ihmc.simulationconstructionset.ExternalForcePoint;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -29,7 +30,9 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
    private final YoFrameVector3D lqrForce = new YoFrameVector3D("lqrForce", ReferenceFrame.getWorldFrame(), registry);
 
    private final SimpleBipedCoMTrajectoryPlanner dcmPlan;
-   private final List<ContactStateProvider> contactStateProviders = new ArrayList<>();
+   
+   private final boolean visualize = true;
+   private final SimpleSphereVisualizer vizSphere;
 
    public SimpleLQRSphereController(SimpleSphereRobot sphereRobot, SimpleBipedCoMTrajectoryPlanner comTrajectoryProvider, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
@@ -42,6 +45,8 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
       sphereRobot.getScsRobot().setController(this);
 
       lqrMomentumController = new LQRMomentumController(sphereRobot.getOmega0Provider(), registry);
+      
+      vizSphere = new SimpleSphereVisualizer(dcmPlan, yoGraphicsListRegistry, sphereRobot.getOmega0Provider(), sphereRobot.getGravityZ());
    }
 
    private final DMatrixRMaj currentState = new DMatrixRMaj(6, 1);
@@ -55,7 +60,8 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
       sphereRobot.updateFrames();
 
       double currentTime = sphereRobot.getScsRobot().getYoTime().getDoubleValue();
-      dcmPlan.compute(currentTime, sphereRobot.getCenterOfMass());
+      dcmPlan.setInitialCenterOfMassState(sphereRobot.getCenterOfMass(), sphereRobot.getCenterOfMassVelocity());
+      dcmPlan.compute(currentTime);
 
       sphereRobot.getDesiredDCM().set(dcmPlan.getDesiredDCMPosition());
       sphereRobot.getDesiredDCMVelocity().set(dcmPlan.getDesiredDCMVelocity());
@@ -70,7 +76,11 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
       lqrForce.scale(sphereRobot.getTotalMass());
 
       externalForcePoint.setForce(lqrForce);
-
+      
+      //vizSphere.updateVizPoints(currentTime, lqrForce);
+      //vizSphere.plotVRPTrajectory();
+      
+      
       scsRobot.updateJointPositions_ID_to_SCS();
       scsRobot.updateJointVelocities_ID_to_SCS();
       scsRobot.updateJointTorques_ID_to_SCS();
@@ -79,9 +89,10 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
    public void solveForTrajectory()
    {
       dcmPlan.initialize();
-      dcmPlan.solveForTrajectory(sphereRobot.getScsRobot().getYoTime().getDoubleValue(), sphereRobot.getCenterOfMass());
+      dcmPlan.setInitialCenterOfMassState(sphereRobot.getCenterOfMass(), sphereRobot.getCenterOfMassVelocity());
+      dcmPlan.solveForTrajectory(sphereRobot.getScsRobot().getYoTime().getDoubleValue());
    }
-
+   
    @Override
    public void initialize()
    {
@@ -103,6 +114,11 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
    public String getName()
    {
       return registry.getName();
+   }
+   
+   public List<RobotSide> getFeetInContact()
+   {
+      return dcmPlan.getFeetInContact();
    }
 
 }

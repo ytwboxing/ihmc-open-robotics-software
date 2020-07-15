@@ -91,6 +91,8 @@ public class BipedContactSequenceUpdater implements ContactSequenceProvider
 
    public void update(List<? extends BipedTimedStep> stepSequence, List<RobotSide> currentFeetInContact, double currentTime)
    {
+      currentTime+=0.0000001; //TODO: temporary fix for when planning during the timestep that a transition is happening
+      System.out.println(currentTime);
       // initialize contact state and sole positions
       for (RobotSide robotSide : RobotSide.values)
       {

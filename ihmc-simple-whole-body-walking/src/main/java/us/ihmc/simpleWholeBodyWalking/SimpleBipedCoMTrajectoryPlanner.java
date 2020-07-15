@@ -26,6 +26,7 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.commonWalkingControlModules.dynamicPlanning.comPlanning.SimpleCoMTrajectoryPlanner;
+import us.ihmc.commons.Epsilons;
 import us.ihmc.commons.InterpolationTools;
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.referenceFrame.FrameLine2D;
@@ -159,9 +160,8 @@ public class SimpleBipedCoMTrajectoryPlanner
    
    //TODO: what list is input? - look at previous use of bipedCOMTrajectoryPlanner
    //feetInContact is a list of RobotSides that lists all the feet in contact for the current state
-   public void solveForTrajectory(double currentTime,FramePoint3DReadOnly centerOfMassPosition)
+   public void solveForTrajectory(double currentTime)
    {
-      comTrajectoryPlanner.setInitialCenterOfMassState(centerOfMassPosition, new FrameVector3D());
       if (UseConvertedCSP)
       {
          convertFootstepToBTS(currentTime);
@@ -172,7 +172,7 @@ public class SimpleBipedCoMTrajectoryPlanner
          ControlStepSequence.addAll(InputstepSequence);
          comTrajectoryPlanner.solveForTrajectory(ControlStepSequence);
       }
-      compute(currentTime, centerOfMassPosition);
+      compute(currentTime);
    }
    
    public void convertFootstepToBTS(double currentTime)
@@ -191,7 +191,7 @@ public class SimpleBipedCoMTrajectoryPlanner
       }  
    }
    
-   public void compute(double currentTime, FramePoint3DReadOnly centerOfMassPosition)
+   public void compute(double currentTime)
    {
       if (UseConvertedCSP)
       {
@@ -200,7 +200,6 @@ public class SimpleBipedCoMTrajectoryPlanner
          sequenceUpdater.update(stepSequence, feetInContact, currentTime);
          ControlStepSequence.clear();
          ControlStepSequence.addAll(sequenceUpdater.getContactSequence());
-         comTrajectoryPlanner.setInitialCenterOfMassState(centerOfMassPosition, new FrameVector3D());
          comTrajectoryPlanner.solveForTrajectory(ControlStepSequence);
       }
       int Curri = getSegmentNumber(currentTime);
@@ -271,7 +270,8 @@ public class SimpleBipedCoMTrajectoryPlanner
          double stepSwingStartTime = footstepTimingList.get(i).getExecutionStartTime() + footstepTimingList.get(i).getSwingStartTime();
          double stepSwingEndTime = stepSwingStartTime + footstepTimingList.get(i).getSwingTime();
          //Note: if current time = a transition time then it should be in the next state, as that is what the CSPUpdater does
-         if (MathTools.intervalContains(currentTime, stepSwingStartTime, stepSwingEndTime, true, false))
+         if (MathTools.intervalContains(currentTime, stepSwingStartTime, stepSwingEndTime, Epsilons.ONE_TEN_THOUSANDTH, 
+                                        true, false))
          {
             CurrentFeetInContact.add(footstepList.get(i).getRobotSide().getOppositeSide());
             return CurrentFeetInContact;
@@ -284,6 +284,10 @@ public class SimpleBipedCoMTrajectoryPlanner
       return CurrentFeetInContact;
    }
    
+   public List<RobotSide> getFeetInContact()
+   {
+      return feetInContact;
+   }
    /*
    public void setSupportLeg(RobotSide robotSide)
    {

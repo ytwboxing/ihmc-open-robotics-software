@@ -4,6 +4,8 @@ import us.ihmc.commonWalkingControlModules.dynamicPlanning.bipedPlanning.BipedTi
 import us.ihmc.commonWalkingControlModules.dynamicPlanning.comPlanning.*;
 import us.ihmc.commons.InterpolationTools;
 import us.ihmc.commons.lists.RecyclingArrayList;
+import us.ihmc.euclid.geometry.ConvexPolygon2D;
+import us.ihmc.euclid.referenceFrame.FrameConvexPolygon2D;
 import us.ihmc.euclid.referenceFrame.FramePoint2D;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
@@ -14,11 +16,19 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.graphicsDescription.Graphics3DObject;
+import us.ihmc.graphicsDescription.appearance.YoAppearance;
+import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicShape;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPolygon;
 import us.ihmc.jMonkeyEngineToolkit.GroundProfile3D;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
+import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
+import us.ihmc.robotics.time.ExecutionTimer;
 import us.ihmc.robotics.trajectories.TrajectoryType;
 import us.ihmc.simulationconstructionset.*;
 import us.ihmc.simulationconstructionset.gui.tools.SimulationOverheadPlotterFactory;
@@ -26,12 +36,19 @@ import us.ihmc.simulationconstructionset.util.LinearGroundContactModel;
 import us.ihmc.simulationconstructionset.util.ground.FlatGroundProfile;
 import us.ihmc.tools.ArrayTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoFrameConvexPolygon2D;
+import us.ihmc.yoVariables.variable.YoFramePoint3D;
+import us.ihmc.yoVariables.variable.YoFramePoseUsingYawPitchRoll;
+import us.ihmc.yoVariables.variable.YoFrameVector3D;
 import us.ihmc.simpleWholeBodyWalking.SimpleBipedCoMTrajectoryPlanner;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
 import us.ihmc.humanoidRobotics.footstep.FootstepShiftFractions;
 
 import javax.swing.*;
+
+import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,18 +60,21 @@ import java.util.List;
 
 public class SimpleLQRMomentumControllerSimulation
 {
+   private final YoVariableRegistry registry = new YoVariableRegistry("test");
+   private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
+   
    private static final boolean include1 = true;
    private static final boolean include2 = true;
 
    private static boolean visualize = true;
 
-   private final static double desiredHeight = 0.75;
+   private final static double nominalHeight = 0.75;
    private final static double controlDT = 0.001;
    private final static double gravity = 9.81;
    private final static double NextRobotOffset = 1;
 
    private static final double initialTransferDuration = 1.0;
-   private static final double finalTransferDuration = 1.0;
+   private static final double finalTransferDuration = 10.0;
    private static final double stepDuration = 0.7;
    private static final double swingDuration = 0.5;
    private static final double stanceDuration = 0.2;
@@ -65,6 +85,12 @@ public class SimpleLQRMomentumControllerSimulation
    private final static int NumRobots = 1;
 
    private final SimulationConstructionSet scs;
+   
+   private final Graphics3DObject worldGraphics = new Graphics3DObject();
+   private final SideDependentList<MovingReferenceFrame> soleFrames = createSoleFrames();
+   
+   private final YoDouble yoTime = new YoDouble("time", registry);
+   private final ExecutionTimer stopwatch = new ExecutionTimer("timer", 0.0, registry);
 
    private static List<Vector3D> initialPositions = new ArrayList<>();
    private static List<SimpleSphereControllerInterface> sphereControllers = new ArrayList<>();
@@ -80,20 +106,20 @@ public class SimpleLQRMomentumControllerSimulation
       for (int i = 0; i < NumRobots; i++)
       {
          yoGraphicsListRegistries.add(new YoGraphicsListRegistry());
-         initialPositions.add(new Vector3D(0.0, NextRobotOffset * i, desiredHeight));
+         initialPositions.add(new Vector3D(0.0, NextRobotOffset * i, nominalHeight));
 
          sphereRobots.add(new SimpleSphereRobot(i,
                                                 "SphereRobot" + Integer.toString(i + 1),
                                                 gravity,
                                                 controlDT,
-                                                desiredHeight,
+                                                nominalHeight,
                                                 yoGraphicsListRegistries.get(i)));
          sphereRobots.get(i).initRobot(initialPositions.get(i), new Vector3D());
          robots.add(sphereRobots.get(i).getScsRobot());
 
-         dcmPlans.add(new SimpleBipedCoMTrajectoryPlanner(createSoleFrames(),
+         dcmPlans.add(new SimpleBipedCoMTrajectoryPlanner(soleFrames,
                                                           gravity,
-                                                          desiredHeight,
+                                                          nominalHeight,
                                                           sphereRobots.get(i).getOmega0Provider(),
                                                           sphereRobots.get(i).getScsRobot().getRobotsYoVariableRegistry(),
                                                           yoGraphicsListRegistries.get(i)));
@@ -117,7 +143,9 @@ public class SimpleLQRMomentumControllerSimulation
       }
 
       Robot[] robotArray = robots.toArray(new Robot[robots.size()]);
-
+      
+      
+      
       //Create Simulatiion Construction Set
       SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
       parameters.setDataBufferSize(160000);
@@ -150,8 +178,13 @@ public class SimpleLQRMomentumControllerSimulation
       scs.setCameraDolly(false, true, true, false);
       
       scs.setupGraph("t");
+      scs.setSimulateDuration(10);
       
       scs.startOnAThread();
+      
+      //Also flight and swing stuff
+      //YoDouble omega = new YoDouble("omega", registry);
+      //omega.set(Math.sqrt(gravity / nominalHeight));
    }
 
    //Create SoleFrames to feed into the Planner
@@ -171,6 +204,16 @@ public class SimpleLQRMomentumControllerSimulation
       return soleFrames;
    }
 
+   public SideDependentList<MovingReferenceFrame> getSoleFrames()
+   {
+      return soleFrames;
+   }
+
+   public Graphics3DObject getWorldGraphics()
+   {
+      return worldGraphics;
+   }
+   
    // Add ability to push the robot during the simulation
    private static SimplePusherController createPusher(SimpleSphereRobot sphereRobot, YoGraphicsListRegistry yoGraphicsListRegistry)
    {
@@ -200,8 +243,6 @@ public class SimpleLQRMomentumControllerSimulation
    }
 
    // Define the contact sequence for the robot as a List of Contact State Providers
-
-   private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
    private static void AddCSPStepsToDCMPlan(SimpleBipedCoMTrajectoryPlanner dcmPlan, Vector3DReadOnly shift)
    {
@@ -271,7 +312,7 @@ public class SimpleLQRMomentumControllerSimulation
       double stepStartTime = initialTransferDuration;
       RobotSide currentSide = RobotSide.LEFT;
       dcmPlan.clearConvertedStepSequence();
-
+      Quaternion unitQuaternion = new Quaternion(0, 0, 0, 1);
       //Initial Position
       //Footstep InitStep = GenerateFootstep(currentSide, new Point3D(contactX,contactY,0), new Quaternion(0, 0, 0, 1));
       //dcmPlan.addStepToSequence(InitStep, new FootstepTiming(initialTransferDuration, 0), newShiftFractions, 0);
@@ -284,77 +325,27 @@ public class SimpleLQRMomentumControllerSimulation
          width = -width;
          contactY += width;
          currentSide = currentSide.getOppositeSide();
-         Footstep newStep = GenerateFootstep(currentSide, new Point3D(contactX, contactY, 0), new Quaternion(0, 0, 0, 1));
+
+         Footstep newStep = new Footstep();
+         newStep.setRobotSide(currentSide);
+         newStep.setPose(new FramePose3D(ReferenceFrame.getWorldFrame(), new Point3D(contactX, contactY, 0), unitQuaternion));
+         
          FootstepTiming newTiming = new FootstepTiming(swingDuration, stanceDuration);
          newTiming.setAbsoluteTime(0, stepStartTime);
+         
          dcmPlan.addStepToSequence(newStep, newTiming, newShiftFractions, 0);
          stepStartTime += newTiming.getStepTime();
       }
       
       //Final Position
-      Footstep finStep = GenerateFootstep(currentSide, new Point3D(contactX, 0, 0), new Quaternion(0, 0, 0, 1));
+      Footstep finStep = new Footstep();
+      finStep.setRobotSide(currentSide);
+      finStep.setPose(new FramePose3D(ReferenceFrame.getWorldFrame(), new Point3D(contactX, 0, 0), unitQuaternion));
+      
       FootstepTiming finTiming = new FootstepTiming(swingDuration, finalTransferDuration);
       finTiming.setAbsoluteTime(0, stepStartTime);
+      
       dcmPlan.addStepToSequence(finStep, finTiming, newShiftFractions, 0);
-   }
-
-   private static Footstep GenerateFootstep(RobotSide robotSide, Point3D posePoint, Quaternion poseQuaternion)
-   {
-      FramePose3D newPose = new FramePose3D(ReferenceFrame.getWorldFrame(), posePoint, poseQuaternion);
-      return new Footstep(robotSide, newPose);
-   }
-
-   private static void GenerateFootstepDataMessage()
-   {
-      //The swing trajectory has two default waypoints, the startPoint(set to current foot state at lift-off) and the 
-      //final point defined by the location and orientation
-      controller_msgs.msg.dds.FootstepDataMessage message = new controller_msgs.msg.dds.FootstepDataMessage();
-      message.sequence_id_ = 1; //ID of footstep
-      message.robot_side_ = 0; //0-Left 1-Right
-      message.location_.set(new us.ihmc.euclid.tuple3D.Point3D(0, 0, 0)); //Point3D that gives position of the footstep (sole frame) in world frame.
-      message.orientation_.set(0, 0, 0, 1); // quaterion entered (x,y,z,s) where x,y,z is the vector part, s is scalar
-      //message.predicted_contact_points_2d_ //vertices of expected contact polygon btwn foot and world
-      //leave empty to use default support polygon
-      message.trajectory_type_ = us.ihmc.robotics.trajectories.TrajectoryType.DEFAULT.toByte(); //What swing trajectory should be, recommended is default
-      message.swing_height_ = -1.0; //how high the robot should swing its foot, (Setting less than 0.0 will initiate default value
-
-      // Can define two additional waypoints to shape the swing trajectory
-      //message.custom_position_waypoints_ = ; 
-      // The percentages along the trajectory that the waypoints are. If value is empty, sets default. 
-      message.custom_waypoint_proportions_ = new us.ihmc.idl.IDLSequence.Double(1, "type_6");
-
-      /*
-       * if TRAJECTORY_TYPE_WAYPOINTS then there will be a list of waypoints for the swing foot to follow
-       * if the expected_initial_location and expected_initial_orientation are filled then the
-       * swing_trajectory_blend_duration_ defines the length of time from the beginning of the swing phase
-       * that the trajectory will be altered to account for the error btwn the actual beginning state and
-       * expected
-       */
-      //message.swing_trajectory_ = ; //list of waypoints for the trajectory
-      message.swing_trajectory_blend_duration_ = 0;
-
-      message.swing_duration_ = -1.0; //The swingDuration is the time a foot is not in ground contact during a step (non-positive means default will be used)
-      message.transfer_duration_ = -1.0; //The transferDuration is the time spent with the feet in ground contact before a step (non-positive means default will be used)
-      message.execution_delay_time_ = 0; //The time to delay this command on the controller side before being executed.
-      message.swing_duration_shift_fraction_ = -1.0; //fraction of the swing duration spent shifting the weight from the heel to the toe (remain at toe after)
-      message.swing_split_fraction_ = -1.0; //fraction of the shift portion of swing duration spent shifting the weight from the heel of the foot to the ball of the foot.
-      message.transfer_split_fraction_ = -1.0; //fraction of the transfer duration spent shifting the weight from the trailing foot to the middle of the stance.
-      message.transfer_weight_distribution_ = -1.0; //fraction through transfer that the CoP midpoint is located at (lower means at trailing foot, higher means at leading)
-      message.touchdown_duration_ = -1.0; //Time spent after touchdown to transition from heel or toe support to full foot support.
-      message.liftoff_duration_ = -1.0; //Time spent in toe or heel support before the step. This duration is part of the transfer duration
-   }
-
-   private static void GenerateFootstepDataCommand(controller_msgs.msg.dds.FootstepDataMessage message)
-   {
-      us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataCommand command = new us.ihmc.humanoidRobotics.communication.controllerAPI.command.FootstepDataCommand();
-      //command.sequenceId = message.getSequenceId();
-      command.setRobotSide(RobotSide.fromByte(message.getRobotSide()));
-      command.setTrajectoryType(TrajectoryType.fromByte(message.getTrajectoryType()));
-      command.setSwingHeight(message.getSwingHeight());
-      command.setSwingTrajectoryBlendDuration(message.getSwingTrajectoryBlendDuration());
-      command.setPose(message.getLocation(), message.getOrientation()); //Worldframe set at initiation of Pose within footstep object
-      //command.setPredictedContactPoints(message.getPredictedContactPoints2d());
-
    }
 
    public static void main(String[] args)
