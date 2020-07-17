@@ -257,12 +257,12 @@ public class LQRMomentumControllerSimulation
       LQRMomentumControllerSimulation simulation = new LQRMomentumControllerSimulation();
 
 
-      SettableContactStateProvider fakeState = new SettableContactStateProvider();
-      fakeState.getTimeInterval().setInterval(0.0, 5.0);
-      fakeState.setStartCopPosition(new FramePoint2D());
-      fakeState.setEndCopPosition(new FramePoint2D());
-      List<ContactStateProvider> fakeProvider = new ArrayList<>();
-      fakeProvider.add(fakeState);
+//      SettableContactStateProvider fakeState = new SettableContactStateProvider();
+//      fakeState.getTimeInterval().setInterval(0.0, 5.0);
+//      fakeState.setStartCopPosition(new FramePoint2D());
+//      fakeState.setEndCopPosition(new FramePoint2D());
+//      List<ContactStateProvider> fakeProvider = new ArrayList<>();
+//      fakeProvider.add(fakeState);
 
             simulation.setTrajectories(createContacts());
 //      simulation.setTrajectories(fakeProvider);

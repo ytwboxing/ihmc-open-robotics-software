@@ -93,7 +93,7 @@ public class SimpleAtlasFlatGroundWalkingTrack
                public LegConfigurationGains getBentLegGains()
                {
                   LegConfigurationGains gains = super.getBentLegGains();
-                  gains.setJointSpaceKp(200.0);
+                  gains.setJointSpaceKp(200);
                   return gains;
                }
             };
