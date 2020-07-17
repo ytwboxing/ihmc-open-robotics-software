@@ -3,6 +3,8 @@
 
 #include "controller_msgs/msg/./QuixFlatStepType_.idl"
 #include "controller_msgs/msg/./QuixMotionStateMessage_.idl"
+#include "controller_msgs/msg/./QuixSlopeStepType_.idl"
+#include "controller_msgs/msg/./QuixStairsStepType_.idl"
 module controller_msgs
 {
   module msg
@@ -25,6 +27,8 @@ module controller_msgs
         boolean execute_behavior;
         controller_msgs::msg::dds::QuixFlatStepType desired_flat_step_type;
         boolean desired_continuous_walk;
+        controller_msgs::msg::dds::QuixSlopeStepType desired_slope_step_type;
+        controller_msgs::msg::dds::QuixStairsStepType desired_stairs_step_type;
       };
     };
   };

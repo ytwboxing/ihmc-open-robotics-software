@@ -29,6 +29,10 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
    public boolean desired_continuous_walk_;
 
+   public controller_msgs.msg.dds.QuixSlopeStepType desired_slope_step_type_;
+
+   public controller_msgs.msg.dds.QuixStairsStepType desired_stairs_step_type_;
+
    public QuixCrutchMessage()
    {
 
@@ -41,6 +45,10 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
       desired_flat_step_type_ = new controller_msgs.msg.dds.QuixFlatStepType();
 
+
+      desired_slope_step_type_ = new controller_msgs.msg.dds.QuixSlopeStepType();
+
+      desired_stairs_step_type_ = new controller_msgs.msg.dds.QuixStairsStepType();
 
    }
 
@@ -74,6 +82,10 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
 
       desired_continuous_walk_ = other.desired_continuous_walk_;
 
+
+      controller_msgs.msg.dds.QuixSlopeStepTypePubSubType.staticCopy(other.desired_slope_step_type_, desired_slope_step_type_);
+
+      controller_msgs.msg.dds.QuixStairsStepTypePubSubType.staticCopy(other.desired_stairs_step_type_, desired_stairs_step_type_);
    }
 
 
@@ -151,6 +163,20 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
    }
 
 
+
+   public controller_msgs.msg.dds.QuixSlopeStepType getDesiredSlopeStepType()
+   {
+      return desired_slope_step_type_;
+   }
+
+
+
+   public controller_msgs.msg.dds.QuixStairsStepType getDesiredStairsStepType()
+   {
+      return desired_stairs_step_type_;
+   }
+
+
    public static Supplier<QuixCrutchMessagePubSubType> getPubSubType()
    {
       return QuixCrutchMessagePubSubType::new;
@@ -191,6 +217,10 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
       if (!us.ihmc.idl.IDLTools.epsilonEqualsBoolean(this.desired_continuous_walk_, other.desired_continuous_walk_, epsilon)) return false;
 
 
+      if (!this.desired_slope_step_type_.epsilonEquals(other.desired_slope_step_type_, epsilon)) return false;
+
+      if (!this.desired_stairs_step_type_.epsilonEquals(other.desired_stairs_step_type_, epsilon)) return false;
+
       return true;
    }
 
@@ -226,6 +256,10 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
       if(this.desired_continuous_walk_ != otherMyClass.desired_continuous_walk_) return false;
 
 
+      if (!this.desired_slope_step_type_.equals(otherMyClass.desired_slope_step_type_)) return false;
+
+      if (!this.desired_stairs_step_type_.equals(otherMyClass.desired_stairs_step_type_)) return false;
+
       return true;
    }
 
@@ -258,7 +292,13 @@ public class QuixCrutchMessage extends Packet<QuixCrutchMessage> implements Sett
       builder.append(this.desired_flat_step_type_);      builder.append(", ");
 
       builder.append("desired_continuous_walk=");
-      builder.append(this.desired_continuous_walk_);
+      builder.append(this.desired_continuous_walk_);      builder.append(", ");
+
+      builder.append("desired_slope_step_type=");
+      builder.append(this.desired_slope_step_type_);      builder.append(", ");
+
+      builder.append("desired_stairs_step_type=");
+      builder.append(this.desired_stairs_step_type_);
       builder.append("}");
       return builder.toString();
    }
