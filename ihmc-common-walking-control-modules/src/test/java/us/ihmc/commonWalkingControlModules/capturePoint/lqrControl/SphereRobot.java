@@ -76,18 +76,18 @@ public class SphereRobot
       this.desiredHeight = desiredHeight;
       this.gravityZ = Math.abs(gravity);
 
-      elevator = new RigidBody(name + "_elevator", worldFrame);
-      floatingJoint = new SixDoFJoint(name + "_floatingJoint", elevator);
-      body = new RigidBody(name + "_body", floatingJoint, inertia, mass, new Vector3D());
+      elevator =           new RigidBody(name + "_elevator", worldFrame);
+      floatingJoint =      new SixDoFJoint(name + "_floatingJoint", elevator);
+      body =               new RigidBody(name + "_body", floatingJoint, inertia, mass, new Vector3D());
 
-      centerOfMassFrame = new CenterOfMassReferenceFrame("centerOfMass", worldFrame, elevator);
-      centerOfMassJacobian = new CenterOfMassJacobian(elevator, worldFrame);
+      centerOfMassFrame =     new CenterOfMassReferenceFrame("centerOfMass", worldFrame, elevator);
+      centerOfMassJacobian =  new CenterOfMassJacobian(elevator, worldFrame);
 
-      yoCenterOfMass = new YoFramePoint3D(name + "_CenterOfMass", worldFrame, registry);
-      yoCenterOfMassVelocity = new YoFrameVector3D(name + "_CenterOfMassVelocity", worldFrame, registry);
-      desiredDCM = new YoFramePoint3D(name + "_DesiredDCM", worldFrame, registry);
-      desiredDCMVelocity = new YoFrameVector3D(name + "_DesiredDCMVelocity", worldFrame, registry);
-      dcm = new YoFramePoint3D(name + "_DCM", worldFrame, registry);
+      yoCenterOfMass =           new YoFramePoint3D(name + "_CenterOfMass",            worldFrame, registry);
+      yoCenterOfMassVelocity =   new YoFrameVector3D(name + "_CenterOfMassVelocity",   worldFrame, registry);
+      desiredDCM =               new YoFramePoint3D(name + "_DesiredDCM",              worldFrame, registry);
+      desiredDCMVelocity =       new YoFrameVector3D(name + "_DesiredDCMVelocity",     worldFrame, registry);
+      dcm =                      new YoFramePoint3D(name + "_DCM",                     worldFrame, registry);
 
       double omega = Math.sqrt(gravity / desiredHeight);
       omega0.set(omega);
