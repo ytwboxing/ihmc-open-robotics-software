@@ -67,8 +67,6 @@ public class BipedCoMTrajectoryPlannerVisualizer
    private final YoDouble yoTime;
    private final ExecutionTimer stopwatch;
 
-   private final BipedCoMTrajectoryPlanner planner;
-
    private List<BipedTimedStep> steps;
    private final List<BipedTimedStep> stepsInProgress = new ArrayList<>();
    private final SideDependentList<TranslationMovingReferenceFrame> soleFramesForModifying = createSoleFrames();
@@ -81,6 +79,15 @@ public class BipedCoMTrajectoryPlannerVisualizer
    private final YoFramePoint3D desiredDCMPosition;
    private final YoFrameVector3D desiredDCMVelocity;
    private final YoFramePoint3D desiredVRPPosition;
+  
+   /* left and right VRP trajectories */
+   //private final BipedCoMTrajectoryPlanner planner;
+   private final BipedCoMTrajectoryPlanner_MultipleeCMPs planner;
+   private final YoFramePoint3D desiredECMPPosition_left;
+   private final YoFramePoint3D desiredECMPPosition_right;
+   private final BagOfBalls ecmpTrajectory_left;
+   private final BagOfBalls ecmpTrajectory_right;
+   
    private final YoFramePoint3D desiredECMPPosition;
    private final YoFramePoint3D desiredCoPPosition;
 
@@ -137,6 +144,19 @@ public class BipedCoMTrajectoryPlannerVisualizer
       desiredDCMPosition = new YoFramePoint3D("desiredDCMPosition", worldFrame, registry);
       desiredDCMVelocity = new YoFrameVector3D("desiredDCMVelocity", worldFrame, registry);
       desiredVRPPosition = new YoFramePoint3D("desiredVRPPosition", worldFrame, registry);
+      
+      // Left and Right ECMP additions
+      desiredECMPPosition_left =     new YoFramePoint3D("desiredECMPPosition_left", worldFrame, registry);
+      desiredECMPPosition_right =    new YoFramePoint3D("desiredECMPPosition_right", worldFrame, registry);
+      ecmpTrajectory_left =          new BagOfBalls(50, 0.02, "ecmpTrajectory_left", YoAppearance.Maroon(), registry, yoGraphicsListRegistry);
+      ecmpTrajectory_right =         new BagOfBalls(50, 0.02, "ecmpTrajectory_right", YoAppearance.Orange(), registry, yoGraphicsListRegistry);
+      YoGraphicPosition ecmp_left_Viz =    new YoGraphicPosition("desiredECMP_left", desiredECMPPosition_left, 0.02, YoAppearance.Maroon(),
+                                                       YoGraphicPosition.GraphicType.SOLID_BALL);
+      YoGraphicPosition ecmp_right_Viz =   new YoGraphicPosition("desiredECMP_right", desiredECMPPosition_right, 0.02, YoAppearance.Orange(),
+                                                       YoGraphicPosition.GraphicType.SOLID_BALL);
+      yoGraphicsListRegistry.registerArtifact("dcmPlanner", ecmp_left_Viz.createArtifact());
+      yoGraphicsListRegistry.registerArtifact("dcmPlanner", ecmp_right_Viz.createArtifact());
+      
       desiredECMPPosition = new YoFramePoint3D("desiredECMPPosition", worldFrame, registry);
       desiredCoPPosition = new YoFramePoint3D("desiredCoPPosition", worldFrame, registry);
 
@@ -199,7 +219,8 @@ public class BipedCoMTrajectoryPlannerVisualizer
       nextFootstepPolygons.add(yoNextNextFootstepPolygon);
       nextFootstepPolygons.add(yoNextNextNextFootstepPolygon);
 
-      planner = new BipedCoMTrajectoryPlanner(soleFrames, gravity, nominalHeight, registry, yoGraphicsListRegistry);
+      //planner = new BipedCoMTrajectoryPlanner(soleFrames, gravity, nominalHeight, registry, yoGraphicsListRegistry);
+      planner = new BipedCoMTrajectoryPlanner_MultipleeCMPs(soleFrames, gravity, nominalHeight, registry, yoGraphicsListRegistry);
       steps = stepGetter.getSteps(soleFrames, worldGraphics);
       //      steps = createSteps(soleFrames);
       //      steps = createFancySteps(soleFrames);
@@ -679,6 +700,10 @@ public class BipedCoMTrajectoryPlannerVisualizer
          desiredDCMPosition.set(planner.getDesiredDCMPosition());
          desiredDCMVelocity.set(planner.getDesiredDCMVelocity());
          desiredVRPPosition.set(planner.getDesiredVRPPosition());
+         desiredECMPPosition_left.set(planner.getDesiredECMPPosition_left());
+         desiredECMPPosition_left.subZ(gravity / MathTools.square(omega.getDoubleValue()));
+         desiredECMPPosition_right.set(planner.getDesiredECMPPosition_right());
+         desiredECMPPosition_right.subZ(gravity / MathTools.square(omega.getDoubleValue()));
 
          desiredECMPPosition.set(desiredVRPPosition);
          desiredECMPPosition.subZ(gravity / MathTools.square(omega.getDoubleValue()));
@@ -692,6 +717,8 @@ public class BipedCoMTrajectoryPlannerVisualizer
          dcmTrajectory.setBallLoop(desiredDCMPosition);
          comTrajectory.setBallLoop(desiredCoMPosition);
          vrpTrajectory.setBallLoop(desiredVRPPosition);
+         ecmpTrajectory_left.setBallLoop(desiredECMPPosition_left);
+         ecmpTrajectory_right.setBallLoop(desiredECMPPosition_right);
 
          assertDCMDynamicsHold();
          assertCoMDynamicsHold();
@@ -862,6 +889,6 @@ public class BipedCoMTrajectoryPlannerVisualizer
 
    public static void main(String[] args)
    {
-      BipedCoMTrajectoryPlannerVisualizer visualizer = new BipedCoMTrajectoryPlannerVisualizer(BipedCoMTrajectoryPlannerVisualizer::createFancySteps);
+      BipedCoMTrajectoryPlannerVisualizer visualizer = new BipedCoMTrajectoryPlannerVisualizer(BipedCoMTrajectoryPlannerVisualizer::createSteps);
    }
 }
