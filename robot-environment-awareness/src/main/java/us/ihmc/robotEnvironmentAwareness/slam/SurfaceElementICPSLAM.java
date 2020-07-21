@@ -98,6 +98,7 @@ public class SurfaceElementICPSLAM extends SLAMBasics
       boolean initialCondition = optimizer.initialize();
       LogTools.info("initialCondition " + initialCondition);
       optimizer.setCorrespondenceThreshold(octree.getResolution() * 1.5);
+      //optimizer.setCorrespondenceThreshold(0.1);
       driftCorrectionResult.setInitialDistance(optimizer.getQuality());
       LogTools.info("initial quality " + optimizer.getQuality());
 
