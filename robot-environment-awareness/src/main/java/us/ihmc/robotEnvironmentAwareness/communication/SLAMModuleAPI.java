@@ -13,7 +13,7 @@ import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.messager.MessagerAPIFactory.TopicTheme;
 import us.ihmc.messager.MessagerAPIFactory.TypedTopicTheme;
 import us.ihmc.robotEnvironmentAwareness.communication.packets.NormalOcTreeMessage;
-import us.ihmc.robotEnvironmentAwareness.slam.RandomICPSLAMParameters;
+import us.ihmc.robotEnvironmentAwareness.slam.SurfaceElementICPSLAMParameters;
 import us.ihmc.robotEnvironmentAwareness.ui.graphicsBuilders.OcTreeMeshBuilder.DisplayType;
 
 public class SLAMModuleAPI
@@ -77,7 +77,7 @@ public class SLAMModuleAPI
    public static final Topic<Boolean> VelocityLimitStatus = Root.child(Module).child(VelocityLimit).topic(Moving);
 
    public static final Topic<PlanarRegionsListMessage> SLAMPlanarRegionsState = Root.child(Module).child(PlanarRegions).topic(Data);
-   public static final Topic<RandomICPSLAMParameters> SLAMParameters = Root.child(Module).topic(Parameters);
+   public static final Topic<SurfaceElementICPSLAMParameters> SLAMParameters = Root.child(Module).topic(Parameters);
 
    public static final Topic<DisplayType> SLAMOcTreeDisplayType = Root.child(UI).child(OcTree).topic(Display);
 
@@ -98,6 +98,7 @@ public class SLAMModuleAPI
    public static final Topic<Double> LatestFrameConfidenceFactor = Root.child(UI).child(SensorFrame).topic(Value);
 
    public static final Topic<Boolean> UIRawDataExportRequest = Root.child(UI).child(DataManager).child(DepthCloud).child(Export).topic(Request);
+   public static final Topic<Boolean> UISLAMDataExportRequest = Root.child(UI).child(DataManager).child(Module).child(Export).topic(Request);
    
    public static final Topic<String> UIRawDataExportDirectory = Root.child(UI).child(DataManager).child(DepthCloud).child(Export).topic(Path);
    public static final Topic<String> UISLAMDataExportDirectory = Root.child(UI).child(DataManager).child(Module).child(Export).topic(Path);

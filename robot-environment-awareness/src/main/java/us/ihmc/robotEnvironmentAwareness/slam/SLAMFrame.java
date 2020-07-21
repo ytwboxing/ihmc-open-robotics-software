@@ -22,6 +22,7 @@ import us.ihmc.robotEnvironmentAwareness.slam.tools.SLAMTools;
 
 public class SLAMFrame
 {
+   private final Long timestamp;
    private final SLAMFrame previousFrame;
 
    /**
@@ -47,11 +48,12 @@ public class SLAMFrame
    protected final Point3DReadOnly[] originalPointCloudToWorld; // For comparison after mapping.
    protected final Point3DReadOnly[] pointCloudToSensorFrame;
    protected final Point3D[] optimizedPointCloudToWorld;
-   
+
    private double confidenceFactor = 1.0;
 
    public SLAMFrame(StereoVisionPointCloudMessage message)
    {
+      timestamp = message.getTimestamp();
       previousFrame = null;
 
       originalSensorPoseToWorld = MessageTools.unpackSensorPose(message);
@@ -70,6 +72,7 @@ public class SLAMFrame
 
    public SLAMFrame(SLAMFrame frame, StereoVisionPointCloudMessage message)
    {
+      timestamp = message.getTimestamp();
       previousFrame = frame;
 
       originalSensorPoseToWorld = MessageTools.unpackSensorPose(message);
@@ -134,7 +137,7 @@ public class SLAMFrame
       NormalEstimationParameters normalEstimationParameters = new NormalEstimationParameters();
       normalEstimationParameters.setNumberOfIterations(10);
       frameMap.setNormalEstimationParameters(normalEstimationParameters);
-      if(updateNormal)
+      if (updateNormal)
          frameMap.updateNormals();
 
       OcTreeIterable<NormalOcTreeNode> iterable = OcTreeIteratorFactory.createIterable(frameMap.getRoot());
@@ -211,6 +214,11 @@ public class SLAMFrame
          return true;
       else
          return false;
+   }
+
+   public Long getTimeStamp()
+   {
+      return timestamp;
    }
 
    public SLAMFrame getPreviousFrame()
