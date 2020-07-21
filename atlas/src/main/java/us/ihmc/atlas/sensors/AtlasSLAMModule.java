@@ -57,7 +57,7 @@ public class AtlasSLAMModule extends SLAMModule
 
       estimatedPelvisPublisher = ROS2Tools.createPublisherTypeNamed(ros2Node,
                                                                     StampedPosePacket.class,
-                                                                    ROS2Tools.getControllerOutputTopic(drcRobotModel.getSimpleRobotName()));
+                                                                    ROS2Tools.getControllerInputTopic(drcRobotModel.getSimpleRobotName()));
       sensorPoseToPelvisTransformer = new RigidBodyTransform(AtlasSensorInformation.transformPelvisToDepthCamera);
       sensorPoseToPelvisTransformer.invert();
 
@@ -124,8 +124,10 @@ public class AtlasSLAMModule extends SLAMModule
          {
             if (latestFrame.getConfidenceFactor() < 0)
                posePacket.setConfidenceFactor(0.0);
-            posePacket.setConfidenceFactor(latestFrame.getConfidenceFactor());
+            //TODO: check.
+            //posePacket.setConfidenceFactor(latestFrame.getConfidenceFactor());
          }
+         posePacket.setConfidenceFactor(0.5);
          RigidBodyTransform estimatedPelvisPose = new RigidBodyTransform(sensorPoseToPelvisTransformer);
          estimatedPelvisPose.preMultiply(latestFrame.getSensorPose());
          posePacket.getPose().set(estimatedPelvisPose);
@@ -146,7 +148,7 @@ public class AtlasSLAMModule extends SLAMModule
    private void handleRobotConfigurationData(Subscriber<RobotConfigurationData> subscriber)
    {
       RobotConfigurationData robotConfigurationData = subscriber.takeNextData();
-      latestRobotTimeStamp.set(robotConfigurationData.getMonotonicTime());
+      latestRobotTimeStamp.set(robotConfigurationData.getWallTime());
 
       if (reaMessager.isMessagerOpen())
       {
