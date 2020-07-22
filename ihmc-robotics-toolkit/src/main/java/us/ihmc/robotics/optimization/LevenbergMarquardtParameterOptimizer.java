@@ -1,20 +1,12 @@
 package us.ihmc.robotics.optimization;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
-import org.ejml.ops.MatrixDimensionException;
-=======
-=======
+
 import java.util.function.Function;
->>>>>>> 2db4111f4b8... Defined input space and output space.
 import java.util.function.UnaryOperator;
 
 import org.ejml.MatrixDimensionException;
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -47,24 +39,6 @@ public class LevenbergMarquardtParameterOptimizer
 
    private final Function<DMatrixRMaj, RigidBodyTransform> inputFunction;
    private final UnaryOperator<DMatrixRMaj> outputCalculator;
-<<<<<<< HEAD
-<<<<<<< HEAD
-   private boolean useDampingCoefficient = false; // TODO: add setter.
-   private final DenseMatrix64F dampingCoefficient;
-=======
-   private boolean useDampingCoefficient = false;
-   private final DMatrixRMaj dampingCoefficient;
->>>>>>> 14982396e4c... Corrected typo.
-   private static final double DEFAULT_RESIDUAL_SCALER = 0.1;
-   private double residualScaler = DEFAULT_RESIDUAL_SCALER;
-
-   private final DenseMatrix64F currentInput;
-   private final DenseMatrix64F currentOutput;
-   private final DenseMatrix64F purterbationVector;
-   private final DenseMatrix64F perturbedInput;
-   private final DenseMatrix64F perturbedOutput;
-   private final DenseMatrix64F jacobian;
-=======
 
    private final DMatrixRMaj currentInput;
    private final OuputSpace currentOutputSpace;
@@ -72,20 +46,13 @@ public class LevenbergMarquardtParameterOptimizer
    private final DMatrixRMaj perturbedInput;
    private final DMatrixRMaj perturbedOutput;
    private final DMatrixRMaj jacobian;
->>>>>>> 2db4111f4b8... Defined input space and output space.
 
-<<<<<<< HEAD
-   private final DenseMatrix64F jacobianTranspose;
-   private final DenseMatrix64F squaredJacobian;
-   private final DenseMatrix64F invMultJacobianTranspose;
-=======
    private final DMatrixRMaj jacobianTranspose;
    private final DMatrixRMaj squaredJacobian;
    private final DMatrixRMaj dampingMatrix;
    private final DMatrixRMaj invMultJacobianTranspose;
->>>>>>> 5fd145d18c3... Enabled damping matrix.
 
-   private final DenseMatrix64F optimizeDirection;
+   private final DMatrixRMaj optimizeDirection;
 
    /**
     * higher : make quick approach when the model and the data are in long distance.
@@ -112,16 +79,6 @@ public class LevenbergMarquardtParameterOptimizer
       this.outputDimension = outputDimension;
       this.outputCalculator = outputCalculator;
 
-<<<<<<< HEAD
-      dampingCoefficient = new DenseMatrix64F(inputParameterDimension, inputParameterDimension);
-
-      currentInput = new DenseMatrix64F(inputParameterDimension, 1);
-      currentOutput = new DenseMatrix64F(outputDimension, 1);
-      purterbationVector = new DenseMatrix64F(inputParameterDimension, 1);
-      perturbedInput = new DenseMatrix64F(inputParameterDimension, 1);
-      perturbedOutput = new DenseMatrix64F(outputDimension, 1);
-      jacobian = new DenseMatrix64F(outputDimension, inputParameterDimension);
-=======
       currentInput = new DMatrixRMaj(inputParameterDimension, 1);
       currentOutputSpace = new OuputSpace(outputDimension);
 
@@ -131,56 +88,17 @@ public class LevenbergMarquardtParameterOptimizer
       perturbedInput = new DMatrixRMaj(inputParameterDimension, 1);
       perturbedOutput = new DMatrixRMaj(outputDimension, 1);
       jacobian = new DMatrixRMaj(outputDimension, inputParameterDimension);
->>>>>>> 2db4111f4b8... Defined input space and output space.
 
-      jacobianTranspose = new DenseMatrix64F(outputDimension, inputParameterDimension);
-      squaredJacobian = new DenseMatrix64F(inputParameterDimension, inputParameterDimension);
-      invMultJacobianTranspose = new DenseMatrix64F(inputParameterDimension, outputDimension);
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-      optimizeDirection = new DenseMatrix64F(inputParameterDimension, 1);
-=======
       jacobianTranspose = new DMatrixRMaj(outputDimension, inputParameterDimension);
       squaredJacobian = new DMatrixRMaj(inputParameterDimension, inputParameterDimension);
       dampingMatrix = new DMatrixRMaj(inputParameterDimension, inputParameterDimension);
       invMultJacobianTranspose = new DMatrixRMaj(inputParameterDimension, outputDimension);
->>>>>>> 5fd145d18c3... Enabled damping matrix.
 
-      correspondence = new boolean[outputDimension];
-=======
       optimizeDirection = new DMatrixRMaj(inputParameterDimension, 1);
->>>>>>> 2db4111f4b8... Defined input space and output space.
    }
 
-<<<<<<< HEAD
-   public void reShape(int parameterDimension, int outputDimension)
-   {
-      this.parameterDimension = parameterDimension;
-      this.outputDimension = outputDimension;
 
-      dampingCoefficient.reshape(parameterDimension, parameterDimension);
-
-      currentInput.reshape(parameterDimension, 1);
-      currentOutput.reshape(outputDimension, 1);
-      purterbationVector.reshape(parameterDimension, 1);
-      perturbedInput.reshape(parameterDimension, 1);
-      perturbedOutput.reshape(outputDimension, 1);
-      jacobian.reshape(outputDimension, parameterDimension);
-
-      jacobianTranspose.reshape(outputDimension, parameterDimension);
-      squaredJacobian.reshape(parameterDimension, parameterDimension);
-      invMultJacobianTranspose.reshape(parameterDimension, outputDimension);
-
-      optimizeDirection.reshape(parameterDimension, 1);
-
-      correspondence = new boolean[outputDimension];
-   }
-
-   public void setPerturbationVector(DenseMatrix64F purterbationVector)
-=======
    public void setPerturbationVector(DMatrixRMaj purterbationVector)
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
    {
       if (this.purterbationVector.getNumCols() != purterbationVector.getNumCols())
          throw new MatrixDimensionException("dimension is wrong. " + this.purterbationVector.getNumCols() + " " + purterbationVector.getNumCols());
@@ -192,51 +110,8 @@ public class LevenbergMarquardtParameterOptimizer
       this.correspondenceThreshold = correspondenceThreshold;
    }
 
-<<<<<<< HEAD
-   private double computeQuality(DenseMatrix64F space, boolean[] correspondence)
-   {
-      double norm = 0.0;
-      for (int i = 0; i < space.getNumRows(); i++)
-      {
-         if (correspondence[i])
-         {
-            norm = norm + space.get(i, 0) * space.get(i, 0);
-         }
-      }
-      return norm;
-   }
 
-   private double computePureQuality(DenseMatrix64F space)
-   {
-      double norm = 0.0;
-      for (int i = 0; i < space.getNumRows(); i++)
-      {
-         norm = norm + space.get(i, 0) * space.get(i, 0);
-      }
-      return norm;
-   }
-
-   private void updateDamping()
-   {
-      if (quality < initialQuality)
-         residualScaler = quality / initialQuality * DEFAULT_RESIDUAL_SCALER;
-
-      for (int i = 0; i < parameterDimension; i++)
-      {
-         for (int j = 0; j < parameterDimension; j++)
-         {
-            if (i == j)
-            {
-               dampingCoefficient.set(i, j, residualScaler);
-            }
-         }
-      }
-   }
-
-   public void initialize()
-=======
    public boolean initialize()
->>>>>>> 2db4111f4b8... Defined input space and output space.
    {
       iteration = 0;
       optimized = false;
@@ -260,11 +135,7 @@ public class LevenbergMarquardtParameterOptimizer
       iteration++;
       long startTime = System.nanoTime();
 
-<<<<<<< HEAD
-      DenseMatrix64F newInput = new DenseMatrix64F(parameterDimension, 1);
-=======
       DMatrixRMaj newInput = new DMatrixRMaj(inputDimension, 1);
->>>>>>> 2db4111f4b8... Defined input space and output space.
 
       currentOutputSpace.updateOutputSpace(outputCalculator.apply(currentInput));
       if (!currentOutputSpace.computeCorrespondence())
@@ -297,21 +168,8 @@ public class LevenbergMarquardtParameterOptimizer
 
       // compute direction.
       jacobianTranspose.set(jacobian);
-      CommonOps.transpose(jacobianTranspose);
+      CommonOps_DDRM.transpose(jacobianTranspose);
 
-<<<<<<< HEAD
-      CommonOps.mult(jacobianTranspose, jacobian, squaredJacobian);
-
-      if (useDampingCoefficient)
-      {
-         updateDamping();
-         CommonOps.add(squaredJacobian, dampingCoefficient, squaredJacobian);
-      }
-      CommonOps.invert(squaredJacobian);
-
-      CommonOps.mult(squaredJacobian, jacobianTranspose, invMultJacobianTranspose);
-      CommonOps.mult(invMultJacobianTranspose, currentOutput, optimizeDirection);
-=======
       CommonOps_DDRM.mult(jacobianTranspose, jacobian, squaredJacobian);
       if (useDamping)
       {
@@ -321,10 +179,10 @@ public class LevenbergMarquardtParameterOptimizer
 
       CommonOps_DDRM.mult(squaredJacobian, jacobianTranspose, invMultJacobianTranspose);
       CommonOps_DDRM.mult(invMultJacobianTranspose, currentOutputSpace.getOutput(), optimizeDirection);
->>>>>>> 2db4111f4b8... Defined input space and output space.
+
 
       // update currentInput.
-      CommonOps.subtract(currentInput, optimizeDirection, newInput);
+      CommonOps_DDRM.subtract(currentInput, optimizeDirection, newInput);
 
       // compute new quality.
       currentInput.set(newInput);
@@ -350,7 +208,7 @@ public class LevenbergMarquardtParameterOptimizer
       return currentOutputSpace.getNumberOfCorrespondingPoints();
    }
 
-   public DenseMatrix64F getOptimalParameter()
+   public DMatrixRMaj getOptimalParameter()
    {
       return currentInput;
    }

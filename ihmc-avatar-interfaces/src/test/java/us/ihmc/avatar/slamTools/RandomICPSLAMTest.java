@@ -406,10 +406,6 @@ public class RandomICPSLAMTest
          System.out.println();
          System.out.println(" ## add frame " + i);
          slam.addFrame(messages.get(i));
-<<<<<<< HEAD
-         slam.updateOcTree();
-=======
->>>>>>> 5816871417a... Revert changes.
 
          originalViewer.addStereoMessage(messages.get(i), Color.GREEN);
 

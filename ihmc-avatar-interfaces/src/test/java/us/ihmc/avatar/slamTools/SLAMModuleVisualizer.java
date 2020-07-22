@@ -10,7 +10,7 @@ import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotEnvironmentAwareness.hardware.StereoVisionPointCloudDataLoader;
+import us.ihmc.robotEnvironmentAwareness.ui.io.StereoVisionPointCloudDataLoader;
 import us.ihmc.robotEnvironmentAwareness.slam.SurfaceElementICPSLAM;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;

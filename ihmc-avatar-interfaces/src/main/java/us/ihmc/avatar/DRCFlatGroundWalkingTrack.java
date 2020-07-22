@@ -56,18 +56,9 @@ public class DRCFlatGroundWalkingTrack
    {
       this(robotInitialSetup, guiInitialSetup, scsInitialSetup, useVelocityAndHeadingScript, cheatWithGroundHeightAtForFootstep, model,
            WalkingProvider.VELOCITY_HEADING_COMPONENT, new HeadingAndVelocityEvaluationScriptParameters(), null, null); // should always be committed as VELOCITY_HEADING_COMPONENT
-   }
-<<<<<<< HEAD
-<<<<<<< HEAD
-   
+   }   
    // SimpleAtlas Simulation calls this helper constructor
-=======
 
->>>>>>> 5bd231838af... set up a custom controller guyyy
-=======
-   
-   // SimpleAtlas Simulation calls this helper constructor
->>>>>>> 4cde91fd214... Passed correct ICP parameters to customState manager.
    public DRCFlatGroundWalkingTrack(DRCRobotInitialSetup<HumanoidFloatingRootJointRobot> robotInitialSetup, DRCGuiInitialSetup guiInitialSetup, DRCSCSInitialSetup scsInitialSetup,
                                     boolean useVelocityAndHeadingScript, boolean cheatWithGroundHeightAtForFootstep, DRCRobotModel model,
                                     HighLevelControllerStateFactory customControllerState)
@@ -92,18 +83,6 @@ public class DRCFlatGroundWalkingTrack
            walkingScriptParameters, null, null);
    }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
->>>>>>> 5bd231838af... set up a custom controller guyyy
-=======
-<<<<<<< refs/remotes/origin/feature/SandboxState
->>>>>>> becafb16f55... Just adding some comments for understanding
-=======
-
->>>>>>> 29fb07b96d9... Added the set ICP parameters to SimpleWalkingControllerStateFactory.
    private DRCFlatGroundWalkingTrack(DRCRobotInitialSetup<HumanoidFloatingRootJointRobot> robotInitialSetup, DRCGuiInitialSetup guiInitialSetup,
                                     DRCSCSInitialSetup scsInitialSetup, boolean useVelocityAndHeadingScript, boolean cheatWithGroundHeightAtForFootstep,
                                     DRCRobotModel model, WalkingProvider walkingProvider, HeadingAndVelocityEvaluationScriptParameters walkingScriptParameters,

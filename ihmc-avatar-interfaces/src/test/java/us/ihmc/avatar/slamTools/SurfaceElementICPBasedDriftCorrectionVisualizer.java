@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.DMatrixRMaj;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import us.ihmc.commons.thread.ThreadTools;
@@ -19,15 +19,11 @@ import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.jOctoMap.ocTree.NormalOcTree;
-import us.ihmc.robotEnvironmentAwareness.hardware.StereoVisionPointCloudDataLoader;
 import us.ihmc.robotEnvironmentAwareness.slam.SLAMFrame;
 import us.ihmc.robotEnvironmentAwareness.slam.SurfaceElementICPSLAM;
 import us.ihmc.robotEnvironmentAwareness.slam.tools.SLAMTools;
-<<<<<<< HEAD
-import us.ihmc.robotics.optimization.FunctionOutputCalculator;
-=======
+
 import us.ihmc.robotEnvironmentAwareness.ui.io.StereoVisionPointCloudDataLoader;
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
 import us.ihmc.robotics.optimization.LevenbergMarquardtParameterOptimizer;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
@@ -46,21 +42,7 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
    private final int recordFrequency = 1;
    private final int bufferSize = (int) (trajectoryTime / dt / recordFrequency + 3);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-   private static final DriftCase DRIFT_CASE = DriftCase.UpStairs3YDriftSmallOverlap;
-//         private static final DriftCase DRIFT_CASE = DriftCase.UpStairs3RollDrift;
-//         private static final DriftCase DRIFT_CASE = DriftCase.UpStairs3HugeDrift;
-//      private static final DriftCase DRIFT_CASE = DriftCase.UpStairs2YawDrift;
-=======
-   private static final DriftCase DRIFT_CASE = DriftCase.YDriftSmallOverlap;
-   //private static final DriftCase DRIFT_CASE = DriftCase.RollDrift;
-   //private static final DriftCase DRIFT_CASE = DriftCase.HugeDrift;
-   //private static final DriftCase DRIFT_CASE = DriftCase.YawDrift;
->>>>>>> bbca339f172... Re defined drift cases.
-=======
    private static final DriftCase DRIFT_CASE = DriftCase.YDrift;
->>>>>>> faa30e3df3c... Added return line when there is no corresponding point.
 
    private static final String DATA_PATH = DRIFT_CASE.getFilePath();
 
@@ -176,13 +158,8 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
          optimizer.iterate();
 
          // get parameter.
-<<<<<<< HEAD
-         DenseMatrix64F optimalParameter = optimizer.getOptimalParameter();
-         icpTransformer.set(convertTransform(optimalParameter.getData()));
-=======
          DMatrixRMaj optimalParameter = optimizer.getOptimalParameter();
          icpTransformer.set(inputFunction.apply(optimalParameter));
->>>>>>> 2db4111f4b8... Defined input space and output space.
          correctedSensorPoseToWorld.set(frame2.getInitialSensorPoseToWorld());
          correctedSensorPoseToWorld.multiply(icpTransformer);
          for (int i = 0; i < correctedData.length; i++)
@@ -279,11 +256,7 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
       UnaryOperator<DMatrixRMaj> outputCalculator = new UnaryOperator<DMatrixRMaj>()
       {
          @Override
-<<<<<<< HEAD
-         public DenseMatrix64F computeOutput(DenseMatrix64F inputParameter)
-=======
          public DMatrixRMaj apply(DMatrixRMaj inputParameter)
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
          {
             RigidBodyTransform driftCorrectionTransform = new RigidBodyTransform(inputFunction.apply(inputParameter));
             RigidBodyTransform correctedSensorPoseToWorld = new RigidBodyTransform(frame.getOriginalSensorPose());
@@ -299,7 +272,7 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
                correctedSensorPoseToWorld.transform(correctedSurfel[i].getNormal());
             }
 
-            DenseMatrix64F errorSpace = new DenseMatrix64F(correctedSurfel.length, 1);
+            DMatrixRMaj errorSpace = new DMatrixRMaj(correctedSurfel.length, 1);
             for (int i = 0; i < correctedSurfel.length; i++)
             {
                double distance = computeClosestDistance(correctedSurfel[i]);
@@ -313,16 +286,8 @@ public class SurfaceElementICPBasedDriftCorrectionVisualizer
             return SLAMTools.computeBoundedPerpendicularDistancePointToNormalOctree(map, surfel.getPoint(), map.getResolution() * 1.1);
          }
       };
-<<<<<<< HEAD
-<<<<<<< HEAD
-      DenseMatrix64F purterbationVector = new DenseMatrix64F(6, 1);
-=======
-      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(6, numberOfSurfel, outputCalculator);
-=======
       LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(inputFunction, outputCalculator, 6, numberOfSurfel);
->>>>>>> 2db4111f4b8... Defined input space and output space.
       DMatrixRMaj purterbationVector = new DMatrixRMaj(6, 1);
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
       purterbationVector.set(0, map.getResolution() * 0.002);
       purterbationVector.set(1, map.getResolution() * 0.002);
       purterbationVector.set(2, map.getResolution() * 0.002);

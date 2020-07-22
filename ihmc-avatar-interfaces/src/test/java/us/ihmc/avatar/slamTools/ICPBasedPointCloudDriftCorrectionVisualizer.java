@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.DMatrixRMaj;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
 import us.ihmc.commons.thread.ThreadTools;
@@ -26,14 +26,9 @@ import us.ihmc.jOctoMap.iterators.OcTreeIteratorFactory;
 import us.ihmc.jOctoMap.node.NormalOcTreeNode;
 import us.ihmc.jOctoMap.ocTree.NormalOcTree;
 import us.ihmc.robotEnvironmentAwareness.communication.converters.PointCloudCompression;
-import us.ihmc.robotEnvironmentAwareness.hardware.StereoVisionPointCloudDataLoader;
 import us.ihmc.robotEnvironmentAwareness.slam.SLAMFrame;
 import us.ihmc.robotEnvironmentAwareness.slam.tools.SLAMTools;
-<<<<<<< HEAD
-import us.ihmc.robotics.optimization.FunctionOutputCalculator;
-=======
 import us.ihmc.robotEnvironmentAwareness.ui.io.StereoVisionPointCloudDataLoader;
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
 import us.ihmc.robotics.optimization.LevenbergMarquardtParameterOptimizer;
 import us.ihmc.simulationconstructionset.Robot;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
@@ -208,11 +203,7 @@ public class ICPBasedPointCloudDriftCorrectionVisualizer
       UnaryOperator<DMatrixRMaj> outputCalculator = new UnaryOperator<DMatrixRMaj>()
       {
          @Override
-<<<<<<< HEAD
-         public DenseMatrix64F computeOutput(DenseMatrix64F inputParameter)
-=======
          public DMatrixRMaj apply(DMatrixRMaj inputParameter)
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
          {
             RigidBodyTransform driftCorrectionTransform = new RigidBodyTransform(inputFunction.apply(inputParameter));
             RigidBodyTransform correctedSensorPoseToWorld = new RigidBodyTransform(sensorPoseToWorld);
@@ -225,7 +216,7 @@ public class ICPBasedPointCloudDriftCorrectionVisualizer
                correctedSensorPoseToWorld.transform(correctedData[i]);
             }
 
-            DenseMatrix64F errorSpace = new DenseMatrix64F(correctedData.length, 1);
+            DMatrixRMaj errorSpace = new DMatrixRMaj(correctedData.length, 1);
             for (int i = 0; i < correctedData.length; i++)
             {
                double distance = computeClosestDistance(correctedData[i]);
@@ -240,19 +231,12 @@ public class ICPBasedPointCloudDriftCorrectionVisualizer
             return surfelDistance;
          }
       };
-<<<<<<< HEAD
-<<<<<<< HEAD
-      DenseMatrix64F purterbationVector = new DenseMatrix64F(6, 1);
-=======
-      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(6, sourcePointsToSensorPose.length, outputCalculator);
-=======
+
       LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(inputFunction,
                                                                                                 outputCalculator,
                                                                                                 6,
                                                                                                 sourcePointsToSensorPose.length);
->>>>>>> 2db4111f4b8... Defined input space and output space.
       DMatrixRMaj purterbationVector = new DMatrixRMaj(6, 1);
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
       purterbationVector.set(0, 0.0001);
       purterbationVector.set(1, 0.0001);
       purterbationVector.set(2, 0.0001);

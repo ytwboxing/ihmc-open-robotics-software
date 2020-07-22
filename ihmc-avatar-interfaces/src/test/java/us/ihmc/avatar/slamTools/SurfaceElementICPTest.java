@@ -7,12 +7,9 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-<<<<<<< HEAD:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPSLAMTest.java
-import org.ejml.data.DenseMatrix64F;
-=======
+
 import org.ejml.data.DMatrixRMaj;
 import org.junit.jupiter.api.Tag;
->>>>>>> 336136760f6... Tagged tests.:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPTest.java
 import org.junit.jupiter.api.Test;
 
 import controller_msgs.msg.dds.StereoVisionPointCloudMessage;
@@ -30,24 +27,11 @@ import us.ihmc.jOctoMap.normalEstimation.NormalEstimationParameters;
 import us.ihmc.jOctoMap.ocTree.NormalOcTree;
 import us.ihmc.jOctoMap.pointCloud.ScanCollection;
 import us.ihmc.log.LogTools;
-<<<<<<< HEAD:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPSLAMTest.java
-import us.ihmc.robotEnvironmentAwareness.communication.converters.PointCloudCompression;
-import us.ihmc.robotEnvironmentAwareness.hardware.StereoVisionPointCloudDataLoader;
-import us.ihmc.robotEnvironmentAwareness.slam.SLAMBasics;
-import us.ihmc.robotEnvironmentAwareness.slam.SLAMFrame;
-import us.ihmc.robotEnvironmentAwareness.slam.SurfaceElementICPSLAM;
-import us.ihmc.robotEnvironmentAwareness.slam.tools.SLAMTools;
-import us.ihmc.robotics.PlanarRegionFileTools;
-=======
 import us.ihmc.robotEnvironmentAwareness.slam.SLAMFrame;
 import us.ihmc.robotEnvironmentAwareness.slam.SurfaceElementICPSLAM;
 import us.ihmc.robotEnvironmentAwareness.slam.tools.SLAMTools;
 import us.ihmc.robotEnvironmentAwareness.ui.io.StereoVisionPointCloudDataLoader;
-<<<<<<< HEAD
->>>>>>> 336136760f6... Tagged tests.:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPTest.java
 import us.ihmc.robotics.optimization.FunctionOutputCalculator;
-=======
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
 import us.ihmc.robotics.optimization.LevenbergMarquardtParameterOptimizer;
 
 @Tag("point-cloud-drift-correction-test")
@@ -211,11 +195,7 @@ public class SurfaceElementICPTest
       UnaryOperator<DMatrixRMaj> outputCalculator = new UnaryOperator<DMatrixRMaj>()
       {
          @Override
-<<<<<<< HEAD
-         public DenseMatrix64F computeOutput(DenseMatrix64F inputParameter)
-=======
          public DMatrixRMaj apply(DMatrixRMaj inputParameter)
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
          {
             RigidBodyTransform driftCorrectionTransform = new RigidBodyTransform(inputFunction.apply(inputParameter));
             RigidBodyTransform correctedSensorPoseToWorld = new RigidBodyTransform(frame2.getOriginalSensorPose());
@@ -231,7 +211,7 @@ public class SurfaceElementICPTest
                correctedSensorPoseToWorld.transform(correctedSurfel[i].getNormal());
             }
 
-            DenseMatrix64F errorSpace = new DenseMatrix64F(correctedSurfel.length, 1);
+            DMatrixRMaj errorSpace = new DMatrixRMaj(correctedSurfel.length, 1);
             for (int i = 0; i < correctedSurfel.length; i++)
             {
                double distance = computeClosestDistance(correctedSurfel[i]);
@@ -245,16 +225,8 @@ public class SurfaceElementICPTest
             return SLAMTools.computeBoundedPerpendicularDistancePointToNormalOctree(map, surfel.getPoint(), map.getResolution());
          }
       };
-<<<<<<< HEAD
-<<<<<<< HEAD
-      DenseMatrix64F purterbationVector = new DenseMatrix64F(6, 1);
-=======
-      LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(6, numberOfSurfel, outputCalculator);
-=======
       LevenbergMarquardtParameterOptimizer optimizer = new LevenbergMarquardtParameterOptimizer(inputFunction, outputCalculator, 6, numberOfSurfel);
->>>>>>> 2db4111f4b8... Defined input space and output space.
       DMatrixRMaj purterbationVector = new DMatrixRMaj(6, 1);
->>>>>>> 2d0a07337e7... Replaced function output with UnaryOperator.
       purterbationVector.set(0, 0.0005);
       purterbationVector.set(1, 0.0005);
       purterbationVector.set(2, 0.0005);
@@ -311,102 +283,4 @@ public class SurfaceElementICPTest
          ThreadTools.sleepForever();
       }
    }
-
-<<<<<<< HEAD
-   private RigidBodyTransform convertTransform(double... transformParameters)
-   {
-      RigidBodyTransform transform = new RigidBodyTransform();
-      transform.setTranslationAndIdentityRotation(transformParameters[0], transformParameters[1], transformParameters[2]);
-      transform.appendRollRotation(transformParameters[3]);
-      transform.appendPitchRotation(transformParameters[4]);
-      transform.appendYawRotation(transformParameters[5]);
-
-      return transform;
-   }
-<<<<<<< HEAD:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPSLAMTest.java
-
-   @Test
-   public void testEndToEndTestUpStair2()
-   {
-      String stereoPath = "C:\\PointCloudData\\Data\\20200601_LidarWalking_UpStairs2\\PointCloud\\";
-      String planarRegionsPath = "C:\\PointCloudData\\Data\\20200601_LidarWalking_UpStairs2\\20200601_160327_PlanarRegion\\";
-
-      testEndToEnd(stereoPath, planarRegionsPath);
-   }
-
-   @Test
-   public void testEndToEndTestDownStair()
-   {
-      String stereoPath = "C:\\PointCloudData\\Data\\20200601_LidarWalking_DownStairs\\PointCloud\\";
-      String planarRegionsPath = "C:\\PointCloudData\\Data\\20200601_LidarWalking_DownStairs\\20200601_154952_PlanarRegion\\";
-
-      testEndToEnd(stereoPath, planarRegionsPath);
-   }
-
-   @Test
-   public void testEndToEndTestStairUp3()
-   {
-      String stereoPath = "C:\\PointCloudData\\Data\\20200603_LidarWalking_StairUp3\\PointCloud\\";
-      String planarRegionsPath = "C:\\PointCloudData\\Data\\20200603_LidarWalking_StairUp3\\20200603_205049_PlanarRegion\\";
-
-      String current;
-      try
-      {
-         current = new java.io.File(".").getCanonicalPath();
-         System.out.println("Current dir:" + current);
-      }
-      catch (IOException e)
-      {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
-      }
-      String currentDir = System.getProperty("user.dir");
-      System.out.println("Current dir using System:" + currentDir);
-
-      testEndToEnd(stereoPath, planarRegionsPath);
-   }
-
-   private void testEndToEnd(String stereoPath, String planarRegionsPath)
-   {
-      File pointCloudFile = new File(stereoPath);
-      File planarRegionsFile = new File(planarRegionsPath);
-
-      List<StereoVisionPointCloudMessage> messages = StereoVisionPointCloudDataLoader.getMessagesFromFile(pointCloudFile);
-      double octreeResolution = 0.02;
-      SurfaceElementICPSLAM slam = new SurfaceElementICPSLAM(octreeResolution);
-      SLAMViewer originalViewer = new SLAMViewer();
-      SLAMViewer slamViewer = new SLAMViewer();
-      SLAMViewer octreeViewer = new SLAMViewer();
-
-      originalViewer.addPlanarRegions(PlanarRegionFileTools.importPlanarRegionData(planarRegionsFile));
-      octreeViewer.addPlanarRegions(PlanarRegionFileTools.importPlanarRegionData(planarRegionsFile));
-
-      slam.addKeyFrame(messages.get(0));
-      slam.updatePlanarRegionsMap();
-
-      for (int i = 1; i < messages.size() - 1; i++)
-      {
-         slam.addFrame(messages.get(i));
-         slam.updatePlanarRegionsMap();
-         System.out.println();
-         System.out.println(" ## add frame " + i + " " + slam.getComputationTimeForLatestFrame());
-
-         originalViewer.addStereoMessage(messages.get(i), Color.GREEN);
-         octreeViewer.addSensorPose(slam.getLatestFrame().getSensorPose());
-      }
-      slamViewer.addOctree(slam.getOctree(), Color.CORAL, slam.getOctreeResolution(), true);
-      slamViewer.addPlanarRegions(slam.getPlanarRegionsMap());
-
-      octreeViewer.addOctree(slam.getOctree(), Color.CORAL, slam.getOctreeResolution(), true);
-
-      originalViewer.start("originalViewer");
-      slamViewer.start("slamViewer");
-      octreeViewer.start("octreeViewer");
-
-      ThreadTools.sleepForever();
-   }
-=======
->>>>>>> 336136760f6... Tagged tests.:ihmc-avatar-interfaces/src/test/java/us/ihmc/avatar/slamTools/SurfaceElementICPTest.java
-=======
->>>>>>> 2db4111f4b8... Defined input space and output space.
 }
