@@ -51,6 +51,8 @@ import us.ihmc.yoVariables.variable.YoFrameVector3D;
 public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
 {
    private static boolean verbose = false;
+   private static boolean eCMPs =   true;
+   
    private static final int maxCapacity = 10;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
 
@@ -254,7 +256,9 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
          setCoMVelocityContinuity(contactSequence, previousSequence, nextSequence);
          setDynamicsFinalConstraint(contactSequence, previousSequence);
          setDynamicsInitialConstraint(contactSequence, nextSequence);
-         constrainECMP(contactSequence, nextSequence, currentCoMPosition);
+         if (eCMPs) {
+            constrainECMP(contactSequence, previousSequence);
+         }
       }
 
       // set terminal constraint
@@ -263,6 +267,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       double finalDuration = lastContactPhase.getTimeInterval().getDuration();
       setDCMPositionConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
       setDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
+      constrainECMP(contactSequence, numberOfPhases - 1);
       
       // coefficient constraint matrix stored in coefficientMultipliers, but math requires inverted matrix
       NativeCommonOps.invert(coefficientMultipliers, coefficientMultipliersInv);
@@ -315,7 +320,10 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    {
       compute(segmentId, timeInPhase, desiredCoMPosition, desiredCoMVelocity, desiredCoMAcceleration, desiredDCMPosition, desiredDCMVelocity,
               desiredVRPPosition, desiredECMPPosition);
-      computeECMPs(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPPosition_right);
+      if (eCMPs) 
+      {
+         computeECMPs(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPPosition_right);
+      }
       if (verbose)
       {
          LogTools.info("At time " + timeInPhase + ", Desired DCM = " + desiredDCMPosition + ", Desired CoM = " + desiredCoMPosition);
@@ -753,25 +761,26 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       return vrpTrajectories;
    }
    
-   private void constrainECMP(List<? extends ContactStateProvider> contactSequence, int sequenceId, FramePoint3DReadOnly centerOfMassLocationForConstraint) {
-      ContactStateProvider contactStateProvider = contactSequence.get(sequenceId-1);
+   private void constrainECMP(List<? extends ContactStateProvider> contactSequence, int sequenceId) {
+      ContactStateProvider contactStateProvider = contactSequence.get(sequenceId);
+      List<String> bodiesInContact = contactStateProvider.getBodiesInContact();
       ContactState contactState = contactStateProvider.getContactState(); // used just to distinguish flight or load bearing
-      double nextDuration = contactSequence.get(sequenceId-1).getTimeInterval().getDuration();
+      double nextDuration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
       if (contactState.isLoadBearing())
       {
-//          if (contactSequence.get(sequenceId).getFeetInContact(0) == RobotSide.LEFT) // getting current footstep, left to right
-//          {
-//             CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForLeftToRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, centerOfMassLocationForConstraint, 
-//                                                                                      startVRPPositions.get(sequenceId), endVRPPositions.get(sequenceId),
-//                                                                                      xConstants, yConstants, zConstants, coefficientMultipliers);
-//          }
-//          else // right to left 
-//          {
-//             CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForRightToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, centerOfMassLocationForConstraint, 
-//                                                                                      startVRPPositions.get(sequenceId), endVRPPositions.get(sequenceId),
-//                                                                                      xConstants, yConstants, zConstants, coefficientMultipliers);
-//          }
-//          numberOfConstraints = numberOfConstraints + 4; // adding 4 constraints because there are 4 variables
+          if (bodiesInContact.get(0) == "left") // getting current footstep, left to right
+          {
+             CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForLeftToRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, 
+                                                                                      startVRPPositions.get(sequenceId), endVRPPositions.get(sequenceId),
+                                                                                      xConstants, yConstants, zConstants, coefficientMultipliers);
+          }
+          else // right to left 
+          {
+             CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForRightToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, 
+                                                                                      startVRPPositions.get(sequenceId), endVRPPositions.get(sequenceId),
+                                                                                      xConstants, yConstants, zConstants, coefficientMultipliers);
+          }
+          numberOfConstraints = numberOfConstraints + 4; // adding 4 constraints because there are 4 variables
       }
       else // in flight
       {
