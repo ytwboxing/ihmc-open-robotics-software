@@ -1,47 +1,23 @@
 package us.ihmc.simpleWholeBodyWalking;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 9f1b5ce312b... Got Atlas to stand
 import static us.ihmc.graphicsDescription.appearance.YoAppearance.Beige;
 import static us.ihmc.graphicsDescription.appearance.YoAppearance.BlueViolet;
 import static us.ihmc.graphicsDescription.appearance.YoAppearance.DarkViolet;
 import static us.ihmc.graphicsDescription.appearance.YoAppearance.Yellow;
 
-<<<<<<< HEAD
-=======
->>>>>>> 2fb58d4d161... did the simple balance manager
-=======
->>>>>>> 9f1b5ce312b... Got Atlas to stand
 import controller_msgs.msg.dds.CapturabilityBasedStatus;
 import controller_msgs.msg.dds.TaskspaceTrajectoryStatusMessage;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.YoPlaneContactState;
-<<<<<<< HEAD
-<<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.capturePoint.CapturePointTools;
 import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleInput;
 import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleOutput;
+import us.ihmc.commonWalkingControlModules.capturePoint.lqrControl.LQRMomentumController;
 import us.ihmc.commonWalkingControlModules.capturePoint.smoothCMPBasedICPPlanner.SmoothCMPBasedICPPlanner;
-=======
-import us.ihmc.commonWalkingControlModules.capturePoint.*;
-import us.ihmc.commonWalkingControlModules.capturePoint.smoothCMPBasedICPPlanner.SmoothCMPBasedICPPlanner;
-import us.ihmc.commonWalkingControlModules.captureRegion.PushRecoveryControlModule;
-import us.ihmc.commonWalkingControlModules.configurations.ICPAngularMomentumModifierParameters;
->>>>>>> 2fb58d4d161... did the simple balance manager
-=======
-import us.ihmc.commonWalkingControlModules.capturePoint.CapturePointTools;
-import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleInput;
-import us.ihmc.commonWalkingControlModules.capturePoint.LinearMomentumRateControlModuleOutput;
-import us.ihmc.commonWalkingControlModules.capturePoint.smoothCMPBasedICPPlanner.SmoothCMPBasedICPPlanner;
->>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.commonWalkingControlModules.configurations.ICPWithTimeFreezingPlannerParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.PelvisICPBasedTranslationManager;
 import us.ihmc.commonWalkingControlModules.controllerCore.command.inverseDynamics.PlaneContactStateCommand;
-<<<<<<< HEAD
-<<<<<<< HEAD
 import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
 import us.ihmc.commons.MathTools;
 import us.ihmc.commons.lists.RecyclingArrayList;
@@ -59,36 +35,7 @@ import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector2DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameConvexPolygon2DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
-=======
-import us.ihmc.commonWalkingControlModules.dynamicReachability.DynamicReachabilityCalculator;
-import us.ihmc.commonWalkingControlModules.messageHandlers.CenterOfMassTrajectoryHandler;
-import us.ihmc.commonWalkingControlModules.messageHandlers.MomentumTrajectoryHandler;
-import us.ihmc.commonWalkingControlModules.messageHandlers.WalkingMessageHandler;
-import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
-import us.ihmc.commons.MathTools;
-import us.ihmc.commons.lists.RecyclingArrayList;
-import us.ihmc.euclid.referenceFrame.*;
-import us.ihmc.euclid.referenceFrame.interfaces.*;
->>>>>>> 2fb58d4d161... did the simple balance manager
-=======
-import us.ihmc.commonWalkingControlModules.momentumBasedController.HighLevelHumanoidControllerToolbox;
-import us.ihmc.commons.MathTools;
-import us.ihmc.commons.lists.RecyclingArrayList;
-import us.ihmc.euclid.referenceFrame.FrameConvexPolygon2D;
-import us.ihmc.euclid.referenceFrame.FramePoint2D;
-import us.ihmc.euclid.referenceFrame.FramePoint3D;
-import us.ihmc.euclid.referenceFrame.FramePose3D;
-import us.ihmc.euclid.referenceFrame.FrameVector2D;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint2DBasics;
-import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
-import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePose3DBasics;
-import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector2DBasics;
-import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameConvexPolygon2DReadOnly;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
->>>>>>> 9f1b5ce312b... Got Atlas to stand
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
@@ -101,49 +48,26 @@ import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.footstep.FootstepShiftFractions;
 import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.geometry.ConvexPolygonScaler;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-import us.ihmc.robotics.screwTheory.TotalMassCalculator;
->>>>>>> 2fb58d4d161... did the simple balance manager
-=======
->>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.sensorProcessing.frames.CommonHumanoidReferenceFrames;
 import us.ihmc.yoVariables.parameters.DoubleParameter;
 import us.ihmc.yoVariables.providers.DoubleProvider;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 9f1b5ce312b... Got Atlas to stand
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoFramePoint2D;
 import us.ihmc.yoVariables.variable.YoFramePoint3D;
 import us.ihmc.yoVariables.variable.YoFrameVector2D;
-<<<<<<< HEAD
-=======
-import us.ihmc.yoVariables.variable.*;
+import us.ihmc.simpleWholeBodyWalking.SimpleBipedCoMTrajectoryPlanner;
 
-import static us.ihmc.graphicsDescription.appearance.YoAppearance.*;
->>>>>>> 2fb58d4d161... did the simple balance manager
-=======
->>>>>>> 9f1b5ce312b... Got Atlas to stand
 
 public class SimpleBalanceManager
 {
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-   private static final boolean ENABLE_DYN_REACHABILITY = true;
->>>>>>> 2fb58d4d161... did the simple balance manager
-=======
->>>>>>> 9f1b5ce312b... Got Atlas to stand
 
    private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
 
@@ -195,18 +119,11 @@ public class SimpleBalanceManager
    private final DoubleProvider maxICPErrorBeforeSingleSupportOuterY;
 
    private final DoubleProvider icpDistanceOutsideSupportForStep = new DoubleParameter("icpDistanceOutsideSupportForStep", registry, 0.03);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-   private final DoubleProvider ellipticICPErrorForMomentumRecovery = new DoubleParameter("ellipticICPErrorForMomentumRecovery", registry, 2.0);
->>>>>>> 2fb58d4d161... did the simple balance manager
-=======
->>>>>>> 9f1b5ce312b... Got Atlas to stand
 
    private final CapturabilityBasedStatus capturabilityBasedStatus = new CapturabilityBasedStatus();
 
-   private final SmoothCMPBasedICPPlanner smoothCMPPlanner;
    private final YoBoolean icpPlannerDone = new YoBoolean("ICPPlannerDone", registry);
+   private final SimpleBipedCoMTrajectoryPlanner comPlanner;
 
    private boolean initializeForStanding = false;
    private boolean initializeForSingleSupport = false;
@@ -226,15 +143,7 @@ public class SimpleBalanceManager
                                                                                                             new PlaneContactStateCommand());
 
    public SimpleBalanceManager(HighLevelHumanoidControllerToolbox controllerToolbox, WalkingControllerParameters walkingControllerParameters,
-<<<<<<< HEAD
-<<<<<<< HEAD
                                ICPWithTimeFreezingPlannerParameters icpPlannerParameters,
-=======
-                               ICPWithTimeFreezingPlannerParameters icpPlannerParameters, ICPAngularMomentumModifierParameters angularMomentumModifierParameters,
->>>>>>> 2fb58d4d161... did the simple balance manager
-=======
-                               ICPWithTimeFreezingPlannerParameters icpPlannerParameters,
->>>>>>> 5942e55c22c... got simple pelvis orietnation manager
                                YoVariableRegistry parentRegistry)
    {
       CommonHumanoidReferenceFrames referenceFrames = controllerToolbox.getReferenceFrames();
@@ -251,14 +160,26 @@ public class SimpleBalanceManager
       bipedSupportPolygons = controllerToolbox.getBipedSupportPolygons();
 
       SideDependentList<MovingReferenceFrame> soleZUpFrames = referenceFrames.getSoleZUpFrames();
-      smoothCMPPlanner = new SmoothCMPBasedICPPlanner(fullRobotModel, bipedSupportPolygons, soleZUpFrames, contactableFeet, null, yoTime,
-                                                      registry, yoGraphicsListRegistry, controllerToolbox.getGravityZ(), icpPlannerParameters);
-      smoothCMPPlanner.setDefaultPhaseTimes(walkingControllerParameters.getDefaultSwingTime(), walkingControllerParameters.getDefaultTransferTime());
 
-
-      this.smoothCMPPlanner.setOmega0(controllerToolbox.getOmega0());
-      this.smoothCMPPlanner.setFinalTransferDuration(walkingControllerParameters.getDefaultTransferTime());
-
+      double ankleToGround = Double.NEGATIVE_INFINITY;
+      for (RobotSide robotSide : RobotSide.values)
+      {
+         RigidBodyBasics foot = controllerToolbox.getFullRobotModel().getFoot(robotSide);
+         ReferenceFrame ankleFrame = foot.getParentJoint().getFrameAfterJoint();
+         ReferenceFrame soleFrame = referenceFrames.getSoleFrame(robotSide);
+         RigidBodyTransform ankleToSole = new RigidBodyTransform();
+         ankleFrame.getTransformToDesiredFrame(ankleToSole, soleFrame);
+         ankleToGround = Math.max(ankleToGround, Math.abs(ankleToSole.getTranslationZ()));
+      }
+      double nominalHeightAboveGround = walkingControllerParameters.nominalHeightAboveAnkle() + ankleToGround + 0.2;
+      
+      comPlanner = new SimpleBipedCoMTrajectoryPlanner(soleZUpFrames, controllerToolbox.getGravityZ(), 
+                                                       nominalHeightAboveGround, 
+                                                       controllerToolbox.getOmega0Provider(),registry, yoGraphicsListRegistry,
+                                                       yoTime, icpPlannerParameters, bipedSupportPolygons);
+      comPlanner.setDefaultPhaseTimes(walkingControllerParameters.getDefaultSwingTime(), walkingControllerParameters.getDefaultTransferTime());
+      comPlanner.setFinalTransferDuration(walkingControllerParameters.getDefaultTransferTime());
+          
       distanceToShrinkSupportPolygonWhenHoldingCurrent.set(0.08);
 
       maxICPErrorBeforeSingleSupportForwardX = new DoubleParameter("maxICPErrorBeforeSingleSupportForwardX", registry, walkingControllerParameters.getMaxICPErrorBeforeSingleSupportForwardX());
@@ -298,13 +219,13 @@ public class SimpleBalanceManager
 
    public void addFootstepToPlan(Footstep footstep, FootstepTiming timing, FootstepShiftFractions shiftFractions)
    {
-      smoothCMPPlanner.addFootstepToPlan(footstep, timing, shiftFractions);
+      comPlanner.addStepToSequence(footstep, timing, shiftFractions);
       footsteps.add().set(footstep);
       footstepTimings.add().set(timing);
    }
 
 
-   public double getCurrentTransferDurationAdjustedForReachability()
+/*   public double getCurrentTransferDurationAdjustedForReachability()
    {
       return smoothCMPPlanner.getTransferDuration(0);
    }
@@ -318,7 +239,7 @@ public class SimpleBalanceManager
    {
       return smoothCMPPlanner.getTransferDuration(1);
    }
-
+*/
    public boolean checkAndUpdateFootstepFromICPOptimization(Footstep footstep)
    {
       if (!usingStepAdjustment || initializeForSingleSupport || initializeForTransfer || initializeForStanding)
@@ -331,34 +252,34 @@ public class SimpleBalanceManager
 
    public void clearICPPlan()
    {
-      smoothCMPPlanner.clearPlan();
+      comPlanner.clearStepSequence();
       footsteps.clear();
       footstepTimings.clear();
    }
 
    public void setICPPlanSupportSide(RobotSide supportSide)
    {
-      smoothCMPPlanner.setSupportLeg(supportSide);
+      comPlanner.setSupportLeg(supportSide);
       this.supportSide = supportSide;
    }
 
    public void setICPPlanTransferToSide(RobotSide transferToSide)
    {
-      smoothCMPPlanner.setTransferToSide(transferToSide);
+      comPlanner.setTransferToSide(transferToSide);
       this.transferToSide = transferToSide;
    }
 
    public void setICPPlanTransferFromSide(RobotSide robotSide)
    {
-      smoothCMPPlanner.setTransferFromSide(robotSide);
+      comPlanner.setTransferFromSide(robotSide);
       this.transferToSide = robotSide != null ? robotSide.getOppositeSide() : null;
    }
 
    public void endTick()
    {
-      if (smoothCMPPlanner != null)
+      if (comPlanner != null)
       {
-         smoothCMPPlanner.endTick();
+         comPlanner.endTick();
       }
    }
 
@@ -367,11 +288,12 @@ public class SimpleBalanceManager
    {
       controllerToolbox.getCoP(copEstimate);
 
-      smoothCMPPlanner.getDesiredCapturePointPosition(desiredCapturePoint2d);
-      smoothCMPPlanner.getDesiredCapturePointVelocity(desiredCapturePointVelocity2d);
-      smoothCMPPlanner.getDesiredCenterOfPressurePosition(perfectCoP2d);
-      smoothCMPPlanner.getDesiredCenterOfMassPosition(yoDesiredCoMPosition);
-      smoothCMPPlanner.getDesiredCenterOfMassVelocity(yoDesiredCoMVelocity);
+      desiredCapturePoint2d.setIncludingFrame(comPlanner.getDesiredDCMPosition());
+      desiredCapturePoint2d.setIncludingFrame(comPlanner.getDesiredDCMPosition());
+      desiredCapturePointVelocity2d.setIncludingFrame(comPlanner.getDesiredDCMVelocity());
+      perfectCoP2d.setIncludingFrame(comPlanner.getDesiredCOPPosition());
+      yoDesiredCoMPosition.set(comPlanner.getDesiredCoMPosition());
+      yoDesiredCoMVelocity.set(comPlanner.getDesiredCoMVelocity());
 
       pelvisICPBasedTranslationManager.compute(supportLeg, capturePoint2d);
       pelvisICPBasedTranslationManager.addICPOffset(desiredCapturePoint2d, desiredCapturePointVelocity2d, perfectCoP2d);
@@ -410,6 +332,8 @@ public class SimpleBalanceManager
       linearMomentumRateControlModuleInput.setOmega0(omega0);
       linearMomentumRateControlModuleInput.setDesiredCapturePoint(desiredCapturePoint2d);
       linearMomentumRateControlModuleInput.setDesiredCapturePointVelocity(desiredCapturePointVelocity2d);
+      linearMomentumRateControlModuleInput.setVRPTrajectories(comPlanner.getVRPTrajectories());
+      linearMomentumRateControlModuleInput.setTimeInContactPhase(comPlanner.getTimeInContactPhase());
       linearMomentumRateControlModuleInput.setDesiredICPAtEndOfState(yoFinalDesiredICP);
       linearMomentumRateControlModuleInput.setPerfectCMP(yoPerfectCMP);
       linearMomentumRateControlModuleInput.setPerfectCoP(yoPerfectCoP);
@@ -432,8 +356,8 @@ public class SimpleBalanceManager
    {
       controllerToolbox.getCapturePoint(capturePoint2d);
       controllerToolbox.getCoP(copEstimate);
-      smoothCMPPlanner.compute(yoTime.getDoubleValue());
-      icpPlannerDone.set(smoothCMPPlanner.isDone());
+      comPlanner.computeSetpoints(yoTime.getDoubleValue());
+      icpPlannerDone.set(comPlanner.isDone());
    }
 
    public void disablePelvisXYControl()
@@ -450,7 +374,7 @@ public class SimpleBalanceManager
    {
       controllerToolbox.getCapturePoint(capturePoint2d);
 
-      return smoothCMPPlanner.estimateTimeRemainingForStateUnderDisturbance(capturePoint2d);
+      return comPlanner.estimateTimeRemainingForStateUnderDisturbance(capturePoint2d);
    }
 
    public void getDesiredICP(FramePoint2D desiredICPToPack)
@@ -480,12 +404,12 @@ public class SimpleBalanceManager
 
    public void getNextExitCMP(FramePoint3D entryCMPToPack)
    {
-      smoothCMPPlanner.getNextExitCMP(entryCMPToPack);
+      comPlanner.getNextExitCMP(entryCMPToPack);
    }
 
    public double getTimeRemainingInCurrentState()
    {
-      return smoothCMPPlanner.getTimeInCurrentStateRemaining();
+      return comPlanner.getTimeInCurrentStateRemaining();
    }
 
    public void goHome()
@@ -510,8 +434,8 @@ public class SimpleBalanceManager
       controllerToolbox.getCapturePoint(tempCapturePoint);
       yoDesiredCapturePoint.set(tempCapturePoint);
 
-      smoothCMPPlanner.holdCurrentICP(tempCapturePoint);
-      smoothCMPPlanner.initializeForStanding(yoTime.getDoubleValue());
+      comPlanner.holdCurrentICP(tempCapturePoint);
+      comPlanner.initializeForStanding(yoTime.getDoubleValue());
 
       initializeForStanding = true;
 
@@ -521,12 +445,12 @@ public class SimpleBalanceManager
    public void initializeICPPlanForSingleSupport(double finalTransferTime)
    {
       setFinalTransferTime(finalTransferTime);
-      smoothCMPPlanner.initializeForSingleSupport(yoTime.getDoubleValue());
+      comPlanner.initializeForSingleSupport(yoTime.getDoubleValue());
       initializeForSingleSupport = true;
 
 
-      smoothCMPPlanner.getFinalDesiredCapturePointPosition(yoFinalDesiredICP);
-      smoothCMPPlanner.getFinalDesiredCenterOfMassPosition(yoFinalDesiredCoM);
+      comPlanner.getFinalDesiredCapturePointPosition(yoFinalDesiredICP);
+      comPlanner.getFinalDesiredCenterOfMassPosition(yoFinalDesiredCoM);
 
       icpPlannerDone.set(false);
    }
@@ -539,7 +463,7 @@ public class SimpleBalanceManager
          requestICPPlannerToHoldCurrentCoM();
          holdICPToCurrentCoMLocationInNextDoubleSupport.set(false);
       }
-      smoothCMPPlanner.initializeForStanding(yoTime.getDoubleValue());
+      comPlanner.initializeForStanding(yoTime.getDoubleValue());
       initializeForStanding = true;
 
       icpPlannerDone.set(false);
@@ -553,7 +477,7 @@ public class SimpleBalanceManager
          holdICPToCurrentCoMLocationInNextDoubleSupport.set(false);
       }
       setFinalTransferTime(finalTransferTime);
-      smoothCMPPlanner.initializeForTransfer(yoTime.getDoubleValue());
+      comPlanner.initializeForTransfer(yoTime.getDoubleValue());
       initializeForStanding = true;
 
       icpPlannerDone.set(false);
@@ -567,12 +491,12 @@ public class SimpleBalanceManager
          holdICPToCurrentCoMLocationInNextDoubleSupport.set(false);
       }
       setFinalTransferTime(finalTransferTime);
-      smoothCMPPlanner.initializeForTransfer(yoTime.getDoubleValue());
+      comPlanner.initializeForTransfer(yoTime.getDoubleValue());
 
       initializeForTransfer = true;
 
-      smoothCMPPlanner.getFinalDesiredCapturePointPosition(yoFinalDesiredICP);
-      smoothCMPPlanner.getFinalDesiredCenterOfMassPosition(yoFinalDesiredCoM);
+      comPlanner.getFinalDesiredCapturePointPosition(yoFinalDesiredICP);
+      comPlanner.getFinalDesiredCenterOfMassPosition(yoFinalDesiredCoM);
 
       icpPlannerDone.set(false);
    }
@@ -631,33 +555,33 @@ public class SimpleBalanceManager
       centerOfMassPosition.set(centerOfMassPosition2d, 0.0);
 
       centerOfMassPosition.changeFrame(worldFrame);
-      smoothCMPPlanner.holdCurrentICP(centerOfMassPosition);
+      comPlanner.holdCurrentICP(centerOfMassPosition);
    }
 
    public void setFinalTransferWeightDistribution(double weightDistribution)
    {
-      smoothCMPPlanner.setFinalTransferWeightDistribution(weightDistribution);
+      comPlanner.setFinalTransferWeightDistribution(weightDistribution);
    }
 
    public void setFinalTransferSplitFraction(double finalTransferSplitFraction)
    {
-      smoothCMPPlanner.setFinalTransferDurationAlpha(finalTransferSplitFraction);
+      comPlanner.setFinalTransferDurationAlpha(finalTransferSplitFraction);
    }
 
    public void setFinalTransferTime(double finalTransferDuration)
    {
-      smoothCMPPlanner.setFinalTransferDuration(finalTransferDuration);
+      comPlanner.setFinalTransferDuration(finalTransferDuration);
       this.finalTransferDuration = finalTransferDuration;
    }
 
    /**
-    * Update the basics: capture point, omega0, and the support polygons.
+    * Update the basics: capture point, omega0, and the support polygons. This is called before UpdateManagers() -> SimpleBalanceManager.compute()
     */
    public void update()
    {
       computeICPPlan();
-      smoothCMPPlanner.getFinalDesiredCapturePointPosition(yoFinalDesiredICP);
-      smoothCMPPlanner.getFinalDesiredCenterOfMassPosition(yoFinalDesiredCoM);
+      comPlanner.getFinalDesiredCapturePointPosition(yoFinalDesiredICP);
+      comPlanner.getFinalDesiredCenterOfMassPosition(yoFinalDesiredCoM);
    }
 
    public CapturabilityBasedStatus updateAndReturnCapturabilityBasedStatus()
@@ -684,7 +608,7 @@ public class SimpleBalanceManager
 
    public void updateCurrentICPPlan()
    {
-      smoothCMPPlanner.updateCurrentPlan();
+      comPlanner.updateCurrentPlan();
    }
 
    public void updateSwingTimeRemaining(double timeRemainingInSwing)

@@ -41,21 +41,8 @@ public class SimpleCommandConsumer
    private final CommandConsumerWithDelayBuffers commandConsumerWithDelayBuffers;
    private final StatusMessageOutputManager statusMessageOutputManager;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
    private final SimplePelvisOrientationManager pelvisOrientationManager;
    private final SimpleBalanceManager balanceManager;
-=======
-   private final PelvisOrientationManager pelvisOrientationManager;
-<<<<<<< HEAD
-   private final BalanceManager balanceManager;
->>>>>>> 13a03c33b98... set up the simple walking state controller
-=======
-=======
-   private final SimplePelvisOrientationManager pelvisOrientationManager;
->>>>>>> 5942e55c22c... got simple pelvis orietnation manager
-   private final SimpleBalanceManager balanceManager;
->>>>>>> 2fb58d4d161... did the simple balance manager
    private final SimpleCenterOfMassHeightManager comHeightManager;
 
    private final RigidBodyControlManager chestManager;
@@ -376,13 +363,6 @@ public class SimpleCommandConsumer
 
       comHeightManager.handleStopAllTrajectoryCommand(command);
       balanceManager.handleStopAllTrajectoryCommand(command);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-      pelvisOrientationManager.handleStopAllTrajectoryCommand(command);
->>>>>>> 13a03c33b98... set up the simple walking state controller
-=======
->>>>>>> 5942e55c22c... got simple pelvis orietnation manager
    }
 
    public void consumeFootCommands()

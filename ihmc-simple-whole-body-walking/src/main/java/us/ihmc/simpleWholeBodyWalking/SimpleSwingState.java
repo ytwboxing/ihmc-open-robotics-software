@@ -169,30 +169,13 @@ public class SimpleSwingState extends SimpleFootControlState
    private final YoBoolean yoSetDesiredVelocityToZero;
    private final YoBoolean scaleSecondaryJointWeights;
    private final YoDouble secondaryJointWeightScale;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-   private final YoFrameVector3D currentAngularWeight;
-   private final YoFrameVector3D currentLinearWeight;
->>>>>>> 13a03c33b98... set up the simple walking state controller
-=======
->>>>>>> b2d947f322f... Fixing compile and runtime errors
    private final ReferenceFrame ankleFrame;
    private final PoseReferenceFrame controlFrame;
    private final PIDSE3GainsReadOnly gains;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
    private Vector3DReadOnly nominalAngularWeight;
    private Vector3DReadOnly nominalLinearWeight;
 
-=======
->>>>>>> 13a03c33b98... set up the simple walking state controller
-=======
-   private Vector3DReadOnly nominalAngularWeight;
-   private Vector3DReadOnly nominalLinearWeight;
-
->>>>>>> b2d947f322f... Fixing compile and runtime errors
    public SimpleSwingState(ContactableFoot contactableFoot,
                            HighLevelHumanoidControllerToolbox controllerToolbox,
                            RobotSide robotSide,
@@ -216,15 +199,6 @@ public class SimpleSwingState extends SimpleFootControlState
       secondaryJointWeightScale = new YoDouble(namePrefix + "SecondaryJointWeightScale", registry);
       secondaryJointWeightScale.set(1.0);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-      currentAngularWeight = new YoFrameVector3D(namePrefix + "CurrentAngularWeight", worldFrame, registry);
-      currentLinearWeight = new YoFrameVector3D(namePrefix + "CurrentLinearWeight", worldFrame, registry);
-
->>>>>>> 13a03c33b98... set up the simple walking state controller
-=======
->>>>>>> b2d947f322f... Fixing compile and runtime errors
       ankleFrame = contactableFoot.getFrameAfterParentJoint();
       controlFrame = new PoseReferenceFrame("controlFrame", contactableFoot.getRigidBody().getBodyFixedFrame());
 
@@ -467,15 +441,7 @@ public class SimpleSwingState extends SimpleFootControlState
       }
 
       spatialFeedbackControlCommand.setInverseDynamics(desiredOrientation, desiredPosition, desiredAngularVelocity, desiredLinearVelocity, desiredAngularAcceleration, desiredLinearAcceleration);
-<<<<<<< HEAD
-<<<<<<< HEAD
       spatialFeedbackControlCommand.setWeightsForSolver(nominalAngularWeight, nominalLinearWeight);
-=======
-      spatialFeedbackControlCommand.setWeightsForSolver(currentAngularWeight, currentLinearWeight);
->>>>>>> 13a03c33b98... set up the simple walking state controller
-=======
-      spatialFeedbackControlCommand.setWeightsForSolver(nominalAngularWeight, nominalLinearWeight);
->>>>>>> b2d947f322f... Fixing compile and runtime errors
       spatialFeedbackControlCommand.setScaleSecondaryTaskJointWeight(scaleSecondaryJointWeights.getBooleanValue(), secondaryJointWeightScale.getDoubleValue());
       spatialFeedbackControlCommand.setGains(gains);
 
@@ -923,18 +889,8 @@ public class SimpleSwingState extends SimpleFootControlState
 
    public void setWeights(Vector3DReadOnly angularWeight, Vector3DReadOnly linearWeight)
    {
-<<<<<<< HEAD
-<<<<<<< HEAD
       this.nominalAngularWeight = angularWeight;
       this.nominalLinearWeight = linearWeight;
-=======
-      this.currentAngularWeight.set(angularWeight);
-      this.currentLinearWeight.set(linearWeight);
->>>>>>> 13a03c33b98... set up the simple walking state controller
-=======
-      this.nominalAngularWeight = angularWeight;
-      this.nominalLinearWeight = linearWeight;
->>>>>>> b2d947f322f... Fixing compile and runtime errors
    }
 
 }
