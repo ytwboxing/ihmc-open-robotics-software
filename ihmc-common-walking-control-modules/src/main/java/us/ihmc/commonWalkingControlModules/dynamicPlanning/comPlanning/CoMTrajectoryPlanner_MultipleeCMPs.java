@@ -257,7 +257,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
          setDynamicsFinalConstraint(contactSequence, previousSequence);
          setDynamicsInitialConstraint(contactSequence, nextSequence);
          if (eCMPs) {
-            constrainECMP(contactSequence, previousSequence);
+            constrainECMP(contactSequence, previousSequence, nextSequence);
          }
       }
 
@@ -267,7 +267,9 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       double finalDuration = lastContactPhase.getTimeInterval().getDuration();
       setDCMPositionConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
       setDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
-      constrainECMP(contactSequence, numberOfPhases - 1);
+      if (eCMPs) {
+         constrainECMP(contactSequence, numberOfPhases - 1 , numberOfPhases - 1);
+      }
       
       // coefficient constraint matrix stored in coefficientMultipliers, but math requires inverted matrix
       NativeCommonOps.invert(coefficientMultipliers, coefficientMultipliersInv);
@@ -761,23 +763,38 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       return vrpTrajectories;
    }
    
-   private void constrainECMP(List<? extends ContactStateProvider> contactSequence, int sequenceId) {
+   private void constrainECMP(List<? extends ContactStateProvider> contactSequence, int sequenceId, int nextSequenceId) {
       ContactStateProvider contactStateProvider = contactSequence.get(sequenceId);
       List<String> bodiesInContact = contactStateProvider.getBodiesInContact();
       ContactState contactState = contactStateProvider.getContactState(); // used just to distinguish flight or load bearing
       double nextDuration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
       if (contactState.isLoadBearing())
       {
+//          if (contactStateProvider.getNumberOfBodiesInContact() > 1 && (bodiesInContact.get(0) == "left" && bodiesInContact.get(1) == "right")) // double support phase
+//          {
+//             ContactStateProvider nextContactStateProvider = contactSequence.get(nextSequenceId);
+//             List<String> nextBodiesInContact = contactStateProvider.getBodiesInContact();
+//             if (nextBodiesInContact.get(0) == "left") {
+//                // Double Support for left step
+//                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
+//                                                                                                 startVRPPositions.get(sequenceId), xConstants, yConstants, 
+//                                                                                                 zConstants, coefficientMultipliers);
+//             }
+//             else {
+//                // Double Support for right step
+//             }
+////             CoMTrajectoryPlannerTools_MultipleeCMPs.
+//          }
           if (bodiesInContact.get(0) == "left") // getting current footstep, left to right
           {
              CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForLeftToRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, 
-                                                                                      startVRPPositions.get(sequenceId), endVRPPositions.get(sequenceId),
+                                                                                      startVRPPositions.get(sequenceId), endVRPPositions.get(nextSequenceId),
                                                                                       xConstants, yConstants, zConstants, coefficientMultipliers);
           }
           else // right to left 
           {
              CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForRightToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, 
-                                                                                      startVRPPositions.get(sequenceId), endVRPPositions.get(sequenceId),
+                                                                                      startVRPPositions.get(sequenceId), endVRPPositions.get(nextSequenceId),
                                                                                       xConstants, yConstants, zConstants, coefficientMultipliers);
           }
           numberOfConstraints = numberOfConstraints + 4; // adding 4 constraints because there are 4 variables
