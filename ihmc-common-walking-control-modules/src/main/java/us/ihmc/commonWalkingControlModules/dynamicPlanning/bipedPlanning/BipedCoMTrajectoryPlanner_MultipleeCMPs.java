@@ -105,8 +105,18 @@ public class BipedCoMTrajectoryPlanner_MultipleeCMPs
       return ((CoMTrajectoryPlanner_MultipleeCMPs) comTrajectoryPlanner).getDesiredECMPPosition_left();
    }
    
+   public FramePoint3DReadOnly getDesiredECMPVelocity_left()
+   {
+      return ((CoMTrajectoryPlanner_MultipleeCMPs) comTrajectoryPlanner).getDesiredECMPVelocity_left();
+   }
+   
    public FramePoint3DReadOnly getDesiredECMPPosition_right()
    {
       return ((CoMTrajectoryPlanner_MultipleeCMPs) comTrajectoryPlanner).getDesiredECMPPosition_right();
+   }
+   
+   public FramePoint3DReadOnly getDesiredECMPVelocity_right()
+   {
+      return ((CoMTrajectoryPlanner_MultipleeCMPs) comTrajectoryPlanner).getDesiredECMPVelocity_right();
    }
 }

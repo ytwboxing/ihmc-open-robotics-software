@@ -46,7 +46,7 @@ public class BipedCoMTrajectoryPlannerVisualizer
    private static final double startLength = 0.3;
    private static final double stepLength = 0.8;
    private static final double runLength = 1.5;
-   private static final int numberOfWalkingSteps = 7;
+   private static final int numberOfWalkingSteps = 10;
    private static final int numberOfRunningSteps = 0;
 
    private static final double extraSimDuration = 0.5;
@@ -84,9 +84,12 @@ public class BipedCoMTrajectoryPlannerVisualizer
    //private final BipedCoMTrajectoryPlanner planner;
    private final BipedCoMTrajectoryPlanner_MultipleeCMPs planner;
    private final YoFramePoint3D desiredECMPPosition_left;
+   private final YoFramePoint3D desiredECMPVelocity_left;
    private final YoFramePoint3D desiredECMPPosition_right;
+   private final YoFramePoint3D desiredECMPVelocity_right;
    private final BagOfBalls ecmpTrajectory_left;
    private final BagOfBalls ecmpTrajectory_right;
+   private final YoEnum<supportName> supportState;
    
    private final YoFramePoint3D desiredECMPPosition;
    private final YoFramePoint3D desiredCoPPosition;
@@ -147,7 +150,9 @@ public class BipedCoMTrajectoryPlannerVisualizer
       
       // Left and Right ECMP additions
       desiredECMPPosition_left =     new YoFramePoint3D("desiredECMPPosition_left", worldFrame, registry);
+      desiredECMPVelocity_left =     new YoFramePoint3D("desiredECMPVelocity_left", worldFrame, registry);
       desiredECMPPosition_right =    new YoFramePoint3D("desiredECMPPosition_right", worldFrame, registry);
+      desiredECMPVelocity_right =    new YoFramePoint3D("desiredECMPVelocity_right", worldFrame, registry);
       ecmpTrajectory_left =          new BagOfBalls(50, 0.02, "ecmpTrajectory_left", YoAppearance.Maroon(), registry, yoGraphicsListRegistry);
       ecmpTrajectory_right =         new BagOfBalls(50, 0.02, "ecmpTrajectory_right", YoAppearance.Orange(), registry, yoGraphicsListRegistry);
       YoGraphicPosition ecmp_left_Viz =    new YoGraphicPosition("desiredECMP_left", desiredECMPPosition_left, 0.02, YoAppearance.Maroon(),
@@ -156,6 +161,7 @@ public class BipedCoMTrajectoryPlannerVisualizer
                                                        YoGraphicPosition.GraphicType.SOLID_BALL);
       yoGraphicsListRegistry.registerArtifact("dcmPlanner", ecmp_left_Viz.createArtifact());
       yoGraphicsListRegistry.registerArtifact("dcmPlanner", ecmp_right_Viz.createArtifact());
+      supportState = new YoEnum<>("supportState", registry, supportName.class);
       
       desiredECMPPosition = new YoFramePoint3D("desiredECMPPosition", worldFrame, registry);
       desiredCoPPosition = new YoFramePoint3D("desiredCoPPosition", worldFrame, registry);
@@ -702,8 +708,10 @@ public class BipedCoMTrajectoryPlannerVisualizer
          desiredVRPPosition.set(planner.getDesiredVRPPosition());
          desiredECMPPosition_left.set(planner.getDesiredECMPPosition_left());
          desiredECMPPosition_left.subZ(gravity / MathTools.square(omega.getDoubleValue()));
+         desiredECMPVelocity_left.set(planner.getDesiredECMPVelocity_left());
          desiredECMPPosition_right.set(planner.getDesiredECMPPosition_right());
          desiredECMPPosition_right.subZ(gravity / MathTools.square(omega.getDoubleValue()));
+         desiredECMPVelocity_right.set(planner.getDesiredECMPVelocity_right());
 
          desiredECMPPosition.set(desiredVRPPosition);
          desiredECMPPosition.subZ(gravity / MathTools.square(omega.getDoubleValue()));
@@ -719,6 +727,8 @@ public class BipedCoMTrajectoryPlannerVisualizer
          vrpTrajectory.setBallLoop(desiredVRPPosition);
          ecmpTrajectory_left.setBallLoop(desiredECMPPosition_left);
          ecmpTrajectory_right.setBallLoop(desiredECMPPosition_right);
+         supportState.set(getState(feetInContact));
+         
 
          assertDCMDynamicsHold();
          assertCoMDynamicsHold();
@@ -887,8 +897,19 @@ public class BipedCoMTrajectoryPlannerVisualizer
       List<BipedTimedStep> getSteps(SideDependentList<MovingReferenceFrame> soleFrames, Graphics3DObject graphics3DObject);
    }
 
+   public supportName getState(List<RobotSide> currentFeetInContact) {
+      
+      if (currentFeetInContact.size() > 1 && (currentFeetInContact.get(0) == RobotSide.LEFT && currentFeetInContact.get(1) == RobotSide.RIGHT)) {
+         return supportName.DOUBLE_SUPPORT;
+      }
+      else {
+         return supportName.SINGLE_SUPPORT;
+      }
+   }
+   
    public static void main(String[] args)
    {
       BipedCoMTrajectoryPlannerVisualizer visualizer = new BipedCoMTrajectoryPlannerVisualizer(BipedCoMTrajectoryPlannerVisualizer::createSteps);
    }
 }
+

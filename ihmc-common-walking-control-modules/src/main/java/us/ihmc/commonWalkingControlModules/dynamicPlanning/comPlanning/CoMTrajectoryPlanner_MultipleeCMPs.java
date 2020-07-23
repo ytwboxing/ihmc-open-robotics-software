@@ -96,7 +96,9 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    private final FixedFramePoint3DBasics desiredECMPPosition = new FramePoint3D(worldFrame);
    
    private final FixedFramePoint3DBasics desiredECMPPosition_left = new FramePoint3D(worldFrame);
+   private final FixedFramePoint3DBasics desiredECMPVelocity_left = new FramePoint3D(worldFrame);
    private final FixedFramePoint3DBasics desiredECMPPosition_right = new FramePoint3D(worldFrame);
+   private final FixedFramePoint3DBasics desiredECMPVelocity_right = new FramePoint3D(worldFrame);
 
    private final RecyclingArrayList<FramePoint3D> startVRPPositions = new RecyclingArrayList<>(FramePoint3D::new);
    private final RecyclingArrayList<FramePoint3D> endVRPPositions = new RecyclingArrayList<>(FramePoint3D::new);
@@ -145,10 +147,20 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       return desiredECMPPosition_left;
    }
    
+   public FramePoint3DReadOnly getDesiredECMPVelocity_left()
+   {
+      return desiredECMPVelocity_left;
+   }
+   
    public FramePoint3DReadOnly getDesiredECMPPosition_right()
    {
       return desiredECMPPosition_right;
    }
+   
+   public FramePoint3DReadOnly getDesiredECMPVelocity_right()
+   {
+      return desiredECMPVelocity_right;
+   } 
    
    /** {@inheritDoc} */
    @Override
@@ -324,7 +336,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
               desiredVRPPosition, desiredECMPPosition);
       if (eCMPs) 
       {
-         computeECMPs(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPPosition_right);
+         computeECMPs(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPVelocity_left, desiredECMPPosition_right, desiredECMPVelocity_right);
       }
       if (verbose)
       {
@@ -396,7 +408,8 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       ecmpPositionToPack.subZ(comHeight.getDoubleValue());
    }
    
-   public void computeECMPs(int segmentId, double timeInPhase, FixedFramePoint3DBasics ecmpLeftPositionToPack, FixedFramePoint3DBasics ecmpRightPositionToPack) {
+   public void computeECMPs(int segmentId, double timeInPhase, FixedFramePoint3DBasics ecmpLeftPositionToPack, FixedFramePoint3DBasics ecmpLeftVelocityToPack, 
+                            FixedFramePoint3DBasics ecmpRightPositionToPack, FixedFramePoint3DBasics ecmpRightVelocityToPack) {
       int startIndex = indexHandler.getContactSequenceStartIndex(segmentId);
       
       // seventh, eighth, ninth, and tenth coefficients are 
@@ -421,7 +434,9 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       tenthCoefficient.setZ(zCoefficientVector.get(tenthCoefficientIndex));
       
       CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPPosition_left(ecmpLeftPositionToPack, seventhCoefficient, ninthCoefficient, timeInPhase);
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPVelocity_left(ecmpLeftVelocityToPack, seventhCoefficient);
       CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPPosition_right(ecmpRightPositionToPack, eighthCoefficient, tenthCoefficient, timeInPhase);
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPVelocity_right(ecmpRightVelocityToPack, eighthCoefficient);
    }
 
    /** {@inheritDoc} */
@@ -770,25 +785,24 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       double nextDuration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
       if (contactState.isLoadBearing())
       {
-//          if (contactStateProvider.getNumberOfBodiesInContact() > 1 && (bodiesInContact.get(0) == "left" && bodiesInContact.get(1) == "right")) // double support phase
-//          {
-//             ContactStateProvider nextContactStateProvider = contactSequence.get(nextSequenceId);
-//             List<String> nextBodiesInContact = nextContactStateProvider.getBodiesInContact();
-//             if (nextBodiesInContact.get(0) == "right") {
-//                // Double Support for left step
-//                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
-//                                                                                                      startVRPPositions.get(sequenceId), xConstants, yConstants, 
-//                                                                                                      zConstants, coefficientMultipliers);
-//             }
-//             else {
-//                // Double Support for right step
-//                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
-//                                                                                                       startVRPPositions.get(sequenceId), xConstants, yConstants, 
-//                                                                                                       zConstants, coefficientMultipliers);
-//             }
-////             CoMTrajectoryPlannerTools_MultipleeCMPs.
-//          }
-          if (bodiesInContact.get(0) == "left") // getting current footstep, left to right
+          if (contactStateProvider.getNumberOfBodiesInContact() > 1 && (bodiesInContact.get(0) == "left" && bodiesInContact.get(1) == "right")) // double support phase
+          {
+             ContactStateProvider nextContactStateProvider = contactSequence.get(nextSequenceId);
+             List<String> nextBodiesInContact = nextContactStateProvider.getBodiesInContact();
+             if (nextBodiesInContact.get(0) == "right") {
+                // Double Support for left step
+                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
+                                                                                                      startVRPPositions.get(sequenceId), xConstants, yConstants, 
+                                                                                                      zConstants, coefficientMultipliers);
+             }
+             else {
+                // Double Support for right step
+                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
+                                                                                                       startVRPPositions.get(sequenceId), xConstants, yConstants, 
+                                                                                                       zConstants, coefficientMultipliers);
+             }
+          }
+          else if (bodiesInContact.get(0) == "left") // getting current footstep, left to right
           {
              CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForLeftToRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, 
                                                                                       startVRPPositions.get(sequenceId), endVRPPositions.get(nextSequenceId),

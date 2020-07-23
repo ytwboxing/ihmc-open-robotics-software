@@ -673,10 +673,10 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintNumber + 2, startIndex + 3,   0.0);
       constraintMatrixToPack.set(constraintNumber + 2, startIndex + 4,   0.0);
       constraintMatrixToPack.set(constraintNumber + 2, startIndex + 5,   0.0);
-      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 6,   0.0);
-      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 7,   0.0);
-      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 8,   1.0);
-      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 9,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 6,   getECMPLeft_1_FirstCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 7,   getECMPLeft_1_SecondCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 8,   getECMPLeft_1_ThirdCoefficient(1.0));
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 9,   getECMPLeft_1_FourthCoefficient());
       
       // constrain right eCMP second constant (C_r1)
       constraintMatrixToPack.set(constraintNumber + 3, startIndex,       getECMPEnd_1_FirstCoefficient());
@@ -719,12 +719,12 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
        */
       
       // constrain left eCMP first constant (C_l0)
-      constraintMatrixToPack.set(constraintNumber, startIndex,       0.0);
-      constraintMatrixToPack.set(constraintNumber, startIndex + 1,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex,       getECMPStart_0_FirstCoefficient(omega, time));
+      constraintMatrixToPack.set(constraintNumber, startIndex + 1,   getECMPStart_0_SecondCoefficient(omega, time));
       constraintMatrixToPack.set(constraintNumber, startIndex + 2,   0.0);
       constraintMatrixToPack.set(constraintNumber, startIndex + 3,   0.0);
-      constraintMatrixToPack.set(constraintNumber, startIndex + 4,   0.0);
-      constraintMatrixToPack.set(constraintNumber, startIndex + 5,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 4,   getECMPStart_0_ThirdCoefficient(time));
+      constraintMatrixToPack.set(constraintNumber, startIndex + 5,   getECMPStart_0_FourthCoefficient());
       constraintMatrixToPack.set(constraintNumber, startIndex + 6,   getECMPLeft_0_FirstCoefficient(time, -1.0));
       constraintMatrixToPack.set(constraintNumber, startIndex + 7,   getECMPLeft_0_SecondCoefficient());
       constraintMatrixToPack.set(constraintNumber, startIndex + 8,   getECMPLeft_0_ThirdCoefficient(-1.0));
@@ -1375,6 +1375,10 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       return 1;
    }
    
+   public static double getECMPVelocityFirstCoefficientTimeFunction() {
+      return 1;
+   }
+   
    public static void constructDesiredCoMPosition(FixedFramePoint3DBasics comPositionToPack, FramePoint3DReadOnly firstCoefficient,
                                                   FramePoint3DReadOnly secondCoefficient, FramePoint3DReadOnly thirdCoefficient,
                                                   FramePoint3DReadOnly fourthCoefficient, FramePoint3DReadOnly fifthCoefficient,
@@ -1473,11 +1477,23 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       ecmpLeftPositionToPack.scaleAdd(getECMPPositionSecondCoefficientTimeFunction(), secondCoefficient, ecmpLeftPositionToPack);
    }
    
+   public static void constructECMPVelocity_left(FixedFramePoint3DBasics ecmpLeftVelocityToPack, FramePoint3DReadOnly firstCoefficient) {
+       ecmpLeftVelocityToPack.checkReferenceFrameMatch(worldFrame);
+       ecmpLeftVelocityToPack.setToZero();
+       ecmpLeftVelocityToPack.scaleAdd(getECMPVelocityFirstCoefficientTimeFunction(), firstCoefficient, ecmpLeftVelocityToPack);
+    }
+   
    public static void constructECMPPosition_right(FixedFramePoint3DBasics ecmpRightPositionToPack, FramePoint3DReadOnly firstCoefficient,
                                                   FramePoint3DReadOnly secondCoefficient, double timeInPhase) {
       ecmpRightPositionToPack.checkReferenceFrameMatch(worldFrame);
       ecmpRightPositionToPack.setToZero();
       ecmpRightPositionToPack.scaleAdd(getECMPPositionFirstCoefficientTimeFunction(timeInPhase), firstCoefficient, ecmpRightPositionToPack);
       ecmpRightPositionToPack.scaleAdd(getECMPPositionSecondCoefficientTimeFunction(), secondCoefficient, ecmpRightPositionToPack);
+   }
+   
+   public static void constructECMPVelocity_right(FixedFramePoint3DBasics ecmpRightVelocityToPack, FramePoint3DReadOnly firstCoefficient) {
+      ecmpRightVelocityToPack.checkReferenceFrameMatch(worldFrame);
+      ecmpRightVelocityToPack.setToZero();
+      ecmpRightVelocityToPack.scaleAdd(getECMPVelocityFirstCoefficientTimeFunction(), firstCoefficient, ecmpRightVelocityToPack);
    }
 }
