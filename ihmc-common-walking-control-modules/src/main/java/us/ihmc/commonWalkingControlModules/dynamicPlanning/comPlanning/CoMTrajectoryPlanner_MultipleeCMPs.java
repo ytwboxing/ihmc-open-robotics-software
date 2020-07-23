@@ -285,14 +285,14 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       if (eCMPs && numberOfPhases == 1) {
          setFinalECMPConstraints(contactSequence, numberOfPhases - 1, numberOfPhases - 1);
       }
-      if (eCMPs && numberOfPhases > 1) {
+      else if (eCMPs) {
          setFinalECMPConstraints(contactSequence, numberOfPhases - 1, numberOfPhases - 2);
       }
       
       // coefficient constraint matrix stored in coefficientMultipliers, but math requires inverted matrix
       NativeCommonOps.invert(coefficientMultipliers, coefficientMultipliersInv);
       
-      int s = 5;
+      int t = 0;
    }
 
 
@@ -847,6 +847,11 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       }
       else if (prevBodiesInContact.get(0) == "left" && prevContactStateProvider.getNumberOfBodiesInContact() < 2) {
          // Double Support for right step
+         CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
+                                                                                                endVRPPositions.get(sequenceId), xConstants, yConstants, 
+                                                                                                zConstants, coefficientMultipliers);
+      }
+      else {
          CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
                                                                                                 endVRPPositions.get(sequenceId), xConstants, yConstants, 
                                                                                                 zConstants, coefficientMultipliers);

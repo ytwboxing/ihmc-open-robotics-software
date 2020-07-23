@@ -696,6 +696,7 @@ public class BipedCoMTrajectoryPlannerVisualizer
          planner.clearStepSequence();
          steps.forEach(planner::addStepToSequence);
 
+         double s = yoTime.getDoubleValue();
          stopwatch.startMeasurement();
          planner.computeSetpoints(yoTime.getDoubleValue(), feetInContact);
          stopwatch.stopMeasurement();
