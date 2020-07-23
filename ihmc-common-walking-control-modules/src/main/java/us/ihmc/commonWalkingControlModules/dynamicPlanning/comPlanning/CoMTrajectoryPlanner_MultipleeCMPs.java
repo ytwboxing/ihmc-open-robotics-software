@@ -773,15 +773,18 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
 //          if (contactStateProvider.getNumberOfBodiesInContact() > 1 && (bodiesInContact.get(0) == "left" && bodiesInContact.get(1) == "right")) // double support phase
 //          {
 //             ContactStateProvider nextContactStateProvider = contactSequence.get(nextSequenceId);
-//             List<String> nextBodiesInContact = contactStateProvider.getBodiesInContact();
-//             if (nextBodiesInContact.get(0) == "left") {
+//             List<String> nextBodiesInContact = nextContactStateProvider.getBodiesInContact();
+//             if (nextBodiesInContact.get(0) == "right") {
 //                // Double Support for left step
-//                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
-//                                                                                                 startVRPPositions.get(sequenceId), xConstants, yConstants, 
-//                                                                                                 zConstants, coefficientMultipliers);
+//                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
+//                                                                                                      startVRPPositions.get(sequenceId), xConstants, yConstants, 
+//                                                                                                      zConstants, coefficientMultipliers);
 //             }
 //             else {
 //                // Double Support for right step
+//                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
+//                                                                                                       startVRPPositions.get(sequenceId), xConstants, yConstants, 
+//                                                                                                       zConstants, coefficientMultipliers);
 //             }
 ////             CoMTrajectoryPlannerTools_MultipleeCMPs.
 //          }

@@ -629,12 +629,159 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       zObjectiveMatrixToPack.set(constraintNumber + 3, 0, desiredVRPStartPosition.getZ());
    }
    
-   public static void constrainECMPsForDoubleSupportToLeftStep(double time, double omega, int sequenceId, int constraintNumber, 
-                                                               FramePoint3DReadOnly desiredVRPStartPosition,  
-                                                               DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack, 
-                                                               DMatrixRMaj zObjectiveMatrixToPack, DMatrixRMaj constraintMatrixToPack) {
-   
+   public static void constrainECMPsForDoubleSupportToBeginLeftStep(double time, double omega, int sequenceId, int constraintNumber, 
+                                                                    FramePoint3DReadOnly desiredVRPStartPosition,  
+                                                                    DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack, 
+                                                                    DMatrixRMaj zObjectiveMatrixToPack, DMatrixRMaj constraintMatrixToPack) {
+      time = Math.min(time, sufficientlyLongTime);
+
+      int startIndex = matrixIndex * sequenceId;
+      
+      /*
+       * eCMP_left   = C_l0*t + C_l1
+       * eCMP_right  = C_r0*t + C_r1
+       */
+      
+      // constrain left eCMP first constant (C_l0)
+      constraintMatrixToPack.set(constraintNumber, startIndex,       0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 1,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 2,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 3,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 4,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 5,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 6,   1.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 7,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 8,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 9,   0.0);
+      
+      // constraint right eCMP first constant (C_r0)
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex,       getECMPStart_0_FirstCoefficient(omega, time));
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 1,   getECMPStart_0_SecondCoefficient(omega, time));
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 2,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 3,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 4,   getECMPStart_0_ThirdCoefficient(time));
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 5,   getECMPStart_0_FourthCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 6,   getECMPRight_0_FirstCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 7,   getECMPRight_0_SecondCoefficient(time, -1.0));
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 8,   getECMPRight_0_ThirdCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 9,   getECMPRight_0_FourthCoefficient(-1.0));
+      
+      // constrain left eCMP second constant (C_l1)
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex,       0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 1,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 2,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 3,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 4,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 5,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 6,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 7,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 8,   1.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 9,   0.0);
+      
+      // constrain right eCMP second constant (C_r1)
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex,       getECMPEnd_1_FirstCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 1,   getECMPEnd_1_SecondCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 2,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 3,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 4,   getECMPEnd_1_ThirdCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 5,   getECMPEnd_1_FourthCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 6,   getECMPRight_1_FirstCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 7,   getECMPRight_1_SecondCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 8,   getECMPRight_1_ThirdCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 9,   getECMPRight_1_FourthCoefficient(-1.0));
+      
+      /*
+       * Set Objective Functions.
+       */
+      
+      // Equals zero
+      
+      // Equals zero
+      
+      xObjectiveMatrixToPack.set(constraintNumber + 2, 0, desiredVRPStartPosition.getX());
+      yObjectiveMatrixToPack.set(constraintNumber + 2, 0, desiredVRPStartPosition.getY());
+      zObjectiveMatrixToPack.set(constraintNumber + 2, 0, desiredVRPStartPosition.getZ());
+      
+      // Equals zero
    }
+   
+   public static void constrainECMPsForDoubleSupportToBeginRightStep(double time, double omega, int sequenceId, int constraintNumber, 
+                                                                     FramePoint3DReadOnly desiredVRPStartPosition,  
+                                                                     DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack, 
+                                                                     DMatrixRMaj zObjectiveMatrixToPack, DMatrixRMaj constraintMatrixToPack) {
+      time = Math.min(time, sufficientlyLongTime);
+
+      int startIndex = matrixIndex * sequenceId;
+      
+      /*
+       * eCMP_left   = C_l0*t + C_l1
+       * eCMP_right  = C_r0*t + C_r1
+       */
+      
+      // constrain left eCMP first constant (C_l0)
+      constraintMatrixToPack.set(constraintNumber, startIndex,       0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 1,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 2,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 3,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 4,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 5,   0.0);
+      constraintMatrixToPack.set(constraintNumber, startIndex + 6,   getECMPLeft_0_FirstCoefficient(time, -1.0));
+      constraintMatrixToPack.set(constraintNumber, startIndex + 7,   getECMPLeft_0_SecondCoefficient());
+      constraintMatrixToPack.set(constraintNumber, startIndex + 8,   getECMPLeft_0_ThirdCoefficient(-1.0));
+      constraintMatrixToPack.set(constraintNumber, startIndex + 9,   getECMPLeft_0_FourthCoefficient());
+      
+      // constraint right eCMP first constant (C_r0)
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex,       0.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 1,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 2,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 3,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 4,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 5,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 6,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 7,   1.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 8,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 9,   0.0);
+      
+      // constrain left eCMP second constant (C_l1)
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex,       getECMPEnd_1_FirstCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 1,   getECMPEnd_1_SecondCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 2,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 3,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 4,   getECMPEnd_1_ThirdCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 5,   getECMPEnd_1_FourthCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 6,   getECMPLeft_1_FirstCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 7,   getECMPLeft_1_SecondCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 8,   getECMPLeft_1_ThirdCoefficient(-1.0));
+      constraintMatrixToPack.set(constraintNumber + 2, startIndex + 9,   getECMPLeft_1_FourthCoefficient());
+      
+      // constrain right eCMP second constant (C_r1)
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex,       0.0);
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 1,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 2,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 3,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 4,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 5,   0.0);
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 6,   getECMPRight_1_FirstCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 7,   getECMPRight_1_SecondCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 8,   getECMPRight_1_ThirdCoefficient());
+      constraintMatrixToPack.set(constraintNumber + 3, startIndex + 9,   getECMPRight_1_FourthCoefficient(1.0));
+      
+      /*
+       * Set Objective Functions.
+       */
+      
+      // Equals zero
+      
+      // Equals zero
+      
+      // Equals zero
+      
+      xObjectiveMatrixToPack.set(constraintNumber + 3, 0, desiredVRPStartPosition.getX());
+      yObjectiveMatrixToPack.set(constraintNumber + 3, 0, desiredVRPStartPosition.getY());
+      zObjectiveMatrixToPack.set(constraintNumber + 3, 0, desiredVRPStartPosition.getZ());
+   }
+   
+   
    /*
     *  ECMP First Coefficient which starts at the VRP for a step
     */
