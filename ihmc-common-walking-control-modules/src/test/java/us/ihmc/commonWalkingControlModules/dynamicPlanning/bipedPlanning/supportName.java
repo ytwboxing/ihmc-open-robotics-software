@@ -6,7 +6,8 @@ package us.ihmc.commonWalkingControlModules.dynamicPlanning.bipedPlanning;
 
 public enum supportName
 {
-   SINGLE_SUPPORT,
+   LEFT_SUPPORT,
+   RIGHT_SUPPORT,
    DOUBLE_SUPPORT;
    
 //   public supportName getState(List<RobotSide> currentFeetInContact) {

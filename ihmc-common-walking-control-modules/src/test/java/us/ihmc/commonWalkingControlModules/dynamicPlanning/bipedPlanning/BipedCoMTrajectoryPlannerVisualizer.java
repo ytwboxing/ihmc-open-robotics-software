@@ -727,8 +727,7 @@ public class BipedCoMTrajectoryPlannerVisualizer
          vrpTrajectory.setBallLoop(desiredVRPPosition);
          ecmpTrajectory_left.setBallLoop(desiredECMPPosition_left);
          ecmpTrajectory_right.setBallLoop(desiredECMPPosition_right);
-         supportState.set(getState(feetInContact));
-         
+         supportState.set(getState(feetInContact));       
 
          assertDCMDynamicsHold();
          assertCoMDynamicsHold();
@@ -899,11 +898,14 @@ public class BipedCoMTrajectoryPlannerVisualizer
 
    public supportName getState(List<RobotSide> currentFeetInContact) {
       
-      if (currentFeetInContact.size() > 1 && (currentFeetInContact.get(0) == RobotSide.LEFT && currentFeetInContact.get(1) == RobotSide.RIGHT)) {
+      if (currentFeetInContact.size() > 1) {
          return supportName.DOUBLE_SUPPORT;
       }
+      else if (currentFeetInContact.get(0) == RobotSide.LEFT) {
+         return supportName.LEFT_SUPPORT;
+      }
       else {
-         return supportName.SINGLE_SUPPORT;
+         return supportName.RIGHT_SUPPORT;
       }
    }
    
