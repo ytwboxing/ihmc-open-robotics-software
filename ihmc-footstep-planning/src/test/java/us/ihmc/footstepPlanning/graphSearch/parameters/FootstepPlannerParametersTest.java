@@ -1,7 +1,9 @@
 package us.ihmc.footstepPlanning.graphSearch.parameters;
 
 import org.junit.jupiter.api.Test;
+import org.ojalgo.random.RandomNumber;
 import us.ihmc.commons.RandomNumbers;
+import us.ihmc.robotics.robotSide.RobotSide;
 
 import java.util.Random;
 
@@ -62,9 +64,13 @@ public class FootstepPlannerParametersTest
       parameters.setMaximumStepWidth(maxStepWidth);
       assertEquals(maxStepWidth, parameters.getMaximumStepWidth(), epsilon);
 
-      double maxStepZ = RandomNumbers.nextDouble(random, 10.0);
-      parameters.setMaximumStepZ(maxStepZ);
-      assertEquals(maxStepZ, parameters.getMaximumStepZ(), epsilon);
+      double maxLeftStepZ = RandomNumbers.nextDouble(random, 10.0);
+      parameters.setMaximumLeftStepZ(maxLeftStepZ);
+      assertEquals(maxLeftStepZ, parameters.getMaximumLeftStepZ(), epsilon);
+
+      double maxRightStepZ = RandomNumbers.nextDouble(random, 10.0);
+      parameters.setMaximumRightStepZ(maxRightStepZ);
+      assertEquals(maxRightStepZ, parameters.getMaximumRightStepZ(), epsilon);
 
       double maxStepXWhenForwardAndDown = RandomNumbers.nextDouble(random, 10.0);
       parameters.setMaximumStepXWhenForwardAndDown(maxStepXWhenForwardAndDown);
@@ -235,7 +241,11 @@ public class FootstepPlannerParametersTest
       assertEquals(shinPitch, parameters.getShinPitch());
 
       double distanceEpsilonToBridgeRegions = RandomNumbers.nextDouble(random, 10.0);
-      parameters.setDistanceEpsilonToBridgeRegions(shinPitch);
+      parameters.setDistanceEpsilonToBridgeRegions(distanceEpsilonToBridgeRegions);
       assertEquals(distanceEpsilonToBridgeRegions, parameters.getDistanceEpsilonToBridgeRegions());
+
+      byte stepOnlyWithRequestedSide = ((byte) RandomNumbers.nextInt(random, -1, 1));
+      parameters.setStepOnlyWithRequestedSide(stepOnlyWithRequestedSide);
+      assertEquals(RobotSide.fromByte(stepOnlyWithRequestedSide), parameters.getStepOnlyWithRequestedSide());
    }
 }
