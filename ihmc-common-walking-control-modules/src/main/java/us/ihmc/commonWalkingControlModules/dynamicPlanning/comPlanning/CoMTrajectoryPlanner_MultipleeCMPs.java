@@ -51,7 +51,6 @@ import us.ihmc.yoVariables.variable.YoFrameVector3D;
 public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
 {
    private static boolean verbose = false;
-   private static boolean eCMPs =   true;
    
    private static final int maxCapacity = 10;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
@@ -258,9 +257,6 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       // set initial constraint
       setCoMPositionConstraint(currentCoMPosition);
       setDynamicsInitialConstraint(contactSequence, 0);
-//      if (numberOfPhases == 1) {
-//         setECMPConstraints
-//      }
 
       // add transition continuity constraints
       for (int transition = 0; transition < numberOfTransitions; transition++)
@@ -271,9 +267,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
          setCoMVelocityContinuity(contactSequence, previousSequence, nextSequence);
          setDynamicsFinalConstraint(contactSequence, previousSequence);
          setDynamicsInitialConstraint(contactSequence, nextSequence);
-         if (eCMPs) {
-            setECMPConstraints(contactSequence, previousSequence, nextSequence);
-         }
+         setECMPConstraints(contactSequence, previousSequence, nextSequence);
       }
 
       // set terminal constraint
@@ -282,17 +276,10 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       double finalDuration = lastContactPhase.getTimeInterval().getDuration();
       setDCMPositionConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
       setDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
-      if (eCMPs && numberOfPhases == 1) {
-         setFinalECMPConstraints(contactSequence, numberOfPhases - 1, numberOfPhases - 1);
-      }
-      else if (eCMPs) {
-         setFinalECMPConstraints(contactSequence, numberOfPhases - 1, numberOfPhases - 2);
-      }
+      setECMPConstraints(contactSequence, numberOfPhases - 1, numberOfPhases - 2);
       
       // coefficient constraint matrix stored in coefficientMultipliers, but math requires inverted matrix
       NativeCommonOps.invert(coefficientMultipliers, coefficientMultipliersInv);
-      
-      int t = 0;
    }
 
 
@@ -335,17 +322,14 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
 
       verbose = verboseBefore;
    }
-
+   
    /** {@inheritDoc} */
    @Override
    public void compute(int segmentId, double timeInPhase)
    {
       compute(segmentId, timeInPhase, desiredCoMPosition, desiredCoMVelocity, desiredCoMAcceleration, desiredDCMPosition, desiredDCMVelocity,
               desiredVRPPosition, desiredECMPPosition);
-      if (eCMPs) 
-      {
-         computeECMPs(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPVelocity_left, desiredECMPPosition_right, desiredECMPVelocity_right);
-      }
+      computeECMPs(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPVelocity_left, desiredECMPPosition_right, desiredECMPVelocity_right);
       if (verbose)
       {
          LogTools.info("At time " + timeInPhase + ", Desired DCM = " + desiredDCMPosition + ", Desired CoM = " + desiredCoMPosition);
@@ -363,6 +347,11 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    private final FramePoint3D ninthCoefficient =      new FramePoint3D();
    private final FramePoint3D tenthCoefficient =      new FramePoint3D();
 
+   /*
+    * compute() method does not include Coefficients 6, 7, 8, and 9 at this time because these trajectories 
+    * do not depend on eCMPs atm.
+    */
+   
    @Override
    public void compute(int segmentId, double timeInPhase, FixedFramePoint3DBasics comPositionToPack, FixedFrameVector3DBasics comVelocityToPack,
                        FixedFrameVector3DBasics comAccelerationToPack, FixedFramePoint3DBasics dcmPositionToPack, FixedFrameVector3DBasics dcmVelocityToPack,
@@ -383,7 +372,6 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       thirdCoefficient.setY(yCoefficientVector.get(thirdCoefficientIndex));
       thirdCoefficient.setZ(zCoefficientVector.get(thirdCoefficientIndex));
 
-      // only matters because this simulation uses flight, doesn't matter otherwise
       int fourthCoefficientIndex = startIndex + 3;
       fourthCoefficient.setX(xCoefficientVector.get(fourthCoefficientIndex));
       fourthCoefficient.setY(yCoefficientVector.get(fourthCoefficientIndex));
@@ -416,11 +404,16 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       ecmpPositionToPack.subZ(comHeight.getDoubleValue());
    }
    
+   /*
+    * computeECMPs() method does the same as the compute() method above, but takes care of multiple eCMPs. The reason for a
+    * different method was to avoid making modifications to the CoMTrajectorPlannerInterface.java file.
+    */
+   
    public void computeECMPs(int segmentId, double timeInPhase, FixedFramePoint3DBasics ecmpLeftPositionToPack, FixedFramePoint3DBasics ecmpLeftVelocityToPack, 
                             FixedFramePoint3DBasics ecmpRightPositionToPack, FixedFramePoint3DBasics ecmpRightVelocityToPack) {
       int startIndex = indexHandler.getContactSequenceStartIndex(segmentId);
       
-      // seventh, eighth, ninth, and tenth coefficients are 
+      // seventh, eighth, ninth, and tenth coefficients are the coefficients that the 
       int seventhCoefficientIndex = startIndex + 6;
       seventhCoefficient.setX(xCoefficientVector.get(seventhCoefficientIndex));
       seventhCoefficient.setY(yCoefficientVector.get(seventhCoefficientIndex));
@@ -780,83 +773,109 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       numberOfConstraints++;
    }
    
-   private void setECMPConstraints(List<? extends ContactStateProvider> contactSequence, int sequenceId, int nextSequenceId) {
+   /**
+    * <p> Adds four constraints for the desired left and right eCMP conditions depending on single/double support state.</p>
+    * <p> Multiple eCMPs are a way to directly connect the end effector positions to their influence on the CoM. 
+    *     This method handles single and double support conditions. Every single support state is followed by a double support state. </p>
+    * <p> For a footstep, the total eCMP position (r<sub>ecmp</sub>) can be represented as follows:</p>
+    * <p> r<sub>ecmp</sub>(t) = t/T(r<sub>ecmp,h</sub> - r<sub>ecmp,T</sub>) + r<sub>ecmp,T</sub>
+    * <p> Where 
+    *       T - duration,
+    *       r<sub>ecmp,H</sub> - VRP/CoP position at the heel of the following foot, and 
+    *       r<sub>ecmp,T</sub> - VRP/CoP position at the toe of the support foot. 
+    * This function can also be represented as follows, </p>
+    * <p> r<sub>ecmp</sub>(t) = - x(t) + r<sub>ecmp,l</sub>(t) + r<sub>ecmp,r</sub>(t),
+    * <p> relating the left/right eCMP to the CoM, x(t). The left and right (i) eCMP are linear trajectories represented as,
+    * <p> r<sub>ecmp,i</sub> = C<sub>0,i</sub>t + c<sub>1,i</sub>
+    * <p> For a right-to-left footstep, the following conditions are set in this method. </p>
+    * <p> C<sub>1,l</sub> = x(0), c<sub>1,r</sub> = r<sub>ecmp,T</sub>, c<sub>0,l</sub>T + c<sub>1,l</sub> = x(T), and 
+    *     c<sub>0,r</sub>T + c<sub>1,r</sub> = r<sub>ecmp,H</sub>
+    * <p> For a double support condition, the left/right eCMP will stay at the VRP/CoP point or follow the CoM, depending on the following footstep. </sub>
+    * @param contactSequence current contact sequence.
+    * @param sequenceId desired trajectory segment.
+    * @param nextSequenceId next desired trajectory segment.
+    */
+   private void setECMPConstraints(List<? extends ContactStateProvider> contactSequence, int sequenceId, int basisSequenceId) 
+   {
       ContactStateProvider contactStateProvider = contactSequence.get(sequenceId);
       List<String> bodiesInContact = contactStateProvider.getBodiesInContact();
-      ContactState contactState = contactStateProvider.getContactState(); // used just to distinguish flight or load bearing
+      ContactState contactState = contactStateProvider.getContactState();
       double nextDuration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
-      if (contactState.isLoadBearing())
-      {
+      
+      if (contactState.isLoadBearing()) {
           // Double Support Condition
           if (contactStateProvider.getNumberOfBodiesInContact() > 1 && ((bodiesInContact.get(0) == "left" && bodiesInContact.get(1) == "right") 
-                                                                      || bodiesInContact.get(0) == "right" && bodiesInContact.get(1) == "left")) // double support phase
-          {
-             ContactStateProvider nextContactStateProvider = contactSequence.get(nextSequenceId);
-             List<String> nextBodiesInContact = nextContactStateProvider.getBodiesInContact();
-             if (nextBodiesInContact.get(0) == "right" && nextContactStateProvider.getNumberOfBodiesInContact() < 2) {
-             // Double Support for right step
-                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
-                                                                                                       endVRPPositions.get(sequenceId), xConstants, yConstants, 
-                                                                                                       zConstants, coefficientMultipliers);
+                                                                      || bodiesInContact.get(0) == "right" && bodiesInContact.get(1) == "left")){
+             boolean nextIsRight = handleDoubleECMPConditions(contactSequence, sequenceId, basisSequenceId);
+             // Double Support for a following right step
+             if (nextIsRight) {
+                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, endVRPPositions.get(sequenceId), 
+                                                                                                       xConstants, yConstants, zConstants, coefficientMultipliers);
              }
-             else if (nextBodiesInContact.get(0) == "left") {
-             // Double Support for left step
-                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
-                                                                                                      endVRPPositions.get(sequenceId), xConstants, yConstants, 
-                                                                                                      zConstants, coefficientMultipliers);
+             // Double Support for a following left step
+             else if (!nextIsRight) {
+                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, endVRPPositions.get(sequenceId), 
+                                                                                                      xConstants, yConstants, zConstants, coefficientMultipliers);
              }
           }
           // Left Support Condition
           else if (bodiesInContact.get(0) == "left")
           {
-             CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForLeftToRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, 
-                                                                                      startVRPPositions.get(sequenceId), endVRPPositions.get(nextSequenceId),
-                                                                                      xConstants, yConstants, zConstants, coefficientMultipliers);
+             CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForLeftToRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
+                                                                                      endVRPPositions.get(sequenceId + 1), xConstants, yConstants, zConstants, coefficientMultipliers);
           }
           // Right Support Condition
           else if (bodiesInContact.get(0) == "right")
           {
-             CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForRightToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, 
-                                                                                      startVRPPositions.get(sequenceId), endVRPPositions.get(nextSequenceId),
-                                                                                      xConstants, yConstants, zConstants, coefficientMultipliers);
+             CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForRightToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
+                                                                                      endVRPPositions.get(sequenceId + 1), xConstants, yConstants, zConstants, coefficientMultipliers);
           }
-          numberOfConstraints = numberOfConstraints + 4; // adding 4 constraints because there are 4 variables
+          numberOfConstraints = numberOfConstraints + 4;
       }
       // Flight conditions
-      else
-      {
-         // Nada ahora, legs can't do anything in flight
+      else {
+         // Nada ahora.
       }
    }
    
-   /*
-    * Not checking for flight on the next sequence.
-    * Flips the conditions by looking at the previous segment. If the previous step was a right support step, the next one will be a left support step.
-    * Reason for this is because there's no information after of this final constraint.
+   /**
+    * <p> Method is used to handle ECMP conditions during a double support phase. Looks at next or previous step to 
+    *     determine next step depending on the condition. Also handles the final condition where it cannot look ahead 
+    *     or behind by returning an arbitrary true. </p>
+    * <p> 
     */
-   private void setFinalECMPConstraints(List<? extends ContactStateProvider> contactSequence, int sequenceId, int prevSequenceId) {
-      double nextDuration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
-      
-      ContactStateProvider prevContactStateProvider = contactSequence.get(prevSequenceId);
-      List<String> prevBodiesInContact = prevContactStateProvider.getBodiesInContact();
-      if (prevBodiesInContact.get(0) == "right" && prevContactStateProvider.getNumberOfBodiesInContact() < 2) {
-         // Double Support for left step
-         CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
-                                                                                               endVRPPositions.get(sequenceId), xConstants, yConstants, 
-                                                                                               zConstants, coefficientMultipliers);
+   
+   private boolean handleDoubleECMPConditions(List<? extends ContactStateProvider> contactSequence, int sequenceId, int basisSequenceId) {
+      // basisSequenceId is variable to 
+      boolean nextIsRight = false;
+      if (sequenceId == 0 && sequenceId > basisSequenceId) {
+         basisSequenceId = sequenceId;
       }
-      else if (prevBodiesInContact.get(0) == "left" && prevContactStateProvider.getNumberOfBodiesInContact() < 2) {
-         // Double Support for right step
-         CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
-                                                                                                endVRPPositions.get(sequenceId), xConstants, yConstants, 
-                                                                                                zConstants, coefficientMultipliers);
+      ContactStateProvider basisContactStateProvider = contactSequence.get(basisSequenceId);
+      List<String> basisBodiesInContact = basisContactStateProvider.getBodiesInContact();
+      if (sequenceId < basisSequenceId) {
+         if (basisBodiesInContact.get(0) == "right" && basisContactStateProvider.getNumberOfBodiesInContact() < 2) {
+            return nextIsRight = true;
+         }
+         else if (basisBodiesInContact.get(0) == "left" && basisContactStateProvider.getNumberOfBodiesInContact() < 2) {
+            return nextIsRight = false;
+         }
       }
       else {
-         CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints,
-                                                                                                endVRPPositions.get(sequenceId), xConstants, yConstants, 
-                                                                                                zConstants, coefficientMultipliers);
+         // Double Support for a following left step.
+         if (basisBodiesInContact.get(0) == "right" && basisContactStateProvider.getNumberOfBodiesInContact() < 2) {
+            return nextIsRight = false;
+         }
+         // Double Support for a following right step.
+         else if (basisBodiesInContact.get(0) == "left" && basisContactStateProvider.getNumberOfBodiesInContact() < 2) {
+            return nextIsRight = true;
+         }
+         // Handles final conditions
+         else {
+            return nextIsRight = true;
+         }
       }
-      numberOfConstraints = numberOfConstraints + 4;
+      return nextIsRight;
    }
    
    @Override

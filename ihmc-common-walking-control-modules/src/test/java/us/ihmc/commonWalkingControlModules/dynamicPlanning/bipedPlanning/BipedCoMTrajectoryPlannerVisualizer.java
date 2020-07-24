@@ -46,7 +46,7 @@ public class BipedCoMTrajectoryPlannerVisualizer
    private static final double startLength = 0.3;
    private static final double stepLength = 0.8;
    private static final double runLength = 1.5;
-   private static final int numberOfWalkingSteps = 10;
+   private static final int numberOfWalkingSteps = 18;
    private static final int numberOfRunningSteps = 0;
 
    private static final double extraSimDuration = 0.5;

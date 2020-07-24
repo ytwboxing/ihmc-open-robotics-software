@@ -144,14 +144,6 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintNumber, startIndex + 3, getCoMPositionFourthCoefficientTimeFunction(time));
       constraintMatrixToPack.set(constraintNumber, startIndex + 4, getCoMPositionFifthCoefficientTimeFunction(time));
       constraintMatrixToPack.set(constraintNumber, startIndex + 5, getCoMPositionSixthCoefficientTimeFunction());
-      
-      // add 4 additional empty columns for eCMP right/left
-      if (matrixIndex == 10) {
-         constraintMatrixToPack.set(constraintNumber, startIndex + 6, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 7, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 8, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 9, 0.0);
-      }
 
       xObjectiveMatrixToPack.add(constraintNumber, 0, centerOfMassLocationForConstraint.getX());
       yObjectiveMatrixToPack.add(constraintNumber, 0, centerOfMassLocationForConstraint.getY());
@@ -198,14 +190,6 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintNumber, startIndex + 3, getDCMPositionFourthCoefficientTimeFunction(omega, time));
       constraintMatrixToPack.set(constraintNumber, startIndex + 4, getDCMPositionFifthCoefficientTimeFunction(omega, time));
       constraintMatrixToPack.set(constraintNumber, startIndex + 5, getDCMPositionSixthCoefficientTimeFunction());
-
-      // add 4 additional empty columns for eCMP right/left
-      if (matrixIndex == 10) {
-         constraintMatrixToPack.set(constraintNumber, startIndex + 6, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 7, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 8, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 9, 0.0);
-      }
       
       xObjectiveMatrixToPack.add(constraintNumber, 0, desiredDCMPosition.getX());
       yObjectiveMatrixToPack.add(constraintNumber, 0, desiredDCMPosition.getY());
@@ -244,14 +228,6 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintNumber, startIndex + 4, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPPositionFifthCoefficientTimeFunction(time));
       constraintMatrixToPack.set(constraintNumber, startIndex + 5, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPPositionSixthCoefficientTimeFunction());
       
-      // add 4 additional empty columns for eCMP right/left
-      if (matrixIndex == 10) {
-         constraintMatrixToPack.set(constraintNumber, startIndex + 6, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 7, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 8, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 9, 0.0);
-      }
-      
       vrpWaypointJacobianToPack.set(constraintNumber, vrpWaypointPositionIndex, 1.0);
 
       xObjectiveMatrixToPack.set(vrpWaypointPositionIndex, 0, desiredVRPPosition.getX());
@@ -288,14 +264,6 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintRow, startIndex + 3, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocityFourthCoefficientTimeFunction(time));
       constraintMatrixToPack.set(constraintRow, startIndex + 4, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocityFifthCoefficientTimeFunction());
       constraintMatrixToPack.set(constraintRow, startIndex + 5, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocitySixthCoefficientTimeFunction());
-
-      // add 4 additional empty columns for eCMP right/left
-      if (matrixIndex == 10) {
-         constraintMatrixToPack.set(constraintRow, startIndex + 6, 0.0);
-         constraintMatrixToPack.set(constraintRow, startIndex + 7, 0.0);
-         constraintMatrixToPack.set(constraintRow, startIndex + 8, 0.0);
-         constraintMatrixToPack.set(constraintRow, startIndex + 9, 0.0);
-      }
       
       vrpWaypointJacobianToPack.set(constraintRow, vrpWaypointVelocityIndex, 1.0);
 
@@ -340,19 +308,6 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintRow, nextStartIndex + 3, -getCoMPositionFourthCoefficientTimeFunction(0.0));
       constraintMatrixToPack.set(constraintRow, nextStartIndex + 4, -getCoMPositionFifthCoefficientTimeFunction(0.0));
       constraintMatrixToPack.set(constraintRow, nextStartIndex + 5, -getCoMPositionSixthCoefficientTimeFunction());
-      
-      // add 4 additional empty columns for eCMP right/left
-      if (matrixIndex == 10) {
-         constraintMatrixToPack.set(constraintRow, previousStartIndex + 6, 0.0);
-         constraintMatrixToPack.set(constraintRow, previousStartIndex + 7, 0.0);
-         constraintMatrixToPack.set(constraintRow, previousStartIndex + 8, 0.0);
-         constraintMatrixToPack.set(constraintRow, previousStartIndex + 9, 0.0);
-
-         constraintMatrixToPack.set(constraintRow, nextStartIndex + 6, 0.0);
-         constraintMatrixToPack.set(constraintRow, nextStartIndex + 7, 0.0);
-         constraintMatrixToPack.set(constraintRow, nextStartIndex + 8, 0.0);
-         constraintMatrixToPack.set(constraintRow, nextStartIndex + 9, 0.0);
-      }
    }
 
    /**
@@ -391,19 +346,6 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintRow, nextStartIndex + 3, -getCoMVelocityFourthCoefficientTimeFunction(0.0));
       constraintMatrixToPack.set(constraintRow, nextStartIndex + 4, -getCoMVelocityFifthCoefficientTimeFunction());
       constraintMatrixToPack.set(constraintRow, nextStartIndex + 5, -getCoMVelocitySixthCoefficientTimeFunction());
-      
-      // add 4 additional empty columns for eCMP right/left
-      if (matrixIndex == 10) {
-         constraintMatrixToPack.set(constraintRow, previousStartIndex + 6, 0.0);
-         constraintMatrixToPack.set(constraintRow, previousStartIndex + 7, 0.0);
-         constraintMatrixToPack.set(constraintRow, previousStartIndex + 8, 0.0);
-         constraintMatrixToPack.set(constraintRow, previousStartIndex + 9, 0.0);
-
-         constraintMatrixToPack.set(constraintRow, nextStartIndex + 6, 0.0);
-         constraintMatrixToPack.set(constraintRow, nextStartIndex + 7, 0.0);
-         constraintMatrixToPack.set(constraintRow, nextStartIndex + 8, 0.0);
-         constraintMatrixToPack.set(constraintRow, nextStartIndex + 9, 0.0);
-      }
    }
 
    /**
@@ -430,14 +372,6 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintRow, startIndex + 3, getCoMAccelerationFourthCoefficientTimeFunction());
       constraintMatrixToPack.set(constraintRow, startIndex + 4, getCoMAccelerationFifthCoefficientTimeFunction());
       constraintMatrixToPack.set(constraintRow, startIndex + 5, getCoMAccelerationSixthCoefficientTimeFunction());
-      
-      // add 4 additional empty columns for eCMP right/left
-      if (matrixIndex == 10) {
-         constraintMatrixToPack.set(constraintRow, startIndex + 6, 0.0);
-         constraintMatrixToPack.set(constraintRow, startIndex + 7, 0.0);
-         constraintMatrixToPack.set(constraintRow, startIndex + 8, 0.0);
-         constraintMatrixToPack.set(constraintRow, startIndex + 9, 0.0);
-      }
 
       zObjectiveMatrixToPack.set(constraintRow, 0, -Math.abs(gravityZ));
    }
@@ -464,15 +398,11 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintNumber, startIndex + 3, getCoMJerkFourthCoefficientTimeFunction());
       constraintMatrixToPack.set(constraintNumber, startIndex + 4, getCoMJerkFifthCoefficientTimeFunction());
       constraintMatrixToPack.set(constraintNumber, startIndex + 5, getCoMJerkSixthCoefficientTimeFunction());
-      
-      // add 4 additional empty columns for eCMP right/left
-      if (matrixIndex == 10) {
-         constraintMatrixToPack.set(constraintNumber, startIndex + 6, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 7, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 8, 0.0);
-         constraintMatrixToPack.set(constraintNumber, startIndex + 9, 0.0);
-      }
    }
+   
+   /*
+    * 
+    */
  
    public static void constrainECMPsForLeftToRightStep(double time, double omega, int sequenceId, int constraintNumber, 
                                                        FramePoint3DReadOnly desiredVRPStartPosition,  FramePoint3DReadOnly desiredVRPEndPosition, 
