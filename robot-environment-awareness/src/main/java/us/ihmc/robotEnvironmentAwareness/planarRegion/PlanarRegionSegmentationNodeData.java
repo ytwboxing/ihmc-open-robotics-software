@@ -62,7 +62,7 @@ public class PlanarRegionSegmentationNodeData implements Iterable<NormalOcTreeNo
          updateNormalAndOriginOnly(node);
          nodes.add(node);
          if (weightByNumberOfHits)
-            size += node.getSize();
+            size += node.getNumberOfHits();
          else
             size++;
          updateBoundingBoxWithNewNode(node);
