@@ -400,10 +400,19 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintNumber, startIndex + 5, getCoMJerkSixthCoefficientTimeFunction());
    }
    
-   /*
-    * 
+   /**
+    * <p> Adds 4 constraints for the left/right eCMPs during a single support state for a left-to-right footstep.</p>
+    * <p> For a right-to-left footstep, the following conditions are set in this method. </p>
+    * <p> C<sub>1,l</sub> = x(0), c<sub>1,r</sub> = r<sub>ecmp,T</sub>, c<sub>0,l</sub>T + c<sub>1,l</sub> = x(T), and 
+    *     c<sub>0,r</sub>T + c<sub>1,r</sub> = r<sub>ecmp,H</sub>
+    * <p> More details can be found in setECMPConstraints() method in CoMTrajectoryPlanner_MultipleeCMPs.java file. </p>
+    * <p> Because the left-to-right and right-to-left footsteps are just flipping constants depending on the conditions. </p>
+    * <p> The getECMPStart_0,1_XCoefficient and getECPMEnd_0,1_XCoefficient methods take care of the flipping constants. The start
+    *     and end refer to which eCMP will start at the VRP position and which one will end at the VRP position. </p>
+    * <p> The negative is flipped depending on the condition in getECMPLeft_0,1_XCoefficient and get ECMPRight_0,1_XCofficient. </p>
+    * @param sequenceId segment of interest, i in the above equations.
+    * @param time time for the constraint, t<sub>i</sub> in the above equations.
     */
- 
    public static void constrainECMPsForLeftToRightStep(double time, double omega, int sequenceId, int constraintNumber, 
                                                        FramePoint3DReadOnly desiredVRPStartPosition,  FramePoint3DReadOnly desiredVRPEndPosition, 
                                                        DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack, 
@@ -481,6 +490,20 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       
       // Equals zero
       }
+   
+   /**
+    * <p> Adds 4 constraints for the left/right eCMPs during a single support state for a right-to-left footstep.</p>
+    * <p> For a right-to-left footstep, the following conditions are set in this method. </p>
+    * <p> C<sub>1,l</sub> = x(0), c<sub>1,r</sub> = r<sub>ecmp,T</sub>, c<sub>0,l</sub>T + c<sub>1,l</sub> = x(T), and 
+    *     c<sub>0,r</sub>T + c<sub>1,r</sub> = r<sub>ecmp,H</sub>
+    * <p> More details can be found in setECMPConstraints() method in CoMTrajectoryPlanner_MultipleeCMPs.java file. </p>
+    * <p> Because the left-to-right and right-to-left footsteps are just flipping constants depending on the conditions. </p>
+    * <p> The getECMPStart_0,1_XCoefficient and getECPMEnd_0,1_XCoefficient methods take care of the flipping constants. The start
+    *     and end refer to which eCMP will start at the VRP position and which one will end at the VRP position. </p>
+    * <p> The negative is flipped depending on the condition in getECMPLeft_0,1_XCoefficient and get ECMPRight_0,1_XCofficient. </p>
+    * @param sequenceId segment of interest, i in the above equations.
+    * @param time time for the constraint, t<sub>i</sub> in the above equations.
+    */
    public static void constrainECMPsForRightToLeftStep(double time, double omega, int sequenceId, int constraintNumber, 
                                                         FramePoint3DReadOnly desiredVRPStartPosition,  FramePoint3DReadOnly desiredVRPEndPosition, 
                                                         DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack, 
@@ -559,6 +582,19 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       zObjectiveMatrixToPack.set(constraintNumber + 3, 0, desiredVRPStartPosition.getZ());
    }
    
+   /**
+    * <p> Adds 4 constraints for the left/right eCMPs during a double support state before a left footstep.</p>
+    * <p> Double support states take place between two single support states. The eCMPs will be in different conditions 
+    *     depending on the which footstep is prior and which one comes next. This method connects the end and start conditions
+    *     to keep the eCMPs continuous. </p>
+    * <p> For a right-to-left footstep, the right eCMP, eCMP<sub>r</sub>, begins at the VRP right position (VRP<sub>start</sub>) and
+    *     ends at the CoM end position, x(T). The left eCMP (eCMP<sub>l</sub>) begins at the CoM, x(0), and ends at the VRP left position,
+    *     VRP<sub>end</sub>. </p>
+    * <p> At that footstep, this method takes care of the double support state to start a left footstep. The left eCMP would stay at the
+    *     VRP during this duration and the right eCMP would follow the CoM to maintain continuity. </p>
+    * @param sequenceId segment of interest, i in the above equations.
+    * @param time time for the constraint, t<sub>i</sub> in the above equations.
+    */
    public static void constrainECMPsForDoubleSupportToBeginLeftStep(double time, double omega, int sequenceId, int constraintNumber, 
                                                                     FramePoint3DReadOnly desiredVRPStartPosition,  
                                                                     DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack, 
@@ -635,6 +671,20 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       // Equals zero
    }
    
+   
+   /**
+    * <p> Adds 4 constraints for the left/right eCMPs during a double support state before a right footstep.</p>
+    * <p> Double support states take place between two single support states. The eCMPs will be in different conditions 
+    *     depending on the which footstep is prior and which one comes next. This method connects the end and start conditions
+    *     to keep the eCMPs continuous. </p>
+    * <p> For a right-to-left footstep, the right eCMP, eCMP<sub>r</sub>, begins at the VRP right position (VRP<sub>start</sub>) and
+    *     ends at the CoM end position, x(T). The left eCMP (eCMP<sub>l</sub>) begins at the CoM, x(0), and ends at the VRP left position,
+    *     VRP<sub>end</sub>. </p>
+    * <p> At that footstep, this method takes care of the double support state to start a left footstep. The left eCMP would stay at the
+    *     VRP during this duration and the right eCMP would follow the CoM to maintain continuity. </p>
+    * @param sequenceId segment of interest, i in the above equations.
+    * @param time time for the constraint, t<sub>i</sub> in the above equations.
+    */
    public static void constrainECMPsForDoubleSupportToBeginRightStep(double time, double omega, int sequenceId, int constraintNumber, 
                                                                      FramePoint3DReadOnly desiredVRPStartPosition,  
                                                                      DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack, 
