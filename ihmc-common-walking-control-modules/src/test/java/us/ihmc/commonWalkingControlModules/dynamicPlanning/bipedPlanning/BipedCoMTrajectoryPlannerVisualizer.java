@@ -83,10 +83,12 @@ public class BipedCoMTrajectoryPlannerVisualizer
    /* left and right VRP trajectories */
    //private final BipedCoMTrajectoryPlanner planner;
    private final BipedCoMTrajectoryPlanner_MultipleeCMPs planner;
+   private final YoFramePoint3D computedCoMPosition;
    private final YoFramePoint3D desiredECMPPosition_left;
    private final YoFramePoint3D desiredECMPVelocity_left;
    private final YoFramePoint3D desiredECMPPosition_right;
    private final YoFramePoint3D desiredECMPVelocity_right;
+   private final BagOfBalls computedCoMTrajectory;
    private final BagOfBalls ecmpTrajectory_left;
    private final BagOfBalls ecmpTrajectory_right;
    private final YoEnum<supportName> supportState;
@@ -149,16 +151,21 @@ public class BipedCoMTrajectoryPlannerVisualizer
       desiredVRPPosition = new YoFramePoint3D("desiredVRPPosition", worldFrame, registry);
       
       // Left and Right ECMP additions
-      desiredECMPPosition_left =     new YoFramePoint3D("desiredECMPPosition_left", worldFrame, registry);
-      desiredECMPVelocity_left =     new YoFramePoint3D("desiredECMPVelocity_left", worldFrame, registry);
-      desiredECMPPosition_right =    new YoFramePoint3D("desiredECMPPosition_right", worldFrame, registry);
-      desiredECMPVelocity_right =    new YoFramePoint3D("desiredECMPVelocity_right", worldFrame, registry);
-      ecmpTrajectory_left =          new BagOfBalls(50, 0.02, "ecmpTrajectory_left", YoAppearance.Maroon(), registry, yoGraphicsListRegistry);
-      ecmpTrajectory_right =         new BagOfBalls(50, 0.02, "ecmpTrajectory_right", YoAppearance.Orange(), registry, yoGraphicsListRegistry);
+      computedCoMPosition =            new YoFramePoint3D("computedCoMPosition", worldFrame, registry);
+      desiredECMPPosition_left =       new YoFramePoint3D("desiredECMPPosition_left", worldFrame, registry);
+      desiredECMPVelocity_left =       new YoFramePoint3D("desiredECMPVelocity_left", worldFrame, registry);
+      desiredECMPPosition_right =      new YoFramePoint3D("desiredECMPPosition_right", worldFrame, registry);
+      desiredECMPVelocity_right =      new YoFramePoint3D("desiredECMPVelocity_right", worldFrame, registry);
+      computedCoMTrajectory =          new BagOfBalls(50, 0.02, "computedCoMtrajectory", YoAppearance.BlanchedAlmond(), registry, yoGraphicsListRegistry);
+      ecmpTrajectory_left =            new BagOfBalls(50, 0.02, "ecmpTrajectory_left", YoAppearance.Maroon(), registry, yoGraphicsListRegistry);
+      ecmpTrajectory_right =           new BagOfBalls(50, 0.02, "ecmpTrajectory_right", YoAppearance.Orange(), registry, yoGraphicsListRegistry);
+      YoGraphicPosition computed_CoM_Viz =    new YoGraphicPosition("computedCoMPosition", computedCoMPosition, 0.02, YoAppearance.BlanchedAlmond(),
+                                                                 YoGraphicPosition.GraphicType.SOLID_BALL);
       YoGraphicPosition ecmp_left_Viz =    new YoGraphicPosition("desiredECMP_left", desiredECMPPosition_left, 0.02, YoAppearance.Maroon(),
                                                        YoGraphicPosition.GraphicType.SOLID_BALL);
       YoGraphicPosition ecmp_right_Viz =   new YoGraphicPosition("desiredECMP_right", desiredECMPPosition_right, 0.02, YoAppearance.Orange(),
                                                        YoGraphicPosition.GraphicType.SOLID_BALL);
+      yoGraphicsListRegistry.registerArtifact("dcmPlanner", computed_CoM_Viz.createArtifact());
       yoGraphicsListRegistry.registerArtifact("dcmPlanner", ecmp_left_Viz.createArtifact());
       yoGraphicsListRegistry.registerArtifact("dcmPlanner", ecmp_right_Viz.createArtifact());
       supportState = new YoEnum<>("supportState", registry, supportName.class);
@@ -696,7 +703,6 @@ public class BipedCoMTrajectoryPlannerVisualizer
          planner.clearStepSequence();
          steps.forEach(planner::addStepToSequence);
 
-         double s = yoTime.getDoubleValue();
          stopwatch.startMeasurement();
          planner.computeSetpoints(yoTime.getDoubleValue(), feetInContact);
          stopwatch.stopMeasurement();
@@ -713,6 +719,8 @@ public class BipedCoMTrajectoryPlannerVisualizer
          desiredECMPPosition_right.set(planner.getDesiredECMPPosition_right());
          desiredECMPPosition_right.subZ(gravity / MathTools.square(omega.getDoubleValue()));
          desiredECMPVelocity_right.set(planner.getDesiredECMPVelocity_right());
+         computedCoMPosition.set(planner.getComputedCoMPosition());
+         
 
          desiredECMPPosition.set(desiredVRPPosition);
          desiredECMPPosition.subZ(gravity / MathTools.square(omega.getDoubleValue()));
@@ -726,6 +734,7 @@ public class BipedCoMTrajectoryPlannerVisualizer
          dcmTrajectory.setBallLoop(desiredDCMPosition);
          comTrajectory.setBallLoop(desiredCoMPosition);
          vrpTrajectory.setBallLoop(desiredVRPPosition);
+         computedCoMTrajectory.setBallLoop(computedCoMPosition);
          ecmpTrajectory_left.setBallLoop(desiredECMPPosition_left);
          ecmpTrajectory_right.setBallLoop(desiredECMPPosition_right);
          supportState.set(getState(feetInContact));       

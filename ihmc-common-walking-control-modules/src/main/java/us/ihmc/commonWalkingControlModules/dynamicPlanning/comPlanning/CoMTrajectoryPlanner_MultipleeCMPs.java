@@ -98,6 +98,8 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    private final FixedFramePoint3DBasics desiredECMPVelocity_left = new FramePoint3D(worldFrame);
    private final FixedFramePoint3DBasics desiredECMPPosition_right = new FramePoint3D(worldFrame);
    private final FixedFramePoint3DBasics desiredECMPVelocity_right = new FramePoint3D(worldFrame);
+   
+   private final FixedFramePoint3DBasics computedCoMPosition = new FramePoint3D(worldFrame);
 
    private final RecyclingArrayList<FramePoint3D> startVRPPositions = new RecyclingArrayList<>(FramePoint3D::new);
    private final RecyclingArrayList<FramePoint3D> endVRPPositions = new RecyclingArrayList<>(FramePoint3D::new);
@@ -140,26 +142,6 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    {
       this.viewer = viewer;
    }
-   
-   public FramePoint3DReadOnly getDesiredECMPPosition_left()
-   {
-      return desiredECMPPosition_left;
-   }
-   
-   public FramePoint3DReadOnly getDesiredECMPVelocity_left()
-   {
-      return desiredECMPVelocity_left;
-   }
-   
-   public FramePoint3DReadOnly getDesiredECMPPosition_right()
-   {
-      return desiredECMPPosition_right;
-   }
-   
-   public FramePoint3DReadOnly getDesiredECMPVelocity_right()
-   {
-      return desiredECMPVelocity_right;
-   } 
    
    /** {@inheritDoc} */
    @Override
@@ -268,6 +250,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
          setDynamicsFinalConstraint(contactSequence, previousSequence);
          setDynamicsInitialConstraint(contactSequence, nextSequence);
          setECMPConstraints(contactSequence, previousSequence, nextSequence);
+         setTotalECMPConstraints(contactSequence, previousSequence);
       }
 
       // set terminal constraint
@@ -277,6 +260,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       setDCMPositionConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
       setDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
       setECMPConstraints(contactSequence, numberOfPhases - 1, numberOfPhases - 2);
+      setTotalECMPConstraints(contactSequence, numberOfPhases - 1);
       
       // coefficient constraint matrix stored in coefficientMultipliers, but math requires inverted matrix
       NativeCommonOps.invert(coefficientMultipliers, coefficientMultipliersInv);
@@ -330,6 +314,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       compute(segmentId, timeInPhase, desiredCoMPosition, desiredCoMVelocity, desiredCoMAcceleration, desiredDCMPosition, desiredDCMVelocity,
               desiredVRPPosition, desiredECMPPosition);
       computeECMPs(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPVelocity_left, desiredECMPPosition_right, desiredECMPVelocity_right);
+      computeCoM(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPPosition_right, computedCoMPosition);
       if (verbose)
       {
          LogTools.info("At time " + timeInPhase + ", Desired DCM = " + desiredDCMPosition + ", Desired CoM = " + desiredCoMPosition);
@@ -346,6 +331,8 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    private final FramePoint3D eighthCoefficient =     new FramePoint3D();
    private final FramePoint3D ninthCoefficient =      new FramePoint3D();
    private final FramePoint3D tenthCoefficient =      new FramePoint3D();
+   private final FramePoint3D eleventhCoefficient =   new FramePoint3D();
+   private final FramePoint3D twelfthCoefficient =    new FramePoint3D();
 
    /*
     * compute() method does not include Coefficients 6, 7, 8, and 9 at this time because these trajectories 
@@ -439,6 +426,24 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPPosition_right(ecmpRightPositionToPack, eighthCoefficient, tenthCoefficient, timeInPhase);
       CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPVelocity_right(ecmpRightVelocityToPack, eighthCoefficient);
    }
+   
+   public void computeCoM(int segmentId, double timeInPhase, FixedFramePoint3DBasics desiredECMPPosition_left, FixedFramePoint3DBasics desiredECMPPosition_right, 
+                          FixedFramePoint3DBasics computedCoMPositionToPack) {
+      int startIndex = indexHandler.getContactSequenceStartIndex(segmentId);
+      
+      int eleventhCoefficientIndex = startIndex + 10;
+      eleventhCoefficient.setX(xCoefficientVector.get(eleventhCoefficientIndex));
+      eleventhCoefficient.setY(yCoefficientVector.get(eleventhCoefficientIndex));
+      eleventhCoefficient.setZ(zCoefficientVector.get(eleventhCoefficientIndex));
+      
+      int twelfthCoefficientIndex = startIndex + 11;
+      twelfthCoefficient.setX(xCoefficientVector.get(twelfthCoefficientIndex));
+      twelfthCoefficient.setY(yCoefficientVector.get(twelfthCoefficientIndex));
+      twelfthCoefficient.setZ(zCoefficientVector.get(eleventhCoefficientIndex));
+      
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constructComputedCoM(computedCoMPositionToPack, desiredECMPPosition_left, desiredECMPPosition_right,
+                                                                   eleventhCoefficient, twelfthCoefficient, segmentId, timeInPhase);
+   }
 
    /** {@inheritDoc} */
    @Override
@@ -496,6 +501,31 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    {
       return desiredECMPPosition;
    }
+   
+   public FramePoint3DReadOnly getComputedCoMPosition()
+   {
+      return computedCoMPosition;
+   }
+   
+   public FramePoint3DReadOnly getDesiredECMPPosition_left()
+   {
+      return desiredECMPPosition_left;
+   }
+   
+   public FramePoint3DReadOnly getDesiredECMPVelocity_left()
+   {
+      return desiredECMPVelocity_left;
+   }
+   
+   public FramePoint3DReadOnly getDesiredECMPPosition_right()
+   {
+      return desiredECMPPosition_right;
+   }
+   
+   public FramePoint3DReadOnly getDesiredECMPVelocity_right()
+   {
+      return desiredECMPVelocity_right;
+   } 
 
    /**
     * Resets and resizes the internal matrices.
@@ -876,6 +906,15 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
          }
       }
       return nextIsRight;
+   }
+   
+   public void setTotalECMPConstraints(List<? extends ContactStateProvider> contactSequence, int sequenceId) {
+      double nextDuration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
+      
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainTotalECMP(nextDuration, sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
+                                                                 endVRPPositions.get(sequenceId), xConstants, yConstants, zConstants, coefficientMultipliers);
+      
+      numberOfConstraints = numberOfConstraints + 2;
    }
    
    @Override

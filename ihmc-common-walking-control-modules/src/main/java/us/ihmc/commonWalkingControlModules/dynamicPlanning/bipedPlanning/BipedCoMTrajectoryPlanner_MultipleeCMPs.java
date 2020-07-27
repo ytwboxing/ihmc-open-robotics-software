@@ -100,6 +100,11 @@ public class BipedCoMTrajectoryPlanner_MultipleeCMPs
       return comTrajectoryPlanner.getDesiredVRPPosition();
    }
    
+   public FramePoint3DReadOnly getComputedCoMPosition()
+   {
+      return ((CoMTrajectoryPlanner_MultipleeCMPs) comTrajectoryPlanner).getComputedCoMPosition();
+   }
+   
    public FramePoint3DReadOnly getDesiredECMPPosition_left()
    {
       return ((CoMTrajectoryPlanner_MultipleeCMPs) comTrajectoryPlanner).getDesiredECMPPosition_left();

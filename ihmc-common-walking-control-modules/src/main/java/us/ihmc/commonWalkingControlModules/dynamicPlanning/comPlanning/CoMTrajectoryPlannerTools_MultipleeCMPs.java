@@ -761,6 +761,29 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       zObjectiveMatrixToPack.set(constraintNumber + 3, 0, desiredVRPStartPosition.getZ());
    }
    
+   public static void constrainTotalECMP(double duration, int sequenceId, int constraintNumber,
+                                   FramePoint3DReadOnly desiredVRPStartPosition, FramePoint3DReadOnly desiredVRPEndPosition, 
+                                   DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack, 
+                                   DMatrixRMaj zObjectiveMatrixToPack,DMatrixRMaj constraintMatrixToPack) {
+      
+      int startIndex = matrixIndex * sequenceId;
+      
+      FixedFramePoint3DBasics helperBasic = new FramePoint3D(worldFrame);
+      helperBasic.scaleAdd(1/duration, desiredVRPEndPosition, helperBasic);
+      helperBasic.scaleAdd(-1/duration, desiredVRPStartPosition, helperBasic);
+      
+      constraintMatrixToPack.set(constraintNumber, startIndex + 10, 1.0);
+      constraintMatrixToPack.set(constraintNumber + 1, startIndex + 11, 1.0);
+      
+      xObjectiveMatrixToPack.set(constraintNumber, 0, helperBasic.getX());
+      yObjectiveMatrixToPack.set(constraintNumber, 0, helperBasic.getY());
+      zObjectiveMatrixToPack.set(constraintNumber, 0, helperBasic.getZ());
+      
+      xObjectiveMatrixToPack.set(constraintNumber + 1, 0, -desiredVRPStartPosition.getX());
+      yObjectiveMatrixToPack.set(constraintNumber + 1, 0, -desiredVRPStartPosition.getY());
+      zObjectiveMatrixToPack.set(constraintNumber + 1, 0, -desiredVRPStartPosition.getZ());
+   }
+   
    
    /*
     *  ECMP First Coefficient which starts at the VRP for a step
@@ -1402,6 +1425,17 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       comAccelerationToPack.scaleAdd(getCoMAccelerationFourthCoefficientTimeFunction(), fourthCoefficient, comAccelerationToPack);
       comAccelerationToPack.scaleAdd(getCoMAccelerationFifthCoefficientTimeFunction(), fifthCoefficient, comAccelerationToPack);
       comAccelerationToPack.scaleAdd(getCoMAccelerationSixthCoefficientTimeFunction(), sixthCoefficient, comAccelerationToPack);
+   }
+   
+   public static void constructComputedCoM(FixedFramePoint3DBasics computedCoMPositionToPack, FixedFramePoint3DBasics desiredECMPLeft, 
+                                           FixedFramePoint3DBasics desiredECMPRight,FramePoint3DReadOnly eleventhCoefficient, 
+                                           FramePoint3DReadOnly twelfthCoefficient, int segmentId, double timeInPhase) {
+      computedCoMPositionToPack.checkReferenceFrameMatch(worldFrame);
+      computedCoMPositionToPack.setToZero();
+      computedCoMPositionToPack.scaleAdd(timeInPhase, eleventhCoefficient, computedCoMPositionToPack);
+      computedCoMPositionToPack.scaleAdd(1.0, twelfthCoefficient, computedCoMPositionToPack);
+      computedCoMPositionToPack.add(desiredECMPRight);
+      computedCoMPositionToPack.add(desiredECMPLeft);
    }
 
    public static void constructDesiredDCMPosition(FixedFramePoint3DBasics dcmPositionToPack, FramePoint3DReadOnly firstCoefficient,
