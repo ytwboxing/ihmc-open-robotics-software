@@ -30,7 +30,10 @@ public class SurfaceElementICPSLAMParameters
    private static final boolean DEFAULT_COMPUTE_SURFACE_NORMALS_IN_FRAME = true;
 
    private static final boolean DEFAULT_INSERT_MISS_IN_OCTREE = true;
-   private static final boolean DEFAULT_INCLUDE_PITCH_AND_ROLL = false;
+
+   private static final double DEFAULT_TRANSLATION_PERTURBATION = 0.002;
+   private static final double DEFAULT_ROTATION_PERTURBATION = 0.00001;
+   private static final boolean DEFAULT_INCLUDE_PITCH_AND_ROLL = true;
 
    private static final int DEFAULT_MAXIMUM_QUEUE_SIZE = Integer.MAX_VALUE;
    private static final double DEFAULT_MAXIMUM_TIME_BETWEEN_FRAMES = 1.0;
@@ -57,6 +60,9 @@ public class SurfaceElementICPSLAMParameters
    private boolean computeSurfaceNormalsInFrame;
 
    private boolean insertMissInOcTree;
+
+   private double translationPerturbation;
+   private double rotationPerturbation;
    private boolean includePitchAndRoll;
 
    private int maximumQueueSize;
@@ -99,6 +105,8 @@ public class SurfaceElementICPSLAMParameters
       maximumQueueSize = other.maximumQueueSize;
       maximumTimeBetweenFrames = other.maximumTimeBetweenFrames;
       longestTimeToLag = other.longestTimeToLag;
+      translationPerturbation = other.translationPerturbation;
+      rotationPerturbation = other.rotationPerturbation;
       includePitchAndRoll = other.includePitchAndRoll;
    }
 
@@ -128,6 +136,8 @@ public class SurfaceElementICPSLAMParameters
       maximumQueueSize = DEFAULT_MAXIMUM_QUEUE_SIZE;
       maximumTimeBetweenFrames = DEFAULT_MAXIMUM_TIME_BETWEEN_FRAMES;
       longestTimeToLag = DEFAULT_LONGEST_TIME_TO_LAG;
+      translationPerturbation = DEFAULT_TRANSLATION_PERTURBATION;
+      rotationPerturbation = DEFAULT_ROTATION_PERTURBATION;
       includePitchAndRoll = DEFAULT_INCLUDE_PITCH_AND_ROLL;
    }
 
@@ -226,6 +236,16 @@ public class SurfaceElementICPSLAMParameters
       return longestTimeToLag;
    }
       
+   public double getTranslationPerturbation()
+   {
+      return translationPerturbation;
+   }
+
+   public double getRotationPerturbation()
+   {
+      return rotationPerturbation;
+   }
+
    public boolean getIncludePitchAndRoll()
    {
       return includePitchAndRoll;
@@ -311,7 +331,6 @@ public class SurfaceElementICPSLAMParameters
       this.insertMissInOcTree = insertMissInOcTree;
    }
 
-<<<<<<< HEAD
    public void setMaximumQueueSize(int maximumQueueSize)
    {
       this.maximumQueueSize = maximumQueueSize;
@@ -325,11 +344,22 @@ public class SurfaceElementICPSLAMParameters
    public void setLongestTimeToLag(double longestTimeToLag)
    {
       this.longestTimeToLag = longestTimeToLag;
-=======
+
+   }
+   
+   public void setTranslationPerturbation(double translationPerturbation)
+   {
+      this.translationPerturbation = translationPerturbation;
+   }
+
+   public void setRotationPerturbation(double rotationPerturbation)
+   {
+      this.rotationPerturbation = rotationPerturbation;
+   }
+   
    public void setIncludePitchAndRoll(boolean includePitchAndRoll)
    {
       this.includePitchAndRoll = includePitchAndRoll;
->>>>>>> 4c5c47d0e4... set up the ability to ommit pitch and roll from the optimization
    }
 
    @Override
@@ -343,12 +373,11 @@ public class SurfaceElementICPSLAMParameters
              + getTranslationalEffortConvergenceThreshold() + ", rotationalEffortConvergenceThreshold: " + getRotationalEffortConvergenceThreshold()
              + ", enableInitialQualityFilter: " + isEnableInitialQualityFilter() + ", initialQualityThreshold: " + getInitialQualityThreshold()
              + ", maxOptimizationIterations: " + getMaxOptimizationIterations() + " computeSurfaceNormalsInPlane: " + getComputeSurfaceNormalsInFrame()
-<<<<<<< HEAD
             + ", insertMissInOcTree: " + getInsertMissInOcTree() + ", maximumQueueSize: " + getMaximumQueueSize() + ", maximumTimeBetweenFrames: "
             + getMaximumTimeBetweenFrames() + ", longestTimeToLag: " + getLongestTimeToLag();
-=======
             + ", insertMissInOcTree: " + getInsertMissInOcTree() + ", includePitchAndRoll: " + getIncludePitchAndRoll();
->>>>>>> 4c5c47d0e4... set up the ability to ommit pitch and roll from the optimization
+            + ", insertMissInOcTree: " + getInsertMissInOcTree() + ", includePitchAndRoll: " + getIncludePitchAndRoll()
+            + ", translationPerturbation: " + getTranslationPerturbation() + ", rotationPerturbation: " + getRotationPerturbation();
    }
 
    public static SurfaceElementICPSLAMParameters parse(String parametersAsString)
@@ -373,13 +402,12 @@ public class SurfaceElementICPSLAMParameters
       parameters.setMaxOptimizationIterations(ScannerTools.readNextInt(scanner, parameters.getMaxOptimizationIterations()));
       parameters.setComputeSurfaceNormalsInFrame(ScannerTools.readNextBoolean(scanner, parameters.getComputeSurfaceNormalsInFrame()));
       parameters.setInsertMissInOcTree(ScannerTools.readNextBoolean(scanner, parameters.getInsertMissInOcTree()));
-<<<<<<< HEAD
       parameters.setMaximumQueueSize(ScannerTools.readNextInt(scanner, parameters.getMaximumQueueSize()));
       parameters.setMaximumTimeBetweenFrames(ScannerTools.readNextDouble(scanner, parameters.getMaximumTimeBetweenFrames()));
       parameters.setLongestTimeToLag(ScannerTools.readNextDouble(scanner, parameters.getLongestTimeToLag()));
-=======
       parameters.setIncludePitchAndRoll(ScannerTools.readNextBoolean(scanner, parameters.getIncludePitchAndRoll()));
->>>>>>> 4c5c47d0e4... set up the ability to ommit pitch and roll from the optimization
+      parameters.setTranslationPerturbation(ScannerTools.readNextDouble(scanner, parameters.getTranslationPerturbation()));
+      parameters.setRotationPerturbation(ScannerTools.readNextDouble(scanner, parameters.getRotationPerturbation()));
       scanner.close();
       return parameters;
    }
