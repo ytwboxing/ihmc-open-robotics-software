@@ -100,6 +100,8 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    private final FixedFramePoint3DBasics desiredECMPVelocity_right = new FramePoint3D(worldFrame);
    
    private final FixedFramePoint3DBasics computedCoMPosition = new FramePoint3D(worldFrame);
+   private final FixedFramePoint3DBasics computedCoMVelocity = new FramePoint3D(worldFrame);
+   private final FixedFramePoint3DBasics computedCoMAcceleration = new FramePoint3D(worldFrame);
 
    private final RecyclingArrayList<FramePoint3D> startVRPPositions = new RecyclingArrayList<>(FramePoint3D::new);
    private final RecyclingArrayList<FramePoint3D> endVRPPositions = new RecyclingArrayList<>(FramePoint3D::new);
@@ -239,6 +241,8 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       // set initial constraint
       setCoMPositionConstraint(currentCoMPosition);
       setDynamicsInitialConstraint(contactSequence, 0);
+      setComputedCoMPositionConstraint(currentCoMPosition, 0);
+      setComputedCoMDynamicsInitialConstraint(contactSequence, 0);
 
       // add transition continuity constraints
       for (int transition = 0; transition < numberOfTransitions; transition++)
@@ -249,8 +253,12 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
          setCoMVelocityContinuity(contactSequence, previousSequence, nextSequence);
          setDynamicsFinalConstraint(contactSequence, previousSequence);
          setDynamicsInitialConstraint(contactSequence, nextSequence);
+         
          setECMPConstraints(contactSequence, previousSequence, nextSequence);
-         setTotalECMPConstraints(contactSequence, previousSequence);
+         setComputedCoMPositionContinuity(contactSequence, previousSequence, nextSequence);
+         setComputedCoMVelocityContinuity(contactSequence, previousSequence, nextSequence);
+         setComputedCoMDynamicsInitialConstraint(contactSequence, nextSequence);
+         setComputedCoMDynamicsFinalConstraint(contactSequence, previousSequence);
       }
 
       // set terminal constraint
@@ -259,8 +267,10 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       double finalDuration = lastContactPhase.getTimeInterval().getDuration();
       setDCMPositionConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
       setDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
+      
       setECMPConstraints(contactSequence, numberOfPhases - 1, numberOfPhases - 2);
-      setTotalECMPConstraints(contactSequence, numberOfPhases - 1);
+      setComputedCoMDCMConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
+      setComputedCoMDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
       
       // coefficient constraint matrix stored in coefficientMultipliers, but math requires inverted matrix
       NativeCommonOps.invert(coefficientMultipliers, coefficientMultipliersInv);
@@ -314,25 +324,27 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       compute(segmentId, timeInPhase, desiredCoMPosition, desiredCoMVelocity, desiredCoMAcceleration, desiredDCMPosition, desiredDCMVelocity,
               desiredVRPPosition, desiredECMPPosition);
       computeECMPs(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPVelocity_left, desiredECMPPosition_right, desiredECMPVelocity_right);
-      computeCoM(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPPosition_right, computedCoMPosition);
+      computeCoM(segmentId, timeInPhase,computedCoMPosition);
       if (verbose)
       {
          LogTools.info("At time " + timeInPhase + ", Desired DCM = " + desiredDCMPosition + ", Desired CoM = " + desiredCoMPosition);
       }
    }
 
-   private final FramePoint3D firstCoefficient =      new FramePoint3D();
-   private final FramePoint3D secondCoefficient =     new FramePoint3D();
-   private final FramePoint3D thirdCoefficient =      new FramePoint3D();
-   private final FramePoint3D fourthCoefficient =     new FramePoint3D();
-   private final FramePoint3D fifthCoefficient =      new FramePoint3D();
-   private final FramePoint3D sixthCoefficient =      new FramePoint3D();
-   private final FramePoint3D seventhCoefficient =    new FramePoint3D();
-   private final FramePoint3D eighthCoefficient =     new FramePoint3D();
-   private final FramePoint3D ninthCoefficient =      new FramePoint3D();
-   private final FramePoint3D tenthCoefficient =      new FramePoint3D();
-   private final FramePoint3D eleventhCoefficient =   new FramePoint3D();
-   private final FramePoint3D twelfthCoefficient =    new FramePoint3D();
+   private final FramePoint3D firstCoefficient =         new FramePoint3D();
+   private final FramePoint3D secondCoefficient =        new FramePoint3D();
+   private final FramePoint3D thirdCoefficient =         new FramePoint3D();
+   private final FramePoint3D fourthCoefficient =        new FramePoint3D();
+   private final FramePoint3D fifthCoefficient =         new FramePoint3D();
+   private final FramePoint3D sixthCoefficient =         new FramePoint3D();
+   private final FramePoint3D seventhCoefficient =       new FramePoint3D();
+   private final FramePoint3D eighthCoefficient =        new FramePoint3D();
+   private final FramePoint3D ninthCoefficient =         new FramePoint3D();
+   private final FramePoint3D tenthCoefficient =         new FramePoint3D();
+   private final FramePoint3D eleventhCoefficient =      new FramePoint3D();
+   private final FramePoint3D twelfthCoefficient =       new FramePoint3D();
+   private final FramePoint3D thirteenthCoefficient =    new FramePoint3D();
+   private final FramePoint3D fourteenthCoefficient =    new FramePoint3D();
 
    /*
     * compute() method does not include Coefficients 6, 7, 8, and 9 at this time because these trajectories 
@@ -427,8 +439,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPVelocity_right(ecmpRightVelocityToPack, eighthCoefficient);
    }
    
-   public void computeCoM(int segmentId, double timeInPhase, FixedFramePoint3DBasics desiredECMPPosition_left, FixedFramePoint3DBasics desiredECMPPosition_right, 
-                          FixedFramePoint3DBasics computedCoMPositionToPack) {
+   public void computeCoM(int segmentId, double timeInPhase, FixedFramePoint3DBasics computedCoMPositionToPack) {
       int startIndex = indexHandler.getContactSequenceStartIndex(segmentId);
       
       int eleventhCoefficientIndex = startIndex + 10;
@@ -439,10 +450,22 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       int twelfthCoefficientIndex = startIndex + 11;
       twelfthCoefficient.setX(xCoefficientVector.get(twelfthCoefficientIndex));
       twelfthCoefficient.setY(yCoefficientVector.get(twelfthCoefficientIndex));
-      twelfthCoefficient.setZ(zCoefficientVector.get(eleventhCoefficientIndex));
+      twelfthCoefficient.setZ(zCoefficientVector.get(twelfthCoefficientIndex));
       
-      CoMTrajectoryPlannerTools_MultipleeCMPs.constructComputedCoM(computedCoMPositionToPack, desiredECMPPosition_left, desiredECMPPosition_right,
-                                                                   eleventhCoefficient, twelfthCoefficient, segmentId, timeInPhase);
+      int thirteenthCoefficientIndex = startIndex + 12;
+      thirteenthCoefficient.setX(xCoefficientVector.get(thirteenthCoefficientIndex));
+      thirteenthCoefficient.setY(yCoefficientVector.get(thirteenthCoefficientIndex));
+      thirteenthCoefficient.setZ(zCoefficientVector.get(thirteenthCoefficientIndex));
+      
+      int fourteenthCoefficientIndex = startIndex + 13;
+      fourteenthCoefficient.setX(xCoefficientVector.get(fourteenthCoefficientIndex));
+      fourteenthCoefficient.setY(yCoefficientVector.get(fourteenthCoefficientIndex));
+      fourteenthCoefficient.setZ(zCoefficientVector.get(fourteenthCoefficientIndex));
+      
+      
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constructComputedCoM(computedCoMPositionToPack, eleventhCoefficient, twelfthCoefficient, 
+                                                                   thirteenthCoefficient, fourteenthCoefficient,
+                                                                   timeInPhase, omega.getValue());
    }
 
    /** {@inheritDoc} */
@@ -505,6 +528,16 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    public FramePoint3DReadOnly getComputedCoMPosition()
    {
       return computedCoMPosition;
+   }
+   
+   public FramePoint3DReadOnly getComputedCoMVelocity()
+   {
+      return computedCoMVelocity;
+   }
+   
+   public FramePoint3DReadOnly getComputedCoMAcceleration()
+   {
+      return computedCoMAcceleration;
    }
    
    public FramePoint3DReadOnly getDesiredECMPPosition_left()
@@ -848,17 +881,20 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
                                                                                                       xConstants, yConstants, zConstants, coefficientMultipliers);
              }
           }
-          // Left Support Condition
-          else if (bodiesInContact.get(0) == "left")
-          {
-             CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForLeftToRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
+          // Single Support Condition
+          else {
+             // Left Support Condition
+             if (bodiesInContact.get(0) == "left")
+             {
+                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForLeftToRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
                                                                                       endVRPPositions.get(sequenceId + 1), xConstants, yConstants, zConstants, coefficientMultipliers);
-          }
-          // Right Support Condition
-          else if (bodiesInContact.get(0) == "right")
-          {
-             CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForRightToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
+             }
+             // Right Support Condition
+             else if (bodiesInContact.get(0) == "right")
+             {
+                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForRightToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
                                                                                       endVRPPositions.get(sequenceId + 1), xConstants, yConstants, zConstants, coefficientMultipliers);
+             }
           }
           numberOfConstraints = numberOfConstraints + 4;
       }
@@ -867,6 +903,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
          // Nada ahora.
       }
    }
+   
    
    /**
     * <p> Method is used to handle ECMP conditions during a double support phase. Looks at next or previous step to 
@@ -908,14 +945,81 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       return nextIsRight;
    }
    
-   public void setTotalECMPConstraints(List<? extends ContactStateProvider> contactSequence, int sequenceId) {
-      double nextDuration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
+   private void setComputedCoMDynamicsInitialConstraint(List<? extends ContactStateProvider> contactSequence, int sequenceId) 
+   {
+      ContactStateProvider contactStateProvider = contactSequence.get(sequenceId);
+      List<String> bodiesInContact = contactStateProvider.getBodiesInContact();
+      ContactState contactState = contactStateProvider.getContactState();
       
-      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainTotalECMP(nextDuration, sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
-                                                                 endVRPPositions.get(sequenceId), xConstants, yConstants, zConstants, coefficientMultipliers);
-      
-      numberOfConstraints = numberOfConstraints + 2;
+      if (contactState.isLoadBearing()) {
+         // Double Support Condition
+         if (contactStateProvider.getNumberOfBodiesInContact() > 1 && ((bodiesInContact.get(0) == "left" && bodiesInContact.get(1) == "right") 
+               || bodiesInContact.get(0) == "right" && bodiesInContact.get(1) == "left")){
+            // initial/final constraints
+            CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMDynamics(0.0, omega.getValue(), sequenceId, numberOfConstraints, coefficientMultipliers);
+         }
+         // Single Support Condition
+         else {
+            // initial/final constraints
+            CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMDynamics(0.0, omega.getValue(), sequenceId, numberOfConstraints, coefficientMultipliers);
+         }
+      }
+      // Flight condition
+      else {
+         // Nada ahora
+      }
+      numberOfConstraints++;
    }
+   
+   private void setComputedCoMDynamicsFinalConstraint(List<? extends ContactStateProvider> contactSequence, int sequenceId) {
+      ContactStateProvider contactStateProvider = contactSequence.get(sequenceId);
+      List<String> bodiesInContact = contactStateProvider.getBodiesInContact();
+      ContactState contactState = contactStateProvider.getContactState();
+      double duration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
+      
+      if (contactState.isLoadBearing()) {
+         // Double Support Condition
+         if (contactStateProvider.getNumberOfBodiesInContact() > 1 && ((bodiesInContact.get(0) == "left" && bodiesInContact.get(1) == "right") 
+               || bodiesInContact.get(0) == "right" && bodiesInContact.get(1) == "left")){
+            // initial/final constraints
+            CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMDynamics(duration, omega.getValue(), sequenceId, numberOfConstraints, coefficientMultipliers);
+         }
+         // Single Support Condition
+         else {
+            // initial/final constraints
+            CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMDynamics(duration, omega.getValue(), sequenceId, numberOfConstraints, coefficientMultipliers);
+         }
+      }
+      // Flight condition
+      else {
+         // Nada ahora
+      }
+      numberOfConstraints++;
+   }
+   
+   private void setComputedCoMPositionConstraint(FramePoint3DReadOnly centerOfMassLocationForConstraint, int sequenceId) {
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMPosition(centerOfMassLocationForConstraint, sequenceId, numberOfConstraints, xConstants, yConstants, zConstants, coefficientMultipliers);
+      numberOfConstraints++;
+   }
+   
+   private void setComputedCoMDCMConstraint(int sequenceId, double time, FramePoint3DReadOnly DCMFinalPositionforConstraint) {
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMDCM(DCMFinalPositionforConstraint, time, omega.getValue(), sequenceId, numberOfConstraints, xConstants, yConstants, zConstants, coefficientMultipliers);
+      numberOfConstraints++;
+   }
+   
+   private void setComputedCoMPositionContinuity(List<? extends ContactStateProvider> contactSequence, int previousSequence, int nextSequence) {
+      double previousDuration = contactSequence.get(previousSequence).getTimeInterval().getDuration();
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMPositionContinuity(previousSequence, nextSequence, omega.getValue(), numberOfConstraints, previousDuration, coefficientMultipliers);
+      numberOfConstraints++;
+   }
+   
+   private void setComputedCoMVelocityContinuity(List<? extends ContactStateProvider> contactSequence, int previousSequence, int nextSequence) {
+      double previousDuration = contactSequence.get(previousSequence).getTimeInterval().getDuration();
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMVelocityContinuity(previousSequence, nextSequence, omega.getValue(), numberOfConstraints, previousDuration, coefficientMultipliers);
+      numberOfConstraints++;
+   }
+   
+   
    
    @Override
    public List<Trajectory3D> getVRPTrajectories()

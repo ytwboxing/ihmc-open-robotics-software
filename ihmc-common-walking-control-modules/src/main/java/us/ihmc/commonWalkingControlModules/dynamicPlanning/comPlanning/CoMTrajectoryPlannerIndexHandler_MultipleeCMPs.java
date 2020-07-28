@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class CoMTrajectoryPlannerIndexHandler_MultipleeCMPs
 {
-   private int polynomialCoefficientsPerSegment = 12;
+   private int polynomialCoefficientsPerSegment = 14;
    private static final int vrpConstraintsPerSegment = 4;
 
    private int totalNumberOfCoefficients;

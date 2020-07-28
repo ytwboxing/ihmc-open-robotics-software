@@ -84,6 +84,8 @@ public class BipedCoMTrajectoryPlannerVisualizer
    //private final BipedCoMTrajectoryPlanner planner;
    private final BipedCoMTrajectoryPlanner_MultipleeCMPs planner;
    private final YoFramePoint3D computedCoMPosition;
+   private final YoFramePoint3D computedCoMVelocity;
+   private final YoFramePoint3D computedCoMAcceleration;
    private final YoFramePoint3D desiredECMPPosition_left;
    private final YoFramePoint3D desiredECMPVelocity_left;
    private final YoFramePoint3D desiredECMPPosition_right;
@@ -152,14 +154,16 @@ public class BipedCoMTrajectoryPlannerVisualizer
       
       // Left and Right ECMP additions
       computedCoMPosition =            new YoFramePoint3D("computedCoMPosition", worldFrame, registry);
+      computedCoMVelocity =            new YoFramePoint3D("computedCoMVelocity", worldFrame, registry);
+      computedCoMAcceleration =        new YoFramePoint3D("computedCoMAcceleration", worldFrame, registry);
       desiredECMPPosition_left =       new YoFramePoint3D("desiredECMPPosition_left", worldFrame, registry);
       desiredECMPVelocity_left =       new YoFramePoint3D("desiredECMPVelocity_left", worldFrame, registry);
       desiredECMPPosition_right =      new YoFramePoint3D("desiredECMPPosition_right", worldFrame, registry);
       desiredECMPVelocity_right =      new YoFramePoint3D("desiredECMPVelocity_right", worldFrame, registry);
-      computedCoMTrajectory =          new BagOfBalls(50, 0.02, "computedCoMtrajectory", YoAppearance.BlanchedAlmond(), registry, yoGraphicsListRegistry);
+      computedCoMTrajectory =          new BagOfBalls(50, 0.02, "computedCoMtrajectory", YoAppearance.DarkMagenta(), registry, yoGraphicsListRegistry);
       ecmpTrajectory_left =            new BagOfBalls(50, 0.02, "ecmpTrajectory_left", YoAppearance.Maroon(), registry, yoGraphicsListRegistry);
       ecmpTrajectory_right =           new BagOfBalls(50, 0.02, "ecmpTrajectory_right", YoAppearance.Orange(), registry, yoGraphicsListRegistry);
-      YoGraphicPosition computed_CoM_Viz =    new YoGraphicPosition("computedCoMPosition", computedCoMPosition, 0.02, YoAppearance.BlanchedAlmond(),
+      YoGraphicPosition computed_CoM_Viz =    new YoGraphicPosition("computedCoMPosition", computedCoMPosition, 0.02, YoAppearance.DarkMagenta(),
                                                                  YoGraphicPosition.GraphicType.SOLID_BALL);
       YoGraphicPosition ecmp_left_Viz =    new YoGraphicPosition("desiredECMP_left", desiredECMPPosition_left, 0.02, YoAppearance.Maroon(),
                                                        YoGraphicPosition.GraphicType.SOLID_BALL);
@@ -720,6 +724,8 @@ public class BipedCoMTrajectoryPlannerVisualizer
          desiredECMPPosition_right.subZ(gravity / MathTools.square(omega.getDoubleValue()));
          desiredECMPVelocity_right.set(planner.getDesiredECMPVelocity_right());
          computedCoMPosition.set(planner.getComputedCoMPosition());
+         computedCoMVelocity.set(planner.getComputedCoMVelocity());
+         computedCoMAcceleration.set(planner.getComputedCoMAcceleration());
          
 
          desiredECMPPosition.set(desiredVRPPosition);
