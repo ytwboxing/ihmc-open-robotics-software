@@ -30,6 +30,7 @@ public class SurfaceElementICPSLAMParameters
    private static final boolean DEFAULT_COMPUTE_SURFACE_NORMALS_IN_FRAME = true;
 
    private static final boolean DEFAULT_INSERT_MISS_IN_OCTREE = true;
+   private static final boolean DEFAULT_INCLUDE_PITCH_AND_ROLL = false;
 
    private static final int DEFAULT_MAXIMUM_QUEUE_SIZE = Integer.MAX_VALUE;
    private static final double DEFAULT_MAXIMUM_TIME_BETWEEN_FRAMES = 1.0;
@@ -56,6 +57,7 @@ public class SurfaceElementICPSLAMParameters
    private boolean computeSurfaceNormalsInFrame;
 
    private boolean insertMissInOcTree;
+   private boolean includePitchAndRoll;
 
    private int maximumQueueSize;
    private double maximumTimeBetweenFrames;
@@ -97,6 +99,7 @@ public class SurfaceElementICPSLAMParameters
       maximumQueueSize = other.maximumQueueSize;
       maximumTimeBetweenFrames = other.maximumTimeBetweenFrames;
       longestTimeToLag = other.longestTimeToLag;
+      includePitchAndRoll = other.includePitchAndRoll;
    }
 
    public void setDefaultParameters()
@@ -125,6 +128,7 @@ public class SurfaceElementICPSLAMParameters
       maximumQueueSize = DEFAULT_MAXIMUM_QUEUE_SIZE;
       maximumTimeBetweenFrames = DEFAULT_MAXIMUM_TIME_BETWEEN_FRAMES;
       longestTimeToLag = DEFAULT_LONGEST_TIME_TO_LAG;
+      includePitchAndRoll = DEFAULT_INCLUDE_PITCH_AND_ROLL;
    }
 
    public double getSurfaceElementResolution()
@@ -221,6 +225,11 @@ public class SurfaceElementICPSLAMParameters
    {
       return longestTimeToLag;
    }
+      
+   public boolean getIncludePitchAndRoll()
+   {
+      return includePitchAndRoll;
+   }
 
    public void setSurfaceElementResolution(double surfaceElementResolution)
    {
@@ -302,6 +311,7 @@ public class SurfaceElementICPSLAMParameters
       this.insertMissInOcTree = insertMissInOcTree;
    }
 
+<<<<<<< HEAD
    public void setMaximumQueueSize(int maximumQueueSize)
    {
       this.maximumQueueSize = maximumQueueSize;
@@ -315,6 +325,11 @@ public class SurfaceElementICPSLAMParameters
    public void setLongestTimeToLag(double longestTimeToLag)
    {
       this.longestTimeToLag = longestTimeToLag;
+=======
+   public void setIncludePitchAndRoll(boolean includePitchAndRoll)
+   {
+      this.includePitchAndRoll = includePitchAndRoll;
+>>>>>>> 4c5c47d0e4... set up the ability to ommit pitch and roll from the optimization
    }
 
    @Override
@@ -328,8 +343,12 @@ public class SurfaceElementICPSLAMParameters
              + getTranslationalEffortConvergenceThreshold() + ", rotationalEffortConvergenceThreshold: " + getRotationalEffortConvergenceThreshold()
              + ", enableInitialQualityFilter: " + isEnableInitialQualityFilter() + ", initialQualityThreshold: " + getInitialQualityThreshold()
              + ", maxOptimizationIterations: " + getMaxOptimizationIterations() + " computeSurfaceNormalsInPlane: " + getComputeSurfaceNormalsInFrame()
+<<<<<<< HEAD
             + ", insertMissInOcTree: " + getInsertMissInOcTree() + ", maximumQueueSize: " + getMaximumQueueSize() + ", maximumTimeBetweenFrames: "
             + getMaximumTimeBetweenFrames() + ", longestTimeToLag: " + getLongestTimeToLag();
+=======
+            + ", insertMissInOcTree: " + getInsertMissInOcTree() + ", includePitchAndRoll: " + getIncludePitchAndRoll();
+>>>>>>> 4c5c47d0e4... set up the ability to ommit pitch and roll from the optimization
    }
 
    public static SurfaceElementICPSLAMParameters parse(String parametersAsString)
@@ -354,9 +373,13 @@ public class SurfaceElementICPSLAMParameters
       parameters.setMaxOptimizationIterations(ScannerTools.readNextInt(scanner, parameters.getMaxOptimizationIterations()));
       parameters.setComputeSurfaceNormalsInFrame(ScannerTools.readNextBoolean(scanner, parameters.getComputeSurfaceNormalsInFrame()));
       parameters.setInsertMissInOcTree(ScannerTools.readNextBoolean(scanner, parameters.getInsertMissInOcTree()));
+<<<<<<< HEAD
       parameters.setMaximumQueueSize(ScannerTools.readNextInt(scanner, parameters.getMaximumQueueSize()));
       parameters.setMaximumTimeBetweenFrames(ScannerTools.readNextDouble(scanner, parameters.getMaximumTimeBetweenFrames()));
       parameters.setLongestTimeToLag(ScannerTools.readNextDouble(scanner, parameters.getLongestTimeToLag()));
+=======
+      parameters.setIncludePitchAndRoll(ScannerTools.readNextBoolean(scanner, parameters.getIncludePitchAndRoll()));
+>>>>>>> 4c5c47d0e4... set up the ability to ommit pitch and roll from the optimization
       scanner.close();
       return parameters;
    }
