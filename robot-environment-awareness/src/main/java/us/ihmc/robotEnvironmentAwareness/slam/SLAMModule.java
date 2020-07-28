@@ -66,9 +66,9 @@ public class SLAMModule implements PerceptionModule
    
    protected final SurfaceElementICPSLAM slam = new SurfaceElementICPSLAM(DEFAULT_OCTREE_RESOLUTION);
 
-   private static final int SLAM_PERIOD_MILLISECONDS = 5;
-   private static final int QUEUE_PERIOD_MILLISECONDS = 1;
-   private static final int MAIN_PERIOD_MILLISECONDS = 20;
+   private static final int SLAM_PERIOD_MILLISECONDS = 20;
+   private static final int QUEUE_PERIOD_MILLISECONDS = 5;
+   private static final int MAIN_PERIOD_MILLISECONDS = 200;
 
    private ScheduledExecutorService executorService = ExecutorServiceTools.newScheduledThreadPool(3, getClass(), ExceptionHandling.CATCH_AND_REPORT);
    private ScheduledFuture<?> scheduledQueue;
