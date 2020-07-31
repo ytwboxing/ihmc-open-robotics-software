@@ -345,8 +345,8 @@ public class SurfaceElementICPSLAMParameters
              + ", enableInitialQualityFilter: " + isEnableInitialQualityFilter() + ", initialQualityThreshold: " + getInitialQualityThreshold()
              + ", maxOptimizationIterations: " + getMaxOptimizationIterations() + " computeSurfaceNormalsInPlane: " + getComputeSurfaceNormalsInFrame()
             + ", insertMissInOcTree: " + getInsertMissInOcTree() + ", maximumQueueSize: " + getMaximumQueueSize() + ", maximumTimeBetweenFrames: "
-            + getMaximumTimeBetweenFrames() + ", longestTimeToLag: " + getLongestTimeToLag();
-            + ", insertMissInOcTree: " + getInsertMissInOcTree() + ", includePitchAndRoll: " + getIncludePitchAndRoll();
+            + getMaximumTimeBetweenFrames() + ", longestTimeToLag: " + getLongestTimeToLag()
+            + ", insertMissInOcTree: " + getInsertMissInOcTree() + ", includePitchAndRoll: " + getIncludePitchAndRoll()
             + ", insertMissInOcTree: " + getInsertMissInOcTree() + ", includePitchAndRoll: " + getIncludePitchAndRoll()
             + ", translationPerturbation: " + getTranslationPerturbation() + ", rotationPerturbation: " + getRotationPerturbation();
    }
