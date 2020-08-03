@@ -4,6 +4,7 @@ import org.ejml.data.DMatrixRMaj;
 import us.ihmc.commons.MathTools;
 import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
@@ -249,7 +250,7 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
     * @param time time in the segment, t<sub>i</sub> in the above equations
     * @param desiredVRPVelocity reference VRP veloctiy, d/dt v<sub>r</sub> in the above equations.
     */
-   public static void addVRPVelocityConstraint(int sequenceId, int constraintRow, int vrpWaypointVelocityIndex, double omega, double time,
+   public static void addVRPVelocityConstraint(int sequenceId, int constraintNumber, int vrpWaypointVelocityIndex, double omega, double time,
                                                FrameVector3DReadOnly desiredVRPVelocity, DMatrixRMaj constraintMatrixToPack,
                                                DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack,
                                                DMatrixRMaj zObjectiveMatrixToPack, DMatrixRMaj vrpWaypointJacobianToPack)
@@ -258,14 +259,14 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
 
       desiredVRPVelocity.checkReferenceFrameMatch(worldFrame);
 
-      constraintMatrixToPack.set(constraintRow, startIndex + 0, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocityFirstCoefficientTimeFunction());
-      constraintMatrixToPack.set(constraintRow, startIndex + 1, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocitySecondCoefficientTimeFunction());
-      constraintMatrixToPack.set(constraintRow, startIndex + 2, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocityThirdCoefficientTimeFunction(omega, time));
-      constraintMatrixToPack.set(constraintRow, startIndex + 3, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocityFourthCoefficientTimeFunction(time));
-      constraintMatrixToPack.set(constraintRow, startIndex + 4, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocityFifthCoefficientTimeFunction());
-      constraintMatrixToPack.set(constraintRow, startIndex + 5, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocitySixthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, startIndex + 0, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocityFirstCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, startIndex + 1, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocitySecondCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, startIndex + 2, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocityThirdCoefficientTimeFunction(omega, time));
+      constraintMatrixToPack.set(constraintNumber, startIndex + 3, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocityFourthCoefficientTimeFunction(time));
+      constraintMatrixToPack.set(constraintNumber, startIndex + 4, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocityFifthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, startIndex + 5, CoMTrajectoryPlannerTools_MultipleeCMPs.getVRPVelocitySixthCoefficientTimeFunction());
       
-      vrpWaypointJacobianToPack.set(constraintRow, vrpWaypointVelocityIndex, 1.0);
+      vrpWaypointJacobianToPack.set(constraintNumber, vrpWaypointVelocityIndex, 1.0);
 
       xObjectiveMatrixToPack.set(vrpWaypointVelocityIndex, 0, desiredVRPVelocity.getX());
       yObjectiveMatrixToPack.set(vrpWaypointVelocityIndex, 0, desiredVRPVelocity.getY());
@@ -287,7 +288,7 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
     * @param previousSequence i-1 in the above equations.
     * @param nextSequence i in the above equations.
     */
-   public static void addCoMPositionContinuityConstraint(int previousSequence, int nextSequence, int constraintRow, double omega, double previousDuration,
+   public static void addCoMPositionContinuityConstraint(int previousSequence, int nextSequence, int constraintNumber, double omega, double previousDuration,
                                                          DMatrixRMaj constraintMatrixToPack)
    {
       // move next sequence coefficients to the left hand side
@@ -296,18 +297,18 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
 
       previousDuration = Math.min(previousDuration, sufficientlyLongTime);
 
-      constraintMatrixToPack.set(constraintRow, previousStartIndex, getCoMPositionFirstCoefficientTimeFunction(omega, previousDuration));
-      constraintMatrixToPack.set(constraintRow, previousStartIndex + 1, getCoMPositionSecondCoefficientTimeFunction(omega, previousDuration));
-      constraintMatrixToPack.set(constraintRow, previousStartIndex + 2, getCoMPositionThirdCoefficientTimeFunction(previousDuration));
-      constraintMatrixToPack.set(constraintRow, previousStartIndex + 3, getCoMPositionFourthCoefficientTimeFunction(previousDuration));
-      constraintMatrixToPack.set(constraintRow, previousStartIndex + 4, getCoMPositionFifthCoefficientTimeFunction(previousDuration));
-      constraintMatrixToPack.set(constraintRow, previousStartIndex + 5, getCoMPositionSixthCoefficientTimeFunction());
-      constraintMatrixToPack.set(constraintRow, nextStartIndex, -getCoMPositionFirstCoefficientTimeFunction(omega, 0.0));
-      constraintMatrixToPack.set(constraintRow, nextStartIndex + 1, -getCoMPositionSecondCoefficientTimeFunction(omega, 0.0));
-      constraintMatrixToPack.set(constraintRow, nextStartIndex + 2, -getCoMPositionThirdCoefficientTimeFunction(0.0));
-      constraintMatrixToPack.set(constraintRow, nextStartIndex + 3, -getCoMPositionFourthCoefficientTimeFunction(0.0));
-      constraintMatrixToPack.set(constraintRow, nextStartIndex + 4, -getCoMPositionFifthCoefficientTimeFunction(0.0));
-      constraintMatrixToPack.set(constraintRow, nextStartIndex + 5, -getCoMPositionSixthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex, getCoMPositionFirstCoefficientTimeFunction(omega, previousDuration));
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex + 1, getCoMPositionSecondCoefficientTimeFunction(omega, previousDuration));
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex + 2, getCoMPositionThirdCoefficientTimeFunction(previousDuration));
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex + 3, getCoMPositionFourthCoefficientTimeFunction(previousDuration));
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex + 4, getCoMPositionFifthCoefficientTimeFunction(previousDuration));
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex + 5, getCoMPositionSixthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex, -getCoMPositionFirstCoefficientTimeFunction(omega, 0.0));
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex + 1, -getCoMPositionSecondCoefficientTimeFunction(omega, 0.0));
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex + 2, -getCoMPositionThirdCoefficientTimeFunction(0.0));
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex + 3, -getCoMPositionFourthCoefficientTimeFunction(0.0));
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex + 4, -getCoMPositionFifthCoefficientTimeFunction(0.0));
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex + 5, -getCoMPositionSixthCoefficientTimeFunction());
    }
 
    /**
@@ -325,7 +326,7 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
     * @param previousSequence i-1 in the above equations.
     * @param nextSequence i in the above equations.
     */
-   public static void addCoMVelocityContinuityConstraint(int previousSequence, int nextSequence, int constraintRow, double omega, double previousDuration,
+   public static void addCoMVelocityContinuityConstraint(int previousSequence, int nextSequence, int constraintNumber, double omega, double previousDuration,
                                                          DMatrixRMaj constraintMatrixToPack)
    {
       // move next sequence coefficients to the left hand side
@@ -334,18 +335,18 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
 
       previousDuration = Math.min(previousDuration, sufficientlyLongTime);
 
-      constraintMatrixToPack.set(constraintRow, previousStartIndex, getCoMVelocityFirstCoefficientTimeFunction(omega, previousDuration));
-      constraintMatrixToPack.set(constraintRow, previousStartIndex + 1, getCoMVelocitySecondCoefficientTimeFunction(omega, previousDuration));
-      constraintMatrixToPack.set(constraintRow, previousStartIndex + 2, getCoMVelocityThirdCoefficientTimeFunction(previousDuration));
-      constraintMatrixToPack.set(constraintRow, previousStartIndex + 3, getCoMVelocityFourthCoefficientTimeFunction(previousDuration));
-      constraintMatrixToPack.set(constraintRow, previousStartIndex + 4, getCoMVelocityFifthCoefficientTimeFunction());
-      constraintMatrixToPack.set(constraintRow, previousStartIndex + 5, getCoMVelocitySixthCoefficientTimeFunction());
-      constraintMatrixToPack.set(constraintRow, nextStartIndex, -getCoMVelocityFirstCoefficientTimeFunction(omega, 0.0));
-      constraintMatrixToPack.set(constraintRow, nextStartIndex + 1, -getCoMVelocitySecondCoefficientTimeFunction(omega, 0.0));
-      constraintMatrixToPack.set(constraintRow, nextStartIndex + 2, -getCoMVelocityThirdCoefficientTimeFunction(0.0));
-      constraintMatrixToPack.set(constraintRow, nextStartIndex + 3, -getCoMVelocityFourthCoefficientTimeFunction(0.0));
-      constraintMatrixToPack.set(constraintRow, nextStartIndex + 4, -getCoMVelocityFifthCoefficientTimeFunction());
-      constraintMatrixToPack.set(constraintRow, nextStartIndex + 5, -getCoMVelocitySixthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex, getCoMVelocityFirstCoefficientTimeFunction(omega, previousDuration));
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex + 1, getCoMVelocitySecondCoefficientTimeFunction(omega, previousDuration));
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex + 2, getCoMVelocityThirdCoefficientTimeFunction(previousDuration));
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex + 3, getCoMVelocityFourthCoefficientTimeFunction(previousDuration));
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex + 4, getCoMVelocityFifthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, previousStartIndex + 5, getCoMVelocitySixthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex, -getCoMVelocityFirstCoefficientTimeFunction(omega, 0.0));
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex + 1, -getCoMVelocitySecondCoefficientTimeFunction(omega, 0.0));
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex + 2, -getCoMVelocityThirdCoefficientTimeFunction(0.0));
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex + 3, -getCoMVelocityFourthCoefficientTimeFunction(0.0));
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex + 4, -getCoMVelocityFifthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, nextStartIndex + 5, -getCoMVelocitySixthCoefficientTimeFunction());
    }
 
    /**
@@ -359,21 +360,21 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
     * @param sequenceId segment of interest, i in the above equations.
     * @param time time for the constraint, t<sub>i</sub> in the above equations.
     */
-   public static void constrainCoMAccelerationToGravity(int sequenceId, int constraintRow, double omega, double time, double gravityZ,
+   public static void constrainCoMAccelerationToGravity(int sequenceId, int constraintNumber, double omega, double time, double gravityZ,
                                                         DMatrixRMaj constraintMatrixToPack, DMatrixRMaj zObjectiveMatrixToPack)
    {
       int startIndex = matrixIndex * sequenceId;
 
       time = Math.min(time, sufficientlyLongTime);
 
-      constraintMatrixToPack.set(constraintRow, startIndex, getCoMAccelerationFirstCoefficientTimeFunction(omega, time));
-      constraintMatrixToPack.set(constraintRow, startIndex + 1, getCoMAccelerationSecondCoefficientTimeFunction(omega, time));
-      constraintMatrixToPack.set(constraintRow, startIndex + 2, getCoMAccelerationThirdCoefficientTimeFunction(time));
-      constraintMatrixToPack.set(constraintRow, startIndex + 3, getCoMAccelerationFourthCoefficientTimeFunction());
-      constraintMatrixToPack.set(constraintRow, startIndex + 4, getCoMAccelerationFifthCoefficientTimeFunction());
-      constraintMatrixToPack.set(constraintRow, startIndex + 5, getCoMAccelerationSixthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, startIndex, getCoMAccelerationFirstCoefficientTimeFunction(omega, time));
+      constraintMatrixToPack.set(constraintNumber, startIndex + 1, getCoMAccelerationSecondCoefficientTimeFunction(omega, time));
+      constraintMatrixToPack.set(constraintNumber, startIndex + 2, getCoMAccelerationThirdCoefficientTimeFunction(time));
+      constraintMatrixToPack.set(constraintNumber, startIndex + 3, getCoMAccelerationFourthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, startIndex + 4, getCoMAccelerationFifthCoefficientTimeFunction());
+      constraintMatrixToPack.set(constraintNumber, startIndex + 5, getCoMAccelerationSixthCoefficientTimeFunction());
 
-      zObjectiveMatrixToPack.set(constraintRow, 0, -Math.abs(gravityZ));
+      zObjectiveMatrixToPack.set(constraintNumber, 0, -Math.abs(gravityZ));
    }
 
    /**
@@ -761,37 +762,48 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       zObjectiveMatrixToPack.set(constraintNumber + 3, 0, desiredVRPStartPosition.getZ());
    }
    
-   public static double getComputedCoMDynamicsFirstCoefficient(double omega, double time) {
-      return Math.min(sufficientlyLarge, Math.exp(omega * time));
-   }
-   
-   public static double getComputedCoMDynamicsSecondCoefficient(double omega, double time) {
-      return Math.exp(-omega * time);
-   }
-   
-   public static double getComputedCoMDynamicsThirdCoefficient(double time) {
-      return Math.min(sufficientlyLarge, 2.0 * time);
-   }
-   
-   public static double getComputedCoMDynamicsFourthCoefficient() {
-      return 2.0;
-   }
-   
-   public static void constrainComputedCoMDynamics(double time, double omega, int sequenceId, int constraintNumber,
-                                                   DMatrixRMaj constraintMatrixToPack) {
+   public static void constrainComputedCoMDynamicsPosition(FramePoint3DReadOnly VRPPositionforConstraint, double time, double omega, int sequenceId, int constraintNumber,
+                                                   DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack, 
+                                                   DMatrixRMaj zObjectiveMatrixToPack, DMatrixRMaj constraintMatrixToPack) {
       
       int startIndex = matrixIndex * sequenceId;
       
       time = Math.min(time, sufficientlyLongTime);
       
-      constraintMatrixToPack.set(constraintNumber, startIndex + 6,   getECMPLeft_0_FirstCoefficient(time,  1.0));             // c_0l
-      constraintMatrixToPack.set(constraintNumber, startIndex + 7,   getECMPRight_0_SecondCoefficient(time, 1.0));            // c_0r
-      constraintMatrixToPack.set(constraintNumber, startIndex + 8,   getECMPLeft_1_ThirdCoefficient(1.0));                    // c_1l
-      constraintMatrixToPack.set(constraintNumber, startIndex + 9,   getECMPRight_1_FourthCoefficient(1.0));                  // c_1r
-      constraintMatrixToPack.set(constraintNumber, startIndex + 10,  -getComputedCoMDynamicsFirstCoefficient(omega, time));   // a0
-      constraintMatrixToPack.set(constraintNumber, startIndex + 11,  -getComputedCoMDynamicsSecondCoefficient(omega, time));  // a1
-      constraintMatrixToPack.set(constraintNumber, startIndex + 12,  -getComputedCoMDynamicsThirdCoefficient(time));          // a2
-      constraintMatrixToPack.set(constraintNumber, startIndex + 13,  -getComputedCoMDynamicsFourthCoefficient());             // a3
+      constraintMatrixToPack.set(constraintNumber, startIndex + 6,   getECMPLeft_0_FirstCoefficient(time,  1.0));                   // c_0l
+      constraintMatrixToPack.set(constraintNumber, startIndex + 7,   getECMPRight_0_SecondCoefficient(time, 1.0));                  // c_0r
+      constraintMatrixToPack.set(constraintNumber, startIndex + 8,   getECMPLeft_1_ThirdCoefficient(1.0));                          // c_1l
+      constraintMatrixToPack.set(constraintNumber, startIndex + 9,   getECMPRight_1_FourthCoefficient(1.0));                        // c_1r
+      constraintMatrixToPack.set(constraintNumber, startIndex + 10,  -getComputedCoMDynamicsFirstCoefficient(omega, time));         // a0
+      constraintMatrixToPack.set(constraintNumber, startIndex + 11,  -getComputedCoMDynamicsSecondCoefficient(omega, time));        // a1
+      constraintMatrixToPack.set(constraintNumber, startIndex + 12,  -getComputedCoMDynamicsThirdCoefficient(time));                // a2
+      constraintMatrixToPack.set(constraintNumber, startIndex + 13,  -getComputedCoMDynamicsFourthCoefficient());                   // a3
+      
+      xObjectiveMatrixToPack.set(constraintNumber, 0, VRPPositionforConstraint.getX());
+      yObjectiveMatrixToPack.set(constraintNumber, 0, VRPPositionforConstraint.getY());
+      zObjectiveMatrixToPack.set(constraintNumber, 0, VRPPositionforConstraint.getZ());
+   }
+   
+   public static void constrainComputedCoMDynamicsVelocity(FramePoint3DReadOnly desiredVRPVelocity, double time, double omega, int sequenceId,
+                                                           int constraintNumber, DMatrixRMaj xObjectiveMatrixToPack, DMatrixRMaj yObjectiveMatrixToPack,
+                                                           DMatrixRMaj zObjectiveMatrixToPack, DMatrixRMaj constraintMatrixToPack) {
+
+      int startIndex = matrixIndex * sequenceId;
+
+      time = Math.min(time, sufficientlyLongTime);
+
+      constraintMatrixToPack.set(constraintNumber, startIndex + 6, 1.0); // c_0l
+      constraintMatrixToPack.set(constraintNumber, startIndex + 7, 1.0); // c_0r
+      constraintMatrixToPack.set(constraintNumber, startIndex + 8, 0.0); // c_1l
+      constraintMatrixToPack.set(constraintNumber, startIndex + 9, 0.0); // c_1r
+      constraintMatrixToPack.set(constraintNumber, startIndex + 10, -getCoMVelocityFirstCoefficientTimeFunction(omega, time));   // a0
+      constraintMatrixToPack.set(constraintNumber, startIndex + 11, -getCoMVelocitySecondCoefficientTimeFunction(omega, time));  // a1
+      constraintMatrixToPack.set(constraintNumber, startIndex + 12, -getCoMVelocityFifthCoefficientTimeFunction());              // a2
+      constraintMatrixToPack.set(constraintNumber, startIndex + 13, -getCoMVelocitySixthCoefficientTimeFunction());              // a3
+
+      xObjectiveMatrixToPack.set(constraintNumber, 0, desiredVRPVelocity.getX());
+      yObjectiveMatrixToPack.set(constraintNumber, 0, desiredVRPVelocity.getY());
+      zObjectiveMatrixToPack.set(constraintNumber, 0, desiredVRPVelocity.getZ());
    }
    
    public static void constrainComputedCoMDCM(FramePoint3DReadOnly DCMFinalPositionforConstraint, double time, double omega, int sequenceId, int constraintNumber,
@@ -866,18 +878,30 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
    /*
     *  ECMP First Coefficient which starts at the VRP for a step
     */
+   /**
+    * e <sup> &omega; t </sup>
+    */
    public static double getECMPStart_0_FirstCoefficient(double omega, double time) {
       return Math.min(sufficientlyLarge, Math.exp(omega * time));
    }
    
+   /**
+    * e <sup> -&omega; t </sup>
+    */
    public static double getECMPStart_0_SecondCoefficient(double omega, double time) {
       return Math.min(sufficientlyLarge, Math.exp(-omega * time));
    }
    
+   /**
+    * t
+    */
    public static double getECMPStart_0_ThirdCoefficient(double time) {
       return Math.min(sufficientlyLarge, time);
    }
    
+   /**
+    * 1.0
+    */
    public static double getECMPStart_0_FourthCoefficient() {
       return 1.0;
    }
@@ -885,19 +909,30 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
    /*
     *  ECMP Second Coefficient which starts at the VRP for a step
     */
-   
+   /**
+    * 0.0
+    */
    public static double getECMPStart_1_FirstCoefficient() {
       return 0.0;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPStart_1_SecondCoefficient() {
       return 0.0;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPStart_1_ThirdCoefficient() {
       return 0.0;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPStart_1_FourthCoefficient() {
       return 0.0;
    }
@@ -905,19 +940,30 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
    /*
     *  ECMP First Coefficient which ends at the VRP for a step
     */
-   
+   /**
+    * 0.0
+    */
    public static double getECMPEnd_0_FirstCoefficient() {
       return 0.0;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPEnd_0_SecondCoefficient() {
       return 0.0;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPEnd_0_ThirdCoefficient() {
       return 0.0;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPEnd_0_FourthCoefficient() {
       return 0.0;
    }
@@ -926,86 +972,146 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
     *  ECMP second Coefficient which ends at the VRP for a step
     */
    
+   /**
+    * 1.0
+    */
    public static double getECMPEnd_1_FirstCoefficient() {
       return 1.0;
    }
    
+   /**
+    * 1.0
+    */
    public static double getECMPEnd_1_SecondCoefficient() {
       return 1.0;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPEnd_1_ThirdCoefficient() {
       return 0.0;
    }
    
+   /**
+    * 1.0
+    */
    public static double getECMPEnd_1_FourthCoefficient() {
       return 1.0;
    }
    
    // Solving for C_0,r
+   /**
+    * 0.0
+    */
    public static double getECMPRight_0_FirstCoefficient() {
       return 0.0;
    }
    
+   /**
+    * t * s
+    */
    public static double getECMPRight_0_SecondCoefficient(double time, double s) {
       return Math.min(sufficientlyLarge, s*time);
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPRight_0_ThirdCoefficient() {
       return 0.0;
    }
    
+   /**
+    * s
+    */
    public static double getECMPRight_0_FourthCoefficient(double s) {
-      return s*1.0;
+      return s;
    }
    
    // Solving for C_1,r
+   /**
+    * 0.0
+    */
    public static double getECMPRight_1_FirstCoefficient() {
       return 0.0;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPRight_1_SecondCoefficient() {
       return 0.0;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPRight_1_ThirdCoefficient() {
       return 0.0;
    }
    
+   /**
+    * s
+    */
    public static double getECMPRight_1_FourthCoefficient(double s) {
-      return s*1.0;
+      return s;
    }
 
    // Solving for C_0,l
+   /**
+    * t * s
+    */
    public static double getECMPLeft_0_FirstCoefficient(double time, double s) {
       return Math.min(sufficientlyLarge, s*time);
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPLeft_0_SecondCoefficient() {
       return 0.0;
    }
    
+   /**
+    * s
+    */
    public static double getECMPLeft_0_ThirdCoefficient(double s) {
-      return s*1.0;
+      return s;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPLeft_0_FourthCoefficient() {
       return 0.0;
    }
    
    // Solving for C_1,l
+   /**
+    * 0.0
+    */
    public static double getECMPLeft_1_FirstCoefficient() {
       return 0.0;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPLeft_1_SecondCoefficient() {
       return 0.0;
    }
    
+   /**
+    * s
+    */
    public static double getECMPLeft_1_ThirdCoefficient(double s) {
-      return s*1.0;
+      return s;
    }
    
+   /**
+    * 0.0
+    */
    public static double getECMPLeft_1_FourthCoefficient() {
       return 0.0;
    }
@@ -1013,8 +1119,33 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
    /*
     * Set Computed CoM Constraints
     */
+   /**
+    * e <sup> &omega; t </sup>
+    */
+   public static double getComputedCoMDynamicsFirstCoefficient(double omega, double time) {
+      return Math.min(sufficientlyLarge, Math.exp(omega * time));
+   }
    
-   // Nothing right now.
+   /**
+    * e <sup> -&omega; t </sup>
+    */
+   public static double getComputedCoMDynamicsSecondCoefficient(double omega, double time) {
+      return Math.exp(-omega * time);
+   }
+   
+   /**
+    * 2t
+    */
+   public static double getComputedCoMDynamicsThirdCoefficient(double time) {
+      return Math.min(sufficientlyLarge, time);
+   }
+   
+   /**
+    * 2.0
+    */
+   public static double getComputedCoMDynamicsFourthCoefficient() {
+      return 1.0;
+   }
 
    public static double getCoMCoefficientTimeFunction(int order, int coefficient, double omega, double time)
    {
