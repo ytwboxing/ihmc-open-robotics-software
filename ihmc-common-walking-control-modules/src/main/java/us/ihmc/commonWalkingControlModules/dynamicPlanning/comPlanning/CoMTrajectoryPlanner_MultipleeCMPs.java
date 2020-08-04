@@ -51,7 +51,7 @@ import us.ihmc.yoVariables.variable.YoFrameVector3D;
 public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
 {
    private static boolean verbose = false;
-   private static boolean com = false;
+   private static boolean com = true;
    
    private static final int maxCapacity = 10;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
@@ -332,7 +332,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
               desiredVRPPosition, desiredECMPPosition);
       computeECMPs(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPVelocity_left, desiredECMPPosition_right, desiredECMPVelocity_right);
       if (com) {
-         computeCoM(segmentId, timeInPhase,computedCoMPosition);
+         computeCoM(segmentId, timeInPhase, computedCoMPosition);
       }
       if (verbose)
       {
@@ -959,15 +959,16 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    private void setComputedCoMDynamicsInitialConstraint(List<? extends ContactStateProvider> contactSequence, int sequenceId) 
    {
       ContactStateProvider contactStateProvider = contactSequence.get(sequenceId);
-
+      List<String> bodiesInContact = contactStateProvider.getBodiesInContact();
       ContactState contactState = contactStateProvider.getContactState();
-      double duration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
-      desiredComputedCoMVRPVelocity.sub(endVRPPositions.get(sequenceId), startVRPPositions.get(sequenceId));
-      desiredComputedCoMVRPVelocity.scale(1.0 / duration);
+//      double duration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
+//      desiredComputedCoMVRPVelocity.sub(endVRPPositions.get(sequenceId), startVRPPositions.get(sequenceId));
+//      desiredComputedCoMVRPVelocity.scale(1.0 / duration);
       
       if (contactState.isLoadBearing()) {
          setComputedCoMDynamicsPosition(startVRPPositions.get(sequenceId), sequenceId, 0.0);
 //         setComputedCoMDynamicsVelocity(desiredComputedCoMVRPVelocity, sequenceId, 0.0);
+
       }
       // Flight condition
       else {
@@ -975,13 +976,14 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       }
    }
    
-   private void setComputedCoMDynamicsFinalConstraint(List<? extends ContactStateProvider> contactSequence, int sequenceId) {
+   private void setComputedCoMDynamicsFinalConstraint(List<? extends ContactStateProvider> contactSequence, int sequenceId) 
+   {
       ContactStateProvider contactStateProvider = contactSequence.get(sequenceId);
+      List<String> bodiesInContact = contactStateProvider.getBodiesInContact();
       ContactState contactState = contactStateProvider.getContactState();
-      
       double duration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
-      desiredComputedCoMVRPVelocity.sub(endVRPPositions.get(sequenceId), startVRPPositions.get(sequenceId));
-      desiredComputedCoMVRPVelocity.scale(1.0 / duration);
+//      desiredComputedCoMVRPVelocity.sub(endVRPPositions.get(sequenceId), startVRPPositions.get(sequenceId));
+//      desiredComputedCoMVRPVelocity.scale(1.0 / duration);
       
       if (contactState.isLoadBearing()) {
          setComputedCoMDynamicsPosition(endVRPPositions.get(sequenceId), sequenceId, duration);
@@ -992,6 +994,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
          // Nada ahora
       }
    }
+   
    private void setComputedCoMDynamicsPosition(FramePoint3DReadOnly VRPPositionforConstraint, int sequenceId, double duration) {
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMDynamicsPosition(VRPPositionforConstraint, duration, omega.getValue(), sequenceId, numberOfConstraints, xConstants, yConstants, zConstants, coefficientMultipliers);
       numberOfConstraints++;
@@ -1023,8 +1026,6 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMVelocityContinuity(previousSequence, nextSequence, omega.getValue(), numberOfConstraints, previousDuration, coefficientMultipliers);
       numberOfConstraints++;
    }
-   
-   
    
    @Override
    public List<Trajectory3D> getVRPTrajectories()

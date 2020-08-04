@@ -779,9 +779,9 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       constraintMatrixToPack.set(constraintNumber, startIndex + 12,  -getComputedCoMDynamicsThirdCoefficient(time));                // a2
       constraintMatrixToPack.set(constraintNumber, startIndex + 13,  -getComputedCoMDynamicsFourthCoefficient());                   // a3
       
-      xObjectiveMatrixToPack.set(constraintNumber, 0, VRPPositionforConstraint.getX());
-      yObjectiveMatrixToPack.set(constraintNumber, 0, VRPPositionforConstraint.getY());
-      zObjectiveMatrixToPack.set(constraintNumber, 0, VRPPositionforConstraint.getZ());
+//      xObjectiveMatrixToPack.set(constraintNumber, 0, VRPPositionforConstraint.getX());
+//      yObjectiveMatrixToPack.set(constraintNumber, 0, VRPPositionforConstraint.getY());
+//      zObjectiveMatrixToPack.set(constraintNumber, 0, VRPPositionforConstraint.getZ());
    }
    
    public static void constrainComputedCoMDynamicsVelocity(FramePoint3DReadOnly desiredVRPVelocity, double time, double omega, int sequenceId,
@@ -1130,21 +1130,21 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
     * e <sup> -&omega; t </sup>
     */
    public static double getComputedCoMDynamicsSecondCoefficient(double omega, double time) {
-      return Math.exp(-omega * time);
+      return Math.min(sufficientlyLarge, Math.exp(-omega * time));
    }
    
    /**
     * 2t
     */
    public static double getComputedCoMDynamicsThirdCoefficient(double time) {
-      return Math.min(sufficientlyLarge, time);
+      return Math.min(sufficientlyLarge, 2.0*time);
    }
    
    /**
     * 2.0
     */
    public static double getComputedCoMDynamicsFourthCoefficient() {
-      return 1.0;
+      return 2.0;
    }
 
    public static double getCoMCoefficientTimeFunction(int order, int coefficient, double omega, double time)
