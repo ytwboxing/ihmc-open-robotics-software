@@ -881,13 +881,14 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
              boolean nextIsRight = handleDoubleECMPConditions(contactSequence, sequenceId, basisSequenceId);
              // Double Support for a following right step
              if (nextIsRight) {
-                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, endVRPPositions.get(sequenceId), 
-                                                                                                       xConstants, yConstants, zConstants, coefficientMultipliers);
+                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForLeftToRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
+                                                                                         endVRPPositions.get(sequenceId), xConstants, yConstants, zConstants, coefficientMultipliers);
+                
              }
              // Double Support for a following left step
              else if (!nextIsRight) {
-                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, endVRPPositions.get(sequenceId), 
-                                                                                                      xConstants, yConstants, zConstants, coefficientMultipliers);
+                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForRightToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
+                                                                                         endVRPPositions.get(sequenceId), xConstants, yConstants, zConstants, coefficientMultipliers);
              }
           }
           // Single Support Condition
@@ -895,14 +896,14 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
              // Left Support Condition
              if (bodiesInContact.get(0) == "left")
              {
-                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForLeftToRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
-                                                                                      endVRPPositions.get(sequenceId + 1), xConstants, yConstants, zConstants, coefficientMultipliers);
+                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, endVRPPositions.get(sequenceId), 
+                                                                                                       xConstants, yConstants, zConstants, coefficientMultipliers);
              }
              // Right Support Condition
              else if (bodiesInContact.get(0) == "right")
              {
-                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForRightToLeftStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, startVRPPositions.get(sequenceId), 
-                                                                                      endVRPPositions.get(sequenceId + 1), xConstants, yConstants, zConstants, coefficientMultipliers);
+                CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsForDoubleSupportToBeginRightStep(nextDuration, omega.getValue(), sequenceId, numberOfConstraints, endVRPPositions.get(sequenceId), 
+                                                                                                      xConstants, yConstants, zConstants, coefficientMultipliers);
              }
           }
           numberOfConstraints = numberOfConstraints + 4;
