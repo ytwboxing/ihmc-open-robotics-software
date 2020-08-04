@@ -51,7 +51,6 @@ import us.ihmc.yoVariables.variable.YoFrameVector3D;
 public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
 {
    private static boolean verbose = false;
-   private static boolean com = true;
    
    private static final int maxCapacity = 10;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
@@ -242,10 +241,8 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       // set initial constraint
       setCoMPositionConstraint(currentCoMPosition);
       setDynamicsInitialConstraint(contactSequence, 0);
-      if (com) {
-         setComputedCoMPositionConstraint(currentCoMPosition, 0);
-         setComputedCoMDynamicsInitialConstraint(contactSequence, 0);
-      }
+      setComputedCoMPositionConstraint(currentCoMPosition, 0);
+      setComputedCoMDynamicsInitialConstraint(contactSequence, 0);
 
       // add transition continuity constraints
       for (int transition = 0; transition < numberOfTransitions; transition++)
@@ -258,12 +255,10 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
          setDynamicsInitialConstraint(contactSequence, nextSequence);
          
          setECMPConstraints(contactSequence, previousSequence, nextSequence);
-         if (com) {
-            setComputedCoMPositionContinuity(contactSequence, previousSequence, nextSequence);
-            setComputedCoMVelocityContinuity(contactSequence, previousSequence, nextSequence);
-            setComputedCoMDynamicsInitialConstraint(contactSequence, nextSequence);
-            setComputedCoMDynamicsFinalConstraint(contactSequence, previousSequence);
-         }
+         setComputedCoMPositionContinuity(contactSequence, previousSequence, nextSequence);
+         setComputedCoMVelocityContinuity(contactSequence, previousSequence, nextSequence);
+         setComputedCoMDynamicsInitialConstraint(contactSequence, nextSequence);
+         setComputedCoMDynamicsFinalConstraint(contactSequence, previousSequence);
       }
 
       // set terminal constraint
@@ -272,12 +267,9 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       double finalDuration = lastContactPhase.getTimeInterval().getDuration();
       setDCMPositionConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
       setDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
-      
       setECMPConstraints(contactSequence, numberOfPhases - 1, numberOfPhases - 2);
-      if (com) {
-         setComputedCoMDCMConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
-         setComputedCoMDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
-      }
+      setComputedCoMDCMConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
+      setComputedCoMDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
       
       // coefficient constraint matrix stored in coefficientMultipliers, but math requires inverted matrix
       NativeCommonOps.invert(coefficientMultipliers, coefficientMultipliersInv);
@@ -330,10 +322,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
    {
       compute(segmentId, timeInPhase, desiredCoMPosition, desiredCoMVelocity, desiredCoMAcceleration, desiredDCMPosition, desiredDCMVelocity,
               desiredVRPPosition, desiredECMPPosition);
-      computeECMPs(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPVelocity_left, desiredECMPPosition_right, desiredECMPVelocity_right);
-      if (com) {
-         computeCoM(segmentId, timeInPhase, computedCoMPosition);
-      }
+      computeECMPsandComputedCoM(segmentId, timeInPhase, desiredECMPPosition_left, desiredECMPVelocity_left, desiredECMPPosition_right, desiredECMPVelocity_right, computedCoMPosition);
       if (verbose)
       {
          LogTools.info("At time " + timeInPhase + ", Desired DCM = " + desiredDCMPosition + ", Desired CoM = " + desiredCoMPosition);
@@ -417,8 +406,8 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
     * different method was to avoid making modifications to the CoMTrajectorPlannerInterface.java file.
     */
    
-   public void computeECMPs(int segmentId, double timeInPhase, FixedFramePoint3DBasics ecmpLeftPositionToPack, FixedFramePoint3DBasics ecmpLeftVelocityToPack, 
-                            FixedFramePoint3DBasics ecmpRightPositionToPack, FixedFramePoint3DBasics ecmpRightVelocityToPack) {
+   public void computeECMPsandComputedCoM(int segmentId, double timeInPhase, FixedFramePoint3DBasics ecmpLeftPositionToPack, FixedFramePoint3DBasics ecmpLeftVelocityToPack, 
+                            FixedFramePoint3DBasics ecmpRightPositionToPack, FixedFramePoint3DBasics ecmpRightVelocityToPack, FixedFramePoint3DBasics computedCoMPositionToPack) {
       int startIndex = indexHandler.getContactSequenceStartIndex(segmentId);
       
       // seventh, eighth, ninth, and tenth coefficients are the coefficients that the 
@@ -442,15 +431,6 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       tenthCoefficient.setY(yCoefficientVector.get(tenthCoefficientIndex));
       tenthCoefficient.setZ(zCoefficientVector.get(tenthCoefficientIndex));
       
-      CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPPosition_left(ecmpLeftPositionToPack, seventhCoefficient, ninthCoefficient, timeInPhase);
-      CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPVelocity_left(ecmpLeftVelocityToPack, seventhCoefficient);
-      CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPPosition_right(ecmpRightPositionToPack, eighthCoefficient, tenthCoefficient, timeInPhase);
-      CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPVelocity_right(ecmpRightVelocityToPack, eighthCoefficient);
-   }
-   
-   public void computeCoM(int segmentId, double timeInPhase, FixedFramePoint3DBasics computedCoMPositionToPack) {
-      int startIndex = indexHandler.getContactSequenceStartIndex(segmentId);
-      
       int eleventhCoefficientIndex = startIndex + 10;
       eleventhCoefficient.setX(xCoefficientVector.get(eleventhCoefficientIndex));
       eleventhCoefficient.setY(yCoefficientVector.get(eleventhCoefficientIndex));
@@ -471,10 +451,11 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       fourteenthCoefficient.setY(yCoefficientVector.get(fourteenthCoefficientIndex));
       fourteenthCoefficient.setZ(zCoefficientVector.get(fourteenthCoefficientIndex));
       
-      
-      CoMTrajectoryPlannerTools_MultipleeCMPs.constructComputedCoM(computedCoMPositionToPack, eleventhCoefficient, twelfthCoefficient, 
-                                                                   thirteenthCoefficient, fourteenthCoefficient,
-                                                                   timeInPhase, omega.getValue());
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPPosition_left(ecmpLeftPositionToPack, seventhCoefficient, ninthCoefficient, timeInPhase);
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPVelocity_left(ecmpLeftVelocityToPack, seventhCoefficient);
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPPosition_right(ecmpRightPositionToPack, eighthCoefficient, tenthCoefficient, timeInPhase);
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constructECMPVelocity_right(ecmpRightVelocityToPack, eighthCoefficient);
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constructComputedCoM(computedCoMPositionToPack, eleventhCoefficient, twelfthCoefficient, thirteenthCoefficient, fourteenthCoefficient, timeInPhase, omega.getValue());
    }
 
    /** {@inheritDoc} */
