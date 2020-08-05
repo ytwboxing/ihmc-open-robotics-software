@@ -628,8 +628,6 @@ public class CoMTrajectoryPlannerTools_MultipleeCMPs
       // constraint right eCMP first constant (C_r0)
       constraintMatrixToPack.set(constraintNumber,       startIndex,       1.0);
       constraintMatrixToPack.set(constraintNumber + 1,   startIndex + 1,   1.0);
-      constraintMatrixToPack.set(constraintNumber,       startIndex + 2,   0.0);
-      constraintMatrixToPack.set(constraintNumber,       startIndex + 3,   0.0);
       constraintMatrixToPack.set(constraintNumber + 2,   startIndex + 4,   1.0);
       constraintMatrixToPack.set(constraintNumber + 3,   startIndex + 5,   1.0);
       if (constrainLeftECMP) {
