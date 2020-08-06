@@ -13,11 +13,11 @@ import us.ihmc.pubsub.TopicDataType;
 public class QuixSlopeStepType extends Packet<QuixSlopeStepType> implements Settable<QuixSlopeStepType>, EpsilonComparable<QuixSlopeStepType>
 {
 
-   public static final byte SLOPE_UP = (byte) 0;
+   public static final byte SLOPE_FLAT = (byte) 0;
 
-   public static final byte SLOPE_DOWN = (byte) 1;
+   public static final byte SLOPE_UP = (byte) 1;
 
-   public static final byte SLOPE_FLAT = (byte) 2;
+   public static final byte SLOPE_DOWN = (byte) 2;
 
    /**
             * Unique ID used to identify this message, should preferably be consecutively increasing.

@@ -7,13 +7,13 @@ module controller_msgs
   {
     module dds
     {
-      const octet SLOPE_UP =
+      const octet SLOPE_FLAT =
       0;
 
-      const octet SLOPE_DOWN =
+      const octet SLOPE_UP =
       1;
 
-      const octet SLOPE_FLAT =
+      const octet SLOPE_DOWN =
       2;
 
 
