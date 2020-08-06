@@ -51,7 +51,6 @@ import us.ihmc.yoVariables.variable.YoFrameVector3D;
 public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
 {
    private static boolean verbose = false;
-   private static boolean com = true;
    
    private static final int maxCapacity = 10;
    private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
@@ -242,7 +241,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       // set initial constraint
       setCoMPositionConstraint(currentCoMPosition);
       setDynamicsInitialConstraint(contactSequence, 0);
-      setComputedCoMPositionConstraint(currentCoMPosition, 0);
+      setComputedCoMPositionInitialConstraint(currentCoMPosition, 0);
       setComputedCoMDynamicsInitialConstraint(contactSequence, 0);
 
       // add transition continuity constraints
@@ -268,7 +267,7 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       double finalDuration = lastContactPhase.getTimeInterval().getDuration();
       setDCMPositionConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
       setDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
-      setECMPConstraints(contactSequence, numberOfPhases - 1, numberOfPhases - 2); // check this
+      setECMPConstraints(contactSequence, numberOfPhases - 1, numberOfPhases - 2);
       setComputedCoMDCMConstraint(numberOfPhases - 1, finalDuration, finalDCMPosition);
       setComputedCoMDynamicsFinalConstraint(contactSequence, numberOfPhases - 1);
       
@@ -972,55 +971,122 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       return nextIsRight;
    }
    
+   /**
+    * <p> Sets the eCMP Derivatives to zero depending on constrainLeftECMP variable. </sub>
+    * <p> This constraint is set during a single support phase, when one eCMP is following the CoM and the other stays at the CoP. </p>
+    * <p> c<sub>0,i</sub> = c<sub>1,i</sub> = c<sub>2,i</sub> = 0 </p>
+    * @param constrainLeftECMP
+    * @param sequenceId
+    */
    private void setECMPNonlinearConstraintsToZero(boolean constrainLeftECMP, int sequenceId) {
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPNonlinearConstraintsToZero(constrainLeftECMP, sequenceId, numberOfConstraints, coefficientMultipliers);
       numberOfConstraints = numberOfConstraints + 2;
    }
    
+   /**
+    * <p> Sets eCMP coefficients equal to CoM coefficients during a single support phase. </p>
+    * @param constrainLeftECMP
+    * @param sequenceId
+    * @param time
+    */
    private void setECMPtoCoM(boolean constrainLeftECMP, int sequenceId, double time) {
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPtoCoM(constrainLeftECMP, sequenceId, numberOfConstraints, coefficientMultipliers);
       numberOfConstraints = numberOfConstraints + 4;
    }
    
+   /**
+    * <p> Sets the eCMP nonlinear constraints equal to zero depending on the constrainLeftECMP variable. </p>
+    * <p> During the double support phase, the eCMPs are transitions linearly. This constraint sets c<sub>0,i</sub> = c<sub>1,i</sub> = 0. </p>
+    * @param constrainLeftECMP
+    * @param sequenceId
+    */
    private void setECMPDerivativesToZero(boolean constrainLeftECMP, int sequenceId) {
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPDerivativesToZero(constrainLeftECMP, sequenceId, numberOfConstraints, coefficientMultipliers);
       numberOfConstraints = numberOfConstraints + 3;
    }
    
+   /**
+    * <p> Adds a constraint to the left or right eCMP depending on variable constrainLeftECMP. </p>
+    * <p> Recall that the eCMP is defined as </p>
+    * r<sub>eCMP,i</sub> = c<sub>0,i</sub> * e<sup>&omega;t</sup> + c<sub>1,i</sub> * e<sup>-&omega;t</sup> + c<sub>2,i</sub> * t + c<sub>3,i</sub>
+    * <p> Where i represents left/right. This constraint is set for a double support phase, where both eCMPs are linear.
+    * Therefore, c<sub>0,i</sub> = c<sub>1,i</sub> = 0 in this instance. </p>
+    * <p> This constraint sets the desiredStartVRPPosition, so this constraint sets c<sub>3,i</sub> = desiredVRPStartPosition. </p>
+    * @param constrainLeftECMP
+    * @param sequenceId
+    * @param time
+    * @param VRPStartPositionforConstraint
+    */
    private void setECMPsToVRPStartPosition(boolean constrainLeftECMP, int sequenceId, double time, FramePoint3DReadOnly VRPStartPositionforConstraint) {
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsToVRPStartPosition(constrainLeftECMP, sequenceId, numberOfConstraints, VRPStartPositionforConstraint, 
                                                                                xConstants, yConstants, zConstants, coefficientMultipliers);
       numberOfConstraints++;
    }
    
+   /**
+    * <p> Adds a constraint to the left or right eCMP depending on variable constrainLeftECMP. </p>
+    * <p> Recall that the eCMP is defined as </p>
+    * r<sub>eCMP,i</sub> = c<sub>0,i</sub> * e<sup>&omega;t</sup> + c<sub>1,i</sub> * e<sup>-&omega;t</sup> + c<sub>2,i</sub> * t + c<sub>3,i</sub>
+    * <p> Where i represents left/right. This constraint is set for a double support phase, where both eCMPs are linear.
+    * Therefore, c<sub>0,i</sub> = c<sub>1,i</sub> = 0 in this instance. </p>
+    * <p> This constraint sets the desiredStartEndPosition, so this constraint sets c<sub>2,i</sub>*T + c<sub>3,i</sub> = desiredVRPEndPosition. </p>
+    * @param constrainLeftECMP
+    * @param sequenceId
+    * @param time
+    * @param VRPEndPositionforConstraint
+    */
    private void setECMPsToVRPEndPosition(boolean constrainLeftECMP, int sequenceId, double time, FramePoint3DReadOnly VRPEndPositionforConstraint) {
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsToVRPEndPosition(constrainLeftECMP, time, sequenceId, numberOfConstraints, VRPEndPositionforConstraint, 
                                                                              xConstants, yConstants, zConstants, coefficientMultipliers);
       numberOfConstraints++;
    }
    
+   /**
+    * <p> Sets eCMP constraint based on the CoM Start position depending on constrainLeftECMP variable. </p>
+    * <p> Recall that the eCMP is defined as </p>
+    * r<sub>eCMP,i</sub> = c<sub>0,i</sub> * e<sup>&omega;t</sup> + c<sub>1,i</sub> * e<sup>-&omega;t</sup> + c<sub>2,i</sub> * t + c<sub>3,i</sub>
+    * <p> Where i represents left/right. This constraint is set for a double support phase, where both eCMPs are linear. </p>
+    * <p> Therefore, c<sub>0,i</sub> = c<sub>1,i</sub> = 0 in this instance. </p>
+    * <p> This constraint sets c<sub>3,i</sub> = x<sub>i</sub>(0). </p>
+    * @param constrainLeftECMP
+    * @param sequenceId
+    * @param time
+    */
    private void setECMPsToCoMStartPositionForLinearECMP(boolean constrainLeftECMP, int sequenceId, double time) {
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsToCoMStartPosition(constrainLeftECMP, omega.getValue(), sequenceId, numberOfConstraints, 
                                                                                xConstants, yConstants, zConstants, coefficientMultipliers);
       numberOfConstraints++;
    }
    
+   /**
+    * <p> Sets eCMP constraint based on the CoM End position depending on constrainLeftECMP variable. </p>
+    * <p> Recall that the eCMP is defined as </p>
+    * r<sub>eCMP,i</sub> = c<sub>0,i</sub> * e<sup>&omega;t</sup> + c<sub>1,i</sub> * e<sup>-&omega;t</sup> + c<sub>2,i</sub> * t + c<sub>3,i</sub>
+    * <p> Where i represents left/right. This constraint is set for a double support phase, where both eCMPs are linear. </p>
+    * <p> Therefore, c<sub>0,i</sub> = c<sub>1,i</sub> = 0 in this instance. </p>
+    * <p> This constraint sets c<sub>2,i</sub>*T + c<sub>3,i</sub> = x<sub>i</sub>(T). </p>
+    * @param constrainLeftECMP
+    * @param sequenceId
+    * @param time
+    */
    private void setECMPsToCoMEndPositionForLinearECMP(boolean constrainLeftECMP, int sequenceId, double time) {
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainECMPsToCoMEndPosition(constrainLeftECMP, time, omega.getValue(), sequenceId, numberOfConstraints,
                                                                              xConstants, yConstants, zConstants, coefficientMultipliers);
       numberOfConstraints++;
    }
    
-   private final FramePoint3D desiredComputedCoMVRPVelocity = new FramePoint3D();
-   
+   /**
+    * <p> This constraint sets the CoM dynamics to a specific position during the double support phase when t = 0. </p>
+    * @param contactSequence
+    * @param sequenceId
+    */
    private void setComputedCoMDynamicsInitialConstraint(List<? extends ContactStateProvider> contactSequence, int sequenceId) 
    {
       ContactStateProvider contactStateProvider = contactSequence.get(sequenceId);
-      List<String> bodiesInContact = contactStateProvider.getBodiesInContact();
       ContactState contactState = contactStateProvider.getContactState();
       
       if (contactState.isLoadBearing()) {
-         setComputedCoMDynamicsPosition(startVRPPositions.get(sequenceId), sequenceId, 0.0);
+         setComputedCoMDynamicsPosition(sequenceId, 0.0);
 
       }
       // Flight condition
@@ -1029,15 +1095,19 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       }
    }
    
+   /**
+    * <p> This constraint sets the CoM dynamics to a specific position during the double support phase when t = T. </p>
+    * @param contactSequence
+    * @param sequenceId
+    */
    private void setComputedCoMDynamicsFinalConstraint(List<? extends ContactStateProvider> contactSequence, int sequenceId) 
    {
       ContactStateProvider contactStateProvider = contactSequence.get(sequenceId);
-      List<String> bodiesInContact = contactStateProvider.getBodiesInContact();
       ContactState contactState = contactStateProvider.getContactState();
       double duration = contactSequence.get(sequenceId).getTimeInterval().getDuration();
       
       if (contactState.isLoadBearing()) {
-         setComputedCoMDynamicsPosition(endVRPPositions.get(sequenceId), sequenceId, duration);
+         setComputedCoMDynamicsPosition(sequenceId, duration);
       }
       // Flight condition
       else {
@@ -1045,32 +1115,69 @@ public class CoMTrajectoryPlanner_MultipleeCMPs implements CoMTrajectoryProvider
       }
    }
    
-   private void setComputedCoMDynamicsPosition(FramePoint3DReadOnly VRPPositionforConstraint, int sequenceId, double duration) {
-      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMDynamicsPosition(VRPPositionforConstraint, duration, omega.getValue(), sequenceId, numberOfConstraints, xConstants, yConstants, zConstants, coefficientMultipliers);
+   /**
+    * <p> This constraint sets the CoM dynamics to a specific position during the double support phase when t = 0. </p>
+    * <p> The Computed CoM depends on the ECMPs based on the following equation. </p>
+    * <p> r<sub>eCMP</sub>(t) = -x(t) + r<sub>eCMP,l</sub>(t) + r<sub>eCMP,r</sub>(t). </p>
+    * <p> r<sub>eCMP</sub>(t) = t/T * r<sub>eCMP,H</sub> + (1 - t/T)*r<sub>eCMP,T</sub> </p>
+    * <p> where T represents the toe and H represents the heel. The left/right eCMP are represented as follows.</p>
+    * <p> r<sub>eCMP,i</sub> = c<sub>0,i</sub> * e<sup>&omega;t</sup> + c<sub>1,i</sub> * e<sup>-&omega;t</sup> + c<sub>2,i</sub> * t + c<sub>3,i</sub> </p> 
+    * <p> Based on this the first equation simplifies to the following. </p>
+    * <p> 0 = -cx<sub>0,i</sub> * e<sup>&omega;t</sup> - cx<sub>1,i</sub> * e<sup>-&omega;t</sup> - 2cx<sub>2,i</sub> * t - 2cx<sub>3,i</sub> + r<sub>eCMP,l</sub>(t) + r<sub>eCMP,r</sub>(t)</p>
+    * @param sequenceId
+    * @param duration
+    */
+   private void setComputedCoMDynamicsPosition(int sequenceId, double duration) {
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMDynamicsPosition(duration, omega.getValue(), sequenceId, numberOfConstraints, xConstants, yConstants, zConstants, coefficientMultipliers);
+      numberOfConstraints++;
+   }
+
+   /**
+    * <p> Sets a constraint for the Computed CoM based on the initial position of the CoM. </p>
+    * @param centerOfMassLocationForConstraint
+    * @param sequenceId
+    */
+   private void setComputedCoMPositionInitialConstraint(FramePoint3DReadOnly centerOfMassLocationForConstraint, int sequenceId) {
+      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMPosition(centerOfMassLocationForConstraint, 0.0, omega.getValue(), sequenceId, numberOfConstraints, xConstants, yConstants, zConstants, coefficientMultipliers);
       numberOfConstraints++;
    }
    
-   private void setComputedCoMDynamicsVelocity(FramePoint3DReadOnly desiredVRPVelocity, int sequenceId, double duration) {
-      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMDynamicsVelocity(desiredVRPVelocity, duration, omega.getValue(), sequenceId, numberOfConstraints, xConstants, yConstants, zConstants, coefficientMultipliers);
-      numberOfConstraints++;
-   }
-   
-   private void setComputedCoMPositionConstraint(FramePoint3DReadOnly centerOfMassLocationForConstraint, int sequenceId) {
-      CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMPosition(centerOfMassLocationForConstraint, sequenceId, numberOfConstraints, xConstants, yConstants, zConstants, coefficientMultipliers);
-      numberOfConstraints++;
-   }
-   
+   /**
+    * <p> This constraint sets the DCM final position as a constraint. </p>
+    * <p> The DCM and CoM are related via the following equation. </p>
+    * <p> &xi;(t) = x(t) + 1/&omega; * dx/dt(t) </p>
+    * <p> For the final DCM phase this comes to &xi;<sub>f</sub> = x(T) + 1/&omega; * dx/dt(T) </p>
+    * <p> This simplifies to the following. </p>
+    * <p> &xi;<sub>f</sub> = 2a<sub>0</sub>e<sup>&omega;T</sup> + a<sub>2</sub>(T + 1/&omega;) + a<sub>3</sub> </p>
+    * @param sequenceId
+    * @param time
+    * @param DCMFinalPositionforConstraint
+    */
    private void setComputedCoMDCMConstraint(int sequenceId, double time, FramePoint3DReadOnly DCMFinalPositionforConstraint) {
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMDCM(DCMFinalPositionforConstraint, time, omega.getValue(), sequenceId, numberOfConstraints, xConstants, yConstants, zConstants, coefficientMultipliers);
       numberOfConstraints++;
    }
    
+   /**
+    * <p> Maintains position continuity for Computed CoM between phases as follows. </p>
+    * <p> x<sub>i-1</sub>(T) = x<sub>i</sub>(0) </p>
+    * @param contactSequence
+    * @param previousSequence
+    * @param nextSequence
+    */
    private void setComputedCoMPositionContinuity(List<? extends ContactStateProvider> contactSequence, int previousSequence, int nextSequence) {
       double previousDuration = contactSequence.get(previousSequence).getTimeInterval().getDuration();
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMPositionContinuity(previousSequence, nextSequence, omega.getValue(), numberOfConstraints, previousDuration, coefficientMultipliers);
       numberOfConstraints++;
    }
    
+   /**
+    * Maintains velocity continuity for Computed CoM between phases as follows. </p>
+    * <p> dx/dt<sub>i-1</sub>(T) = dx/dt<sub>i</sub>(0) </p>
+    * @param contactSequence
+    * @param previousSequence
+    * @param nextSequence
+    */
    private void setComputedCoMVelocityContinuity(List<? extends ContactStateProvider> contactSequence, int previousSequence, int nextSequence) {
       double previousDuration = contactSequence.get(previousSequence).getTimeInterval().getDuration();
       CoMTrajectoryPlannerTools_MultipleeCMPs.constrainComputedCoMVelocityContinuity(previousSequence, nextSequence, omega.getValue(), numberOfConstraints, previousDuration, coefficientMultipliers);
