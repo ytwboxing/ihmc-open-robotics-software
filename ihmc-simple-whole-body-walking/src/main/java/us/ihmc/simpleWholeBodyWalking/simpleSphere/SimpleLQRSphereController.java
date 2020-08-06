@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.commonWalkingControlModules.capturePoint.lqrControl.LQRMomentumController;
+import us.ihmc.commonWalkingControlModules.capturePoint.lqrControl.LQRMomentumControllerDCMOnly;
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
@@ -27,7 +29,8 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
    private final SimpleSphereRobot sphereRobot;
    private final ExternalForcePoint externalForcePoint;
 
-   private final LQRMomentumController lqrMomentumController;
+   private final LQRMomentumControllerDCMOnly lqrMomentumController;
+   private final LQRMomentumController lqrMomentumControllerUnused;
 
    private final YoFrameVector3D lqrForce = new YoFrameVector3D("lqrForce", ReferenceFrame.getWorldFrame(), registry);
 
@@ -54,8 +57,8 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
 
       sphereRobot.getScsRobot().setController(this);
 
-      lqrMomentumController = new LQRMomentumController(sphereRobot.getOmega0Provider(), registry);
-      
+      lqrMomentumController = new LQRMomentumControllerDCMOnly(sphereRobot.getOmega0Provider(), registry);
+      lqrMomentumControllerUnused = new LQRMomentumController(sphereRobot.getOmega0Provider(), registry);
       vizSphere = new SimpleSphereVisualizer(dcmPlan, yoGraphicsListRegistry, sphereRobot, registry);
       
       dcmPlan.initialize();
@@ -66,6 +69,8 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
    }
 
    private final DMatrixRMaj currentState = new DMatrixRMaj(6, 1);
+   private final DMatrixRMaj currentCOMPosition = new DMatrixRMaj(3, 1);
+   private final DMatrixRMaj currentCOMVelocity = new DMatrixRMaj(3, 1);
 
    @Override
    public void doControl()
@@ -85,10 +90,19 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
       sphereRobot.getDesiredDCMVelocity().set(dcmPlan.getDesiredDCMVelocity());
 
       lqrMomentumController.setVRPTrajectory(dcmPlan.getVRPTrajectories());
+      lqrMomentumControllerUnused.setVRPTrajectory(dcmPlan.getVRPTrajectories());
       sphereRobot.getCenterOfMass().get(currentState);
       sphereRobot.getCenterOfMassVelocity().get(3, currentState);
-      lqrMomentumController.computeControlInput(currentState, timeInPhase);
+      sphereRobot.getCenterOfMass().get(currentCOMPosition);
+      sphereRobot.getCenterOfMassVelocity().get(currentCOMVelocity);
+      lqrMomentumControllerUnused.computeControlInput(currentState, timeInPhase);
+      lqrMomentumController.computeControlInput(currentCOMPosition, currentCOMVelocity, timeInPhase);
 
+      DMatrixRMaj UsedU = lqrMomentumController.getU();
+      DMatrixRMaj UnusedU = lqrMomentumControllerUnused.getU();
+      CommonOps_DDRM.addEquals(UsedU, -1, UnusedU);
+      System.out.println(CommonOps_DDRM.elementSum(UsedU));
+      
       lqrForce.set(lqrMomentumController.getU());
       lqrForce.addZ(sphereRobot.getGravityZ());
       lqrForce.scale(sphereRobot.getTotalMass());

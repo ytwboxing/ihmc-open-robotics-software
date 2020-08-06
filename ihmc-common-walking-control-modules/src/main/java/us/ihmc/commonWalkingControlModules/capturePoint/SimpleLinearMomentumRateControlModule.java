@@ -14,6 +14,7 @@ import gnu.trove.list.array.TDoubleArrayList;
 import us.ihmc.commonWalkingControlModules.bipedSupportPolygons.BipedSupportPolygons;
 import us.ihmc.commonWalkingControlModules.capturePoint.controller.ICPController;
 import us.ihmc.commonWalkingControlModules.capturePoint.lqrControl.LQRMomentumController;
+import us.ihmc.commonWalkingControlModules.capturePoint.lqrControl.LQRMomentumControllerDCMOnly;
 import us.ihmc.commonWalkingControlModules.capturePoint.optimization.ICPOptimizationController;
 import us.ihmc.commonWalkingControlModules.capturePoint.stepAdjustment.StepAdjustmentController;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
@@ -125,8 +126,9 @@ public class SimpleLinearMomentumRateControlModule
    private boolean desiredCoPcontainedNaN = false;
 
    private final StepAdjustmentController stepAdjustmentController;
-   private final LQRMomentumController lqrMomentumController;
-   private final DMatrixRMaj currentState = new DMatrixRMaj(6, 1);
+   private final LQRMomentumControllerDCMOnly lqrMomentumController;
+   private final DMatrixRMaj currentCOMPosition = new DMatrixRMaj(3, 1);
+   private final DMatrixRMaj currentCOMVelocity = new DMatrixRMaj(3, 1);
 
    private final ICPControlPlane icpControlPlane;
    private final BipedSupportPolygons bipedSupportPolygons;
@@ -235,7 +237,7 @@ public class SimpleLinearMomentumRateControlModule
       icpControlPolygons = new ICPControlPolygons(icpControlPlane,  registry, yoGraphicsListRegistry);
       bipedSupportPolygons = new BipedSupportPolygons(referenceFrames, registry, null); // TODO: This is not being visualized since it is a duplicate for now.
 
-      lqrMomentumController = new LQRMomentumController(omega0, registry);
+      lqrMomentumController = new LQRMomentumControllerDCMOnly(omega0, registry);
       stepAdjustmentController = new StepAdjustmentController(walkingControllerParameters,
                                                               soleZUpFrames,
                                                               bipedSupportPolygons,
@@ -476,15 +478,15 @@ public class SimpleLinearMomentumRateControlModule
 
    public void updateCurrentState(FramePoint3DReadOnly CenterOfMassPosition, FrameVector3DReadOnly CenterOfMassVelocity)
    {
-      CenterOfMassPosition.get(currentState);
-      CenterOfMassVelocity.get(3, currentState);
+      CenterOfMassPosition.get(currentCOMPosition);
+      CenterOfMassVelocity.get(currentCOMVelocity);
    }
    
    private void computeICPController()
    {
          lqrMomentumController.setOmega(omega0);
          lqrMomentumController.setVRPTrajectory(vrpTrajectories);
-         lqrMomentumController.computeControlInput(currentState, timeInContactPhase);
+         lqrMomentumController.computeControlInput(currentCOMPosition, currentCOMVelocity, timeInContactPhase);
          stepAdjustmentController.compute(yoTime.getDoubleValue(), desiredCapturePoint, capturePoint, new FrameVector2D(), omega0);
    }
 
