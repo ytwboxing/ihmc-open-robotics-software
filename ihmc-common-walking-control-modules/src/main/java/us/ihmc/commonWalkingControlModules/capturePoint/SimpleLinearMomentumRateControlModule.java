@@ -37,6 +37,7 @@ import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector2DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint2DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
@@ -120,6 +121,7 @@ public class SimpleLinearMomentumRateControlModule
 
    private final FramePoint3D cmp3d = new FramePoint3D();
    private final FrameVector3D linearMomentumRateOfChange = new FrameVector3D();
+   private final FrameVector3D angularMomentumRateOfChange = new FrameVector3D();
 
    private boolean desiredCMPcontainedNaN = false;
    private boolean desiredCoPcontainedNaN = false;
@@ -189,7 +191,9 @@ public class SimpleLinearMomentumRateControlModule
       recoveryLinearMomentumRateWeight = new ParameterVector3D("RecoveryLinearMomentumRateWeight",
                                                                momentumOptimizationSettings.getRecoveryLinearMomentumWeight(),
                                                                registry);
-      angularMomentumRateWeight = new ParameterVector3D("AngularMomentumRateWeight", momentumOptimizationSettings.getAngularMomentumWeight(), registry);
+      double angMomentumRateWeight = 0.00;
+//      angularMomentumRateWeight = new ParameterVector3D("AngularMomentumRateWeight", momentumOptimizationSettings.getAngularMomentumWeight(), registry);
+      angularMomentumRateWeight = new ParameterVector3D("AngularMomentumRateWeight", new Vector3D(angMomentumRateWeight, angMomentumRateWeight, angMomentumRateWeight), registry);
 
       allowMomentumRecoveryWeight = new BooleanParameter("allowMomentumRecoveryWeight", registry, false);
       maxMomentumRateWeightChangeRate = new DoubleParameter("maxMomentumRateWeightChangeRate", registry, 10.0);
@@ -397,8 +401,12 @@ public class SimpleLinearMomentumRateControlModule
       selectionMatrix.setToLinearSelectionOnly();
       selectionMatrix.selectLinearZ(controlHeightWithMomentum);
       selectionMatrix.selectAngularZ(minimizingAngularMomentumRateZ.getValue());
+      selectionMatrix.selectAngularX(false);
+      selectionMatrix.selectAngularY(false);
+      selectionMatrix.selectAngularZ(false);
       momentumRateCommand.setLinearMomentumRate(linearMomentumRateOfChange);
       momentumRateCommand.setSelectionMatrix(selectionMatrix);
+      //momentumRateCommand.setAngularMomentumRate(angularMomentumRateOfChange);
       momentumRateCommand.setWeights(angularMomentumRateWeight, desiredLinearMomentumRateWeight);
 
       desiredCoPInMidFeet.setMatchingFrame(desiredCoP);

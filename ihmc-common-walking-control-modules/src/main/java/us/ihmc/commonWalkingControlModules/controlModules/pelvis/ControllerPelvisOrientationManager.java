@@ -208,7 +208,10 @@ public class ControllerPelvisOrientationManager implements PelvisOrientationCont
       }
 
       tempWeight.set(pelvisAngularWeight);
-
+      tempWeight.setX(1);
+      tempWeight.setY(1);
+      tempWeight.setZ(1);
+      
       if (leapOfFaithModule != null)
       {
          leapOfFaithModule.update(deltaTime);
