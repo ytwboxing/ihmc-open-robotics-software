@@ -30,6 +30,7 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
    private final LQRMomentumController lqrMomentumController;
 
    private final YoFrameVector3D lqrForce = new YoFrameVector3D("lqrForce", ReferenceFrame.getWorldFrame(), registry);
+   private final YoFrameVector3D lqrTorque = new YoFrameVector3D("lqrTorque", ReferenceFrame.getWorldFrame(), registry);
 
    private final SimpleBipedCoMTrajectoryPlanner dcmPlan;
    
@@ -94,6 +95,12 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
       lqrForce.scale(sphereRobot.getTotalMass());
 
       externalForcePoint.setForce(lqrForce);
+
+      lqrTorque.setX(0.1);
+      lqrTorque.setY(0);
+      lqrTorque.setZ(0);
+      
+      externalForcePoint.setMoment(0,0,0);
 
       scsRobot.updateJointPositions_ID_to_SCS();
       scsRobot.updateJointVelocities_ID_to_SCS();

@@ -121,6 +121,7 @@ public class SimpleBasicSphereController implements SimpleSphereControllerInterf
 
       vrpForces.setMatchingFrame(forces);
       externalForcePoint.setForce(forces);
+      externalForcePoint.setMoment(0,0,0);
 
       if (forces.containsNaN())
          throw new RuntimeException("Illegal forces.");
