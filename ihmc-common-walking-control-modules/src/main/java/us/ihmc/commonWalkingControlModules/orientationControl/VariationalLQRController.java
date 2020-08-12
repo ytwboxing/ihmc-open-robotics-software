@@ -4,6 +4,7 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.FrameQuaternion;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameQuaternionReadOnly;
@@ -20,7 +21,7 @@ import us.ihmc.robotics.linearAlgebra.careSolvers.SignFunctionCARESolver;
 
 public class VariationalLQRController
 {
-   private static final double defaultQR = 1100;
+   private static final double defaultQR = 100;
    private static final double defaultQw = 5;
    private static final double defaultR = 1.25;
 
@@ -35,7 +36,7 @@ public class VariationalLQRController
 
    private final DMatrixRMaj QR = new DMatrixRMaj(3, 3);
    private final DMatrixRMaj Qw = new DMatrixRMaj(3, 3);
-   private final DMatrixRMaj Q = new DMatrixRMaj(12, 12);
+   private final DMatrixRMaj Q = new DMatrixRMaj(6, 6);
    private final DMatrixRMaj R = new DMatrixRMaj(3, 3);
    private final DMatrixRMaj RInverse = new DMatrixRMaj(3, 3);
 
@@ -76,11 +77,17 @@ public class VariationalLQRController
       MatrixTools.setDiagonal(QR, defaultQR);
       MatrixTools.setDiagonal(Qw, defaultQw);
       MatrixTools.setDiagonal(R, defaultR);
+      CommonOps_DDRM.invert(R, RInverse);
    }
 
    public void setInertia(SpatialInertiaReadOnly inertia)
    {
       inertia.getMomentOfInertia().get(this.inertia);
+   }
+   
+   public void setInertia(Matrix3DReadOnly inertia)
+   {
+      inertia.get(this.inertia);
    }
 
    private final RotationMatrix rotationMatrix = new RotationMatrix();
@@ -135,8 +142,9 @@ public class VariationalLQRController
 
       CommonOps_DDRM.multTransA(B, careSolver.getP(), BTP);
       CommonOps_DDRM.mult(RInverse, BTP, K);
-
-      currentRotation.get(RB);
+      
+      currentRotation.get(rotationMatrix);
+      rotationMatrix.get(RB);
       currentAngularVelocity.get(wB);
 
       CommonOps_DDRM.multTransA(-1.0, RB, RBd, RBerror);
@@ -148,8 +156,8 @@ public class VariationalLQRController
 
       fromSkewSymmetric(RBerror, RBerrorVector);
 
-      MatrixTools.setMatrixBlock(state, 0, 0, wBerror, 0, 0, 3, 1, 1.0);
-      MatrixTools.setMatrixBlock(state, 3, 0, RBerrorVector, 0, 0, 3, 1, 1.0);
+      MatrixTools.setMatrixBlock(state, 0, 0, RBerrorVector, 0, 0, 3, 1, 1.0);
+      MatrixTools.setMatrixBlock(state, 3, 0, wBerror, 0, 0, 3, 1, 1.0);
 
       CommonOps_DDRM.mult(-1.0, K, state, deltaTau);
       CommonOps_DDRM.add(deltaTau, tauD, tau);

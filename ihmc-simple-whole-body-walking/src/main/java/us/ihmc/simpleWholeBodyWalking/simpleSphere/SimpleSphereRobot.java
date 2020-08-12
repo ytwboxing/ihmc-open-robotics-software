@@ -1,6 +1,7 @@
 package us.ihmc.simpleWholeBodyWalking.simpleSphere;
 
 import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -10,6 +11,8 @@ import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
@@ -99,7 +102,7 @@ public class SimpleSphereRobot
 
       centerOfMassFrame = new CenterOfMassReferenceFrame("centerOfMass", worldFrame, elevator);
       centerOfMassJacobian = new CenterOfMassJacobian(elevator, worldFrame);
-
+      
       yoCenterOfMass = new YoFramePoint3D(name + "_CenterOfMass", worldFrame, registry);
       yoCenterOfMassVelocity = new YoFrameVector3D(name + "_CenterOfMassVelocity", worldFrame, registry);
       desiredDCM = new YoFramePoint3D(name + "_DesiredDCM", worldFrame, registry);
@@ -231,6 +234,23 @@ public class SimpleSphereRobot
    public FrameVector3DReadOnly getCenterOfMassVelocity()
    {
       return yoCenterOfMassVelocity;
+   }
+   
+   public Matrix3DReadOnly getInertiaTensor()
+   {
+      return inertia;
+   }
+   
+   public QuaternionReadOnly getCurrentRotation()
+   {
+      Quaternion currentRotation = new Quaternion();
+      body.getBodyFixedFrame().getTransformToWorldFrame().getRotation().get(currentRotation);
+      return currentRotation;
+   }
+   
+   public FrameVector3DReadOnly getAngularVelocity()
+   {
+      return body.getBodyFixedFrame().getTwistOfFrame().getAngularPart();
    }
 
    private final FramePoint3D centerOfMassPosition = new FramePoint3D();

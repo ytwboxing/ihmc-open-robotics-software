@@ -6,8 +6,14 @@ import java.util.List;
 import org.ejml.data.DMatrixRMaj;
 
 import us.ihmc.commonWalkingControlModules.capturePoint.lqrControl.LQRMomentumController;
+import us.ihmc.commonWalkingControlModules.orientationControl.VariationalLQRController;
 import us.ihmc.commons.MathTools;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.humanoidRobotics.footstep.Footstep;
 import us.ihmc.humanoidRobotics.footstep.FootstepTiming;
@@ -28,6 +34,7 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
    private final ExternalForcePoint externalForcePoint;
 
    private final LQRMomentumController lqrMomentumController;
+   private final VariationalLQRController variationalLQRController;
 
    private final YoFrameVector3D lqrForce = new YoFrameVector3D("lqrForce", ReferenceFrame.getWorldFrame(), registry);
    private final YoFrameVector3D lqrTorque = new YoFrameVector3D("lqrTorque", ReferenceFrame.getWorldFrame(), registry);
@@ -56,6 +63,8 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
       sphereRobot.getScsRobot().setController(this);
 
       lqrMomentumController = new LQRMomentumController(sphereRobot.getOmega0Provider(), registry);
+      variationalLQRController = new VariationalLQRController();
+      variationalLQRController.setInertia(sphereRobot.getInertiaTensor());
       
       vizSphere = new SimpleSphereVisualizer(dcmPlan, yoGraphicsListRegistry, sphereRobot, registry);
       
@@ -67,6 +76,8 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
    }
 
    private final DMatrixRMaj currentState = new DMatrixRMaj(6, 1);
+   private Quaternion currentRotation = new Quaternion();
+   private FrameVector3D currentAngularVelocity = new FrameVector3D();
 
    @Override
    public void doControl()
@@ -96,11 +107,27 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
 
       externalForcePoint.setForce(lqrForce);
 
-      lqrTorque.setX(0.1);
-      lqrTorque.setY(0);
-      lqrTorque.setZ(0);
+      Quaternion desiredRotation = new Quaternion(0,0,0,1);
+      if (currentTime < 4)
+      {
+         desiredRotation.set(0,0,1,10);
+      }
+      else
+      {
+         desiredRotation.set(0,0,0,1);
+      }
+      //desiredRotation.set(0,0,Math.abs(currentTime-5),1);
+      currentRotation.set(sphereRobot.getCurrentRotation());
+      currentAngularVelocity.setIncludingFrame(sphereRobot.getAngularVelocity());
+      currentAngularVelocity.changeFrame(ReferenceFrame.getWorldFrame());
+      variationalLQRController.setDesired(desiredRotation, new Vector3D(), new Vector3D());
+      variationalLQRController.compute(currentRotation, currentAngularVelocity);
       
-      externalForcePoint.setMoment(0,0,0);
+      Vector3D torqueVector = new Vector3D();
+      variationalLQRController.getDesiredTorque(torqueVector);
+      lqrTorque.set(torqueVector);
+      
+      externalForcePoint.setMoment(torqueVector);
 
       scsRobot.updateJointPositions_ID_to_SCS();
       scsRobot.updateJointVelocities_ID_to_SCS();
