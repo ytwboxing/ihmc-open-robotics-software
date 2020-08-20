@@ -180,7 +180,7 @@ public class PlanarRegionSegmentationCalculator
       }
 
       return regionToNavigate.nodeStream().filter(node -> otherRegion.distanceFromBoundingBox(node) < searchRadiusSquared)
-                             .filter(node -> isNodeInOtherRegionNeighborhood(root, node, otherRegion, searchRadius)).findFirst().isPresent();
+                             .anyMatch(node -> isNodeInOtherRegionNeighborhood(root, node, otherRegion, searchRadius));
    }
 
    public static boolean isNodeInOtherRegionNeighborhood(NormalOcTreeNode root, NormalOcTreeNode nodeFromOneRegion,
@@ -253,7 +253,6 @@ public class PlanarRegionSegmentationCalculator
    {
       double searchRadius = parameters.getSearchRadius();
 
-      Deque<NormalOcTreeNode> nodesToExplore = new ArrayDeque<>();
       Set<NormalOcTreeNode> newSetToExplore = new HashSet<>();
 
       NeighborActionRule<NormalOcTreeNode> extendSearchRule = neighborNode -> recordCandidatesForRegion(neighborNode, ocTreeNodePlanarRegion, newSetToExplore,
@@ -276,7 +275,7 @@ public class PlanarRegionSegmentationCalculator
                                .filter(node -> isNodeInBoundingBox(node, boundingBox))
                                .forEach(regionNode -> OcTreeNearestNeighborTools.findRadiusNeighbors(root, regionNode, searchRadius, extendSearchRule));
       }
-      nodesToExplore.addAll(newSetToExplore);
+      Deque<NormalOcTreeNode> nodesToExplore = new ArrayDeque<>(newSetToExplore);
 
       while (!nodesToExplore.isEmpty())
       {
@@ -299,6 +298,7 @@ public class PlanarRegionSegmentationCalculator
          return;
       if (!isNodePartOfRegion(neighborNode, region, parameters.getMaxDistanceFromPlane(), Math.cos(parameters.getMaxAngleFromPlane())))
          return;
+
       if (!neighborNode.isNormalSet() || !neighborNode.isHitLocationSet())
          return;
 

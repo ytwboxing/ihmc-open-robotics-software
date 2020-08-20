@@ -20,13 +20,13 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.trajectories.TrajectoryType;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 import java.util.function.Consumer;
 
 public class FootstepPlanPostProcessHandler
 {
-   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+   private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
 
    private final FootstepPlannerParametersReadOnly footstepPlannerParameters;
    private final SwingPlannerParametersBasics swingPlannerParameters;
@@ -63,7 +63,7 @@ public class FootstepPlanPostProcessHandler
       }
       else
       {
-         this.adaptiveSwingTrajectoryCalculator = new AdaptiveSwingTrajectoryCalculator(swingPlannerParameters, walkingControllerParameters);
+         this.adaptiveSwingTrajectoryCalculator = new AdaptiveSwingTrajectoryCalculator(swingPlannerParameters, footstepPlannerParameters, walkingControllerParameters);
          this.swingOverPlanarRegionsTrajectoryExpander = new SwingOverPlanarRegionsTrajectoryExpander(walkingControllerParameters,
                                                                                                       registry,
                                                                                                       new YoGraphicsListRegistry());
@@ -71,6 +71,11 @@ public class FootstepPlanPostProcessHandler
 
       this.areaBasedSplitFractionCalculator = new AreaBasedSplitFractionCalculator(splitFractionParameters, footPolygons);
       this.positionBasedSplitFractionCalculator = new PositionBasedSplitFractionCalculator(splitFractionParameters);
+   }
+
+   public YoRegistry getYoVariableRegistry()
+   {
+      return registry;
    }
 
    public void handleRequest(FootstepPlannerRequest request, FootstepPlannerOutput output)
@@ -85,9 +90,7 @@ public class FootstepPlanPostProcessHandler
       if (request.getSwingPlannerType() == SwingPlannerType.PROPORTION && adaptiveSwingTrajectoryCalculator != null)
       {
          adaptiveSwingTrajectoryCalculator.setPlanarRegionsList(request.getPlanarRegionsList());
-         RobotSide initialStanceSide = request.getRequestedInitialStanceSide();
-         Pose3D initialStancePose = request.getStartFootPoses().get(initialStanceSide);
-         adaptiveSwingTrajectoryCalculator.setSwingParameters(initialStancePose, output.getFootstepPlan());
+         adaptiveSwingTrajectoryCalculator.setSwingParameters(request.getStartFootPoses(), output.getFootstepPlan());
       }
       else if (request.getSwingPlannerType() == SwingPlannerType.POSITION && swingOverPlanarRegionsTrajectoryExpander != null)
       {

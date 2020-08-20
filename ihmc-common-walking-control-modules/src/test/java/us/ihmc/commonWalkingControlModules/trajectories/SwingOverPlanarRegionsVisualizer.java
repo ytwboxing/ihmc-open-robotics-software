@@ -1,5 +1,8 @@
 package us.ihmc.commonWalkingControlModules.trajectories;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import us.ihmc.commonWalkingControlModules.trajectories.SwingOverPlanarRegionsTrajectoryExpander.SwingOverPlanarRegionsCollisionType;
 import us.ihmc.euclid.geometry.interfaces.ConvexPolygon2DReadOnly;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
@@ -7,17 +10,12 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicEllipsoid;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolygon;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.*;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoFramePoint3D;
-import us.ihmc.yoVariables.variable.YoFramePoseUsingYawPitchRoll;
-
-import java.util.HashMap;
-import java.util.Map;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoint3D;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SwingOverPlanarRegionsVisualizer
 {
@@ -25,6 +23,8 @@ public class SwingOverPlanarRegionsVisualizer
 
    private final SimulationConstructionSet scs;
 
+   private final YoFrameVector3D planeNormal;
+   private final YoFramePoint3D planeOrigin;
    private final YoFramePoseUsingYawPitchRoll solePose;
    private final YoFramePoint3D firstWaypoint;
    private final YoFramePoint3D secondWaypoint;
@@ -34,12 +34,13 @@ public class SwingOverPlanarRegionsVisualizer
    private final YoGraphicPolygon swingEndGraphic;
    private final YoGraphicPosition firstWaypointGraphic;
    private final YoGraphicPosition secondWaypointGraphic;
+   private final YoGraphicVector planeVector;
    private final Map<SwingOverPlanarRegionsCollisionType, YoGraphicPosition> intersectionMap;
 
    private final ConvexPolygon2DReadOnly footPolygon;
    private final SwingOverPlanarRegionsTrajectoryExpander trajectoryExpander;
 
-   public SwingOverPlanarRegionsVisualizer(SimulationConstructionSet scs, YoVariableRegistry registry, YoGraphicsListRegistry yoGraphicsListRegistry,
+   public SwingOverPlanarRegionsVisualizer(SimulationConstructionSet scs, YoRegistry registry, YoGraphicsListRegistry yoGraphicsListRegistry,
                                            ConvexPolygon2DReadOnly footPolygon,
                                            SwingOverPlanarRegionsTrajectoryExpander swingOverPlanarRegionsTrajectoryExpander)
    {
@@ -63,6 +64,10 @@ public class SwingOverPlanarRegionsVisualizer
       firstWaypointGraphic = new YoGraphicPosition("FirstWaypointGraphic", firstWaypoint, 0.02, YoAppearance.White());
       secondWaypointGraphic = new YoGraphicPosition("SecondWaypointGraphic", secondWaypoint, 0.02, YoAppearance.White());
       intersectionMap = new HashMap<>();
+
+      planeNormal = new YoFrameVector3D("planeNormal", ReferenceFrame.getWorldFrame(), registry);
+      planeOrigin = new YoFramePoint3D("planeOrigin", ReferenceFrame.getWorldFrame(), registry);
+      planeVector = new YoGraphicVector("planeNormal", planeOrigin, planeNormal, 0.2, YoAppearance.Red());
 
       for (SwingOverPlanarRegionsCollisionType swingOverPlanarRegionsTrajectoryCollisionType : SwingOverPlanarRegionsCollisionType.values())
       {
@@ -101,6 +106,7 @@ public class SwingOverPlanarRegionsVisualizer
       }
 
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", trajectoryPosition);
+      yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", planeVector);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", collisionSphere);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", stanceFootGraphic);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", swingStartGraphic);
@@ -124,6 +130,17 @@ public class SwingOverPlanarRegionsVisualizer
 
       firstWaypoint.set(trajectoryExpander.getExpandedWaypoints().get(0));
       secondWaypoint.set(trajectoryExpander.getExpandedWaypoints().get(1));
+
+      planeOrigin.set(trajectoryExpander.getSwingFloorPlane().getPoint());
+      planeNormal.set(trajectoryExpander.getSwingFloorPlane().getNormal());
+      swingStartGraphic.setPose(new FramePose3D(ReferenceFrame.getWorldFrame(), trajectoryExpander.getStartPose()));
+      swingEndGraphic.setPose(new FramePose3D(ReferenceFrame.getWorldFrame(), trajectoryExpander.getEndPose()));
+
+      swingStartGraphic.updateConvexPolygon2d(footPolygon);
+      swingEndGraphic.updateConvexPolygon2d(footPolygon);
+
+//      swingFloorPlane.set(swingStartPosition, tempPlaneNormal);
+
 
       scs.tickAndUpdate(scs.getTime() + 0.1);
    }

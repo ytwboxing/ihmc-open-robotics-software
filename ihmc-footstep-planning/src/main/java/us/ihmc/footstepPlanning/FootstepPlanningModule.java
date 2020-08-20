@@ -43,7 +43,7 @@ import us.ihmc.robotics.robotSide.SideDependentList;
 import us.ihmc.robotics.trajectories.TrajectoryType;
 import us.ihmc.ros2.Ros2Node;
 import us.ihmc.tools.thread.CloseableAndDisposable;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +54,7 @@ import java.util.function.Consumer;
 public class FootstepPlanningModule implements CloseableAndDisposable
 {
    private final String name;
-   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+   private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
    private Ros2Node ros2Node;
    private final VisibilityGraphsParametersBasics visibilityGraphParameters;
    private final FootstepPlannerParametersBasics footstepPlannerParameters;
@@ -113,6 +113,7 @@ public class FootstepPlanningModule implements CloseableAndDisposable
                                                                    splitFractionParameters,
                                                                    walkingControllerParameters,
                                                                    footPolygons);
+      registry.addChild(postProcessHandler.getYoVariableRegistry());
       aStarFootstepPlanner.setPostProcessorCallback(output -> postProcessHandler.handleRequest(output.getKey(), output.getValue()));
 
       addStatusCallback(output -> output.getPlannerTimings().setTimePlanningStepsSeconds(stopwatch.lapElapsed()));
@@ -402,6 +403,11 @@ public class FootstepPlanningModule implements CloseableAndDisposable
    public FootstepPlanPostProcessHandler getPostProcessHandler()
    {
       return postProcessHandler;
+   }
+
+   public YoRegistry getYoVariableRegistry()
+   {
+      return registry;
    }
 
    @Override

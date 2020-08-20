@@ -15,13 +15,18 @@ import us.ihmc.quadrupedCommunication.networkProcessing.pawPlanning.PawPlanningM
 import us.ihmc.quadrupedCommunication.networkProcessing.reaUpdater.QuadrupedREAStateUpdater;
 import us.ihmc.quadrupedCommunication.networkProcessing.stepTeleop.QuadrupedStepTeleopModule;
 import us.ihmc.robotEnvironmentAwareness.updaters.LIDARBasedREAModule;
+import us.ihmc.robotEnvironmentAwareness.updaters.REANetworkProvider;
+import us.ihmc.robotEnvironmentAwareness.updaters.REAPlanarRegionPublicNetworkProvider;
 import us.ihmc.robotModels.FullQuadrupedRobotModelFactory;
 import us.ihmc.robotics.robotSide.QuadrantDependentList;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static us.ihmc.robotEnvironmentAwareness.communication.REACommunicationProperties.*;
+import static us.ihmc.robotEnvironmentAwareness.communication.REACommunicationProperties.depthOutputTopic;
 
 public class QuadrupedNetworkProcessor
 {
@@ -65,7 +70,7 @@ public class QuadrupedNetworkProcessor
       setupQuadrupedSupportPlanarRegionPublisherModule(robotModel, groundContactPoints, params, pubSubImplementation);
    }
 
-   public void setRootRegistry(YoVariableRegistry rootRegistry, YoGraphicsListRegistry rootGraphicsListRegistry)
+   public void setRootRegistry(YoRegistry rootRegistry, YoGraphicsListRegistry rootGraphicsListRegistry)
    {
       for (QuadrupedToolboxModule module : modules)
       {
@@ -130,10 +135,14 @@ public class QuadrupedNetworkProcessor
       {
          try
          {
+            REANetworkProvider networkProvider = new REAPlanarRegionPublicNetworkProvider(outputTopic,
+                                                                                          lidarOutputTopic,
+                                                                                          stereoOutputTopic,
+                                                                                          depthOutputTopic);
             if (pubSubImplementation == DomainFactory.PubSubImplementation.FAST_RTPS)
-               LIDARBasedREAModule.createRemoteModule(System.getProperty("user.home") + "/.ihmc/Configurations/defaultREAModuleConfiguration.txt").start();
+               LIDARBasedREAModule.createRemoteModule(System.getProperty("user.home") + "/.ihmc/Configurations/defaultREAModuleConfiguration.txt", networkProvider).start();
             else
-               LIDARBasedREAModule.createIntraprocessModule(System.getProperty("user.home") + "/.ihmc/Configurations/defaultREAModuleConfiguration.txt")
+               LIDARBasedREAModule.createIntraprocessModule(System.getProperty("user.home") + "/.ihmc/Configurations/defaultREAModuleConfiguration.txt", networkProvider)
                                   .start();
 
          }

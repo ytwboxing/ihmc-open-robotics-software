@@ -1,32 +1,18 @@
 package us.ihmc.atlas.behaviors;
 
-import us.ihmc.atlas.AtlasRobotModel;
-import us.ihmc.atlas.AtlasRobotVersion;
-import us.ihmc.avatar.drcRobot.DRCRobotModel;
-import us.ihmc.avatar.drcRobot.RobotTarget;
-import us.ihmc.humanoidBehaviors.BehaviorModule;
-import us.ihmc.humanoidBehaviors.ui.BehaviorUI;
 import us.ihmc.humanoidBehaviors.ui.BehaviorUIRegistry;
 import us.ihmc.humanoidBehaviors.ui.behaviors.LookAndStepBehaviorUI;
-import us.ihmc.humanoidBehaviors.ui.behaviors.PatrolBehaviorUI;
-import us.ihmc.log.LogTools;
+import us.ihmc.tools.processManagement.JavaProcessManager;
 
 public class AtlasLookAndStepBehaviorUIAndModule
 {
-   public AtlasLookAndStepBehaviorUIAndModule()
-   {
-      DRCRobotModel drcRobotModel = new AtlasRobotModel(AtlasRobotVersion.ATLAS_UNPLUGGED_V5_DUAL_ROBOTIQ, RobotTarget.REAL_ROBOT, false);
-
-      BehaviorUIRegistry behaviorRegistry = BehaviorUIRegistry.of(LookAndStepBehaviorUI.DEFINITION, PatrolBehaviorUI.DEFINITION);
-
-      LogTools.info("Creating behavior module");
-      BehaviorModule.createInterprocess(behaviorRegistry, drcRobotModel);
-
-      BehaviorUI.createInterprocess(behaviorRegistry, drcRobotModel, "localhost");
-   }
-
    public static void main(String[] args)
    {
-      new AtlasLookAndStepBehaviorUIAndModule();
+      JavaProcessManager manager = new JavaProcessManager();
+      manager.runOrRegister("AtlasBehaviorUIAndModule", () -> new AtlasBehaviorUIAndModule(BehaviorUIRegistry.of(LookAndStepBehaviorUI.DEFINITION)));
+//      manager.runOrRegister("RealsenseSLAM", () -> new AtlasSLAMBasedREAStandaloneLauncher(false, PubSubImplementation.FAST_RTPS));
+//      manager.runOrRegister("LidarREA", () -> new LidarBasedREAStandaloneLauncher());
+//      manager.runOrRegister("LidarREA", () -> new RemoteLidarBasedREAModuleLauncher());
+      manager.spawnProcesses(AtlasLookAndStepBehaviorUIAndModule.class, args);
    }
 }
