@@ -175,6 +175,8 @@ public class SimpleBipedContactPhase implements ContactStateProvider
    }
 
    private final FramePoint3D tempPoint = new FramePoint3D();
+   private double startBias = 0;
+   private double endBias = 0;
 
    public void update()
    {
@@ -185,11 +187,38 @@ public class SimpleBipedContactPhase implements ContactStateProvider
       else
       {
          contactState = ContactState.IN_CONTACT;
-
+         
+         startBias = 0;
+         endBias = 0;
+         if (startFeet.size() == 1 && endFeet.size() == 1)
+         {
+            if (startFeet.get(0).equals(endFeet.get(0)))
+            {// in Single Support
+               startBias = -0.05;
+               endBias = 0.05;
+            }
+            else
+            {// transferring left to right
+               startBias = 0.05;
+               endBias = -0.05;
+            }
+         }
+         else if(startFeet.size() == 1)
+         {
+            startBias = 0.05;
+            endBias = 0;
+         }
+         else if(endFeet.size() == 1)
+         {
+            startBias = 0;
+            endBias = -0.05;
+         }
+         
          startCopPosition.setToZero();
          for (int i = 0; i < startFeet.size(); i++)
          {
             tempPoint.setIncludingFrame(startFootPoses.get(startFeet.get(i)).getPosition());
+            tempPoint.setX(tempPoint.getX() + startBias);
             tempPoint.changeFrame(ReferenceFrame.getWorldFrame());
             startCopPosition.add(tempPoint);
          }
@@ -199,6 +228,7 @@ public class SimpleBipedContactPhase implements ContactStateProvider
          for (int i = 0; i < endFeet.size(); i++)
          {
             tempPoint.setIncludingFrame(endFootPoses.get(endFeet.get(i)).getPosition());
+            tempPoint.setX(tempPoint.getX() + endBias);
             tempPoint.changeFrame(ReferenceFrame.getWorldFrame());
             endCopPosition.add(tempPoint);
          }

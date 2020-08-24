@@ -1,5 +1,6 @@
 package us.ihmc.atlas;
 
+import us.ihmc.atlas.parameters.AtlasMomentumOptimizationSettings;
 import us.ihmc.atlas.parameters.AtlasWalkingControllerParameters;
 import us.ihmc.avatar.DRCFlatGroundWalkingTrack;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
@@ -60,7 +61,9 @@ public class SimpleAtlasFlatGroundWalkingTrack
       
       double currentNominalHeightAboveAnkle = model.getWalkingControllerParameters().nominalHeightAboveAnkle();
       ((AtlasWalkingControllerParameters) model.getWalkingControllerParameters()).setNominalHeightAboveAnkle(currentNominalHeightAboveAnkle + 0.20);
-
+      
+      //((AtlasMomentumOptimizationSettings) model.getWalkingControllerParameters().getMomentumOptimizationSettings()).
+      
       new DRCFlatGroundWalkingTrack(robotInitialSetup,
                                     guiInitialSetup,
                                     scsInitialSetup,
