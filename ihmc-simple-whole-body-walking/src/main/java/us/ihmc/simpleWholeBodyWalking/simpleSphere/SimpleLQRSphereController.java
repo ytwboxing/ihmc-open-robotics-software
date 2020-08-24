@@ -8,6 +8,7 @@ import org.ejml.data.DMatrixRMaj;
 import us.ihmc.commonWalkingControlModules.capturePoint.lqrControl.LQRMomentumController;
 import us.ihmc.commonWalkingControlModules.orientationControl.VariationalLQRController;
 import us.ihmc.commons.MathTools;
+import us.ihmc.euclid.matrix.RotationMatrix;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -78,6 +79,14 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
    private final DMatrixRMaj currentState = new DMatrixRMaj(6, 1);
    private Quaternion currentRotation = new Quaternion();
    private FrameVector3D currentAngularVelocity = new FrameVector3D();
+   private double angleGain = 1;
+   private double yawDesired;
+   private double pitchDesired; 
+   private double rollDesired;
+   private double yawCurrent;
+   private double pitchCurrent; 
+   private double rollCurrent;
+   private Quaternion desiredRotation = new Quaternion(0,0,0,1);
 
    @Override
    public void doControl()
@@ -106,20 +115,26 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
       lqrForce.scale(sphereRobot.getTotalMass());
 
       externalForcePoint.setForce(lqrForce);
-
-      Quaternion desiredRotation = new Quaternion(0,0,0,1);
-      if (currentTime < 4)
+      
+      currentRotation.set(sphereRobot.getCurrentRotation());
+      yawCurrent = currentRotation.getYaw();
+      pitchCurrent = currentRotation.getPitch();
+      rollCurrent = currentRotation.getRoll();
+      currentAngularVelocity.setIncludingFrame(sphereRobot.getAngularVelocity());
+      currentAngularVelocity.changeFrame(ReferenceFrame.getWorldFrame());
+      if (currentTime < 6)
       {
-         desiredRotation.set(0,0,1,10);
+         yawDesired = 0;
+         pitchDesired = 0;
+         rollDesired = 0.6;
       }
       else
       {
-         desiredRotation.set(0,0,0,1);
+         yawDesired = 0;
+         pitchDesired = 0;
+         rollDesired = 0;
       }
-      //desiredRotation.set(0,0,Math.abs(currentTime-5),1);
-      currentRotation.set(sphereRobot.getCurrentRotation());
-      currentAngularVelocity.setIncludingFrame(sphereRobot.getAngularVelocity());
-      currentAngularVelocity.changeFrame(ReferenceFrame.getWorldFrame());
+      desiredRotation.setYawPitchRoll(yawDesired, pitchDesired, rollDesired);
       variationalLQRController.setDesired(desiredRotation, new Vector3D(), new Vector3D());
       variationalLQRController.compute(currentRotation, currentAngularVelocity);
       
@@ -127,8 +142,9 @@ public class SimpleLQRSphereController implements SimpleSphereControllerInterfac
       variationalLQRController.getDesiredTorque(torqueVector);
       lqrTorque.set(torqueVector);
       
-      externalForcePoint.setMoment(torqueVector);
-
+      //externalForcePoint.setMoment(torqueVector);
+      
+      
       scsRobot.updateJointPositions_ID_to_SCS();
       scsRobot.updateJointVelocities_ID_to_SCS();
       scsRobot.updateJointTorques_ID_to_SCS();

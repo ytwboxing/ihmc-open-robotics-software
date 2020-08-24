@@ -120,8 +120,9 @@ public class SimpleSphereRobot
       Joint floatingJoint = scsRobot.getRootJoints().get(0);
 
       Graphics3DObject linkGraphics = new Graphics3DObject();
-      linkGraphics.translate(0, 0, -radius/2.0);
-      linkGraphics.addCube(radius*2, radius, radius, sphereColor);
+      //linkGraphics.translate(0, 0, -radius/2.0);
+      //linkGraphics.addCube(radius*2, radius, radius, sphereColor);
+      linkGraphics.addSphere(radius/2, sphereColor);
       floatingJoint.getLink().setLinkGraphics(linkGraphics);
 
       String gcName = name + "_GC";
