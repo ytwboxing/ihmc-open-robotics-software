@@ -294,7 +294,7 @@ public class ROS2Tools
                                                               ROS2Topic<?> topicName,
                                                               NewMessageListener<T> newMessageListener)
    {
-      createCallbackSubscription(realtimeRos2Node, typeNamedTopic(messageType).withTopic(topicName), newMessageListener);
+      createCallbackSubscription(realtimeRos2Node, topicName.withType(messageType), newMessageListener);
    }
 
    public static <T> void createCallbackSubscription(RealtimeRos2Node realtimeRos2Node, ROS2Topic<T> topic, NewMessageListener<T> newMessageListener)
