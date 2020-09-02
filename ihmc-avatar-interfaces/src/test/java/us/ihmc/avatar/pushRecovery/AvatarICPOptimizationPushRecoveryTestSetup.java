@@ -12,6 +12,7 @@ import controller_msgs.msg.dds.FootstepDataMessage;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.testTools.DRCSimulationTestHelper;
 import us.ihmc.commonWalkingControlModules.controlModules.foot.FootControlModule.ConstraintType;
+import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.factories.HighLevelControllerStateFactory;
 import us.ihmc.commonWalkingControlModules.highLevelHumanoidControl.highLevelStates.walkingController.states.WalkingStateEnum;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.geometry.BoundingBox3D;
@@ -61,6 +62,12 @@ public abstract class AvatarICPOptimizationPushRecoveryTestSetup
 
    public abstract double getSlowSwingDuration();
 
+   public HighLevelControllerStateFactory getCustomWalkingController()
+   {
+      return null;
+   }
+
+
    @BeforeEach
    public void showMemoryUsageBeforeTest()
    {
@@ -108,6 +115,10 @@ public abstract class AvatarICPOptimizationPushRecoveryTestSetup
    protected void setupAndRunTest(FootstepDataListMessage message) throws SimulationExceededMaximumTimeException, ControllerFailureException
    {
       drcSimulationTestHelper = new DRCSimulationTestHelper(simulationTestingParameters, getRobotModel(), new FlatGroundEnvironment());
+      simulationTestingParameters.setKeepSCSUp(true);
+      HighLevelControllerStateFactory customWalkingState = getCustomWalkingController();
+      if (customWalkingState != null)
+         drcSimulationTestHelper.registerHighLevelControllerState(customWalkingState);
       drcSimulationTestHelper.createSimulation("ICPOptimizationTest");
       setupCamera();
 
@@ -119,6 +130,7 @@ public abstract class AvatarICPOptimizationPushRecoveryTestSetup
                                                     new Vector3D(0, 0, z));
       SimulationConstructionSet scs = drcSimulationTestHelper.getSimulationConstructionSet();
       scs.addYoGraphic(pushRobotController.getForceVisualizer());
+      pushRobotController.addPushButtonToSCS(scs);
 
       drcSimulationTestHelper.simulateAndBlock(0.5);
       drcSimulationTestHelper.publishToController(message);
@@ -128,9 +140,9 @@ public abstract class AvatarICPOptimizationPushRecoveryTestSetup
          String sidePrefix = robotSide.getCamelCaseNameForStartOfExpression();
          String footPrefix = sidePrefix + "Foot";
          @SuppressWarnings("unchecked")
-         final YoEnum<ConstraintType> footConstraintType = (YoEnum<ConstraintType>) scs.findVariable(sidePrefix + "FootControlModule", footPrefix + "CurrentState");
+         final YoEnum<ConstraintType> footConstraintType = (YoEnum<ConstraintType>) scs.findVariable(sidePrefix + "SimpleFootControlModule", footPrefix + "CurrentState");
          @SuppressWarnings("unchecked")
-         final YoEnum<WalkingStateEnum> walkingState = (YoEnum<WalkingStateEnum>) scs.findVariable("WalkingHighLevelHumanoidController", "walkingCurrentState");
+         final YoEnum<WalkingStateEnum> walkingState = (YoEnum<WalkingStateEnum>) scs.findVariable("SimpleWalkingHighLevelHumanoidController", "walkingCurrentState");
          singleSupportStartConditions.put(robotSide, new SingleSupportStartCondition(footConstraintType));
          doubleSupportStartConditions.put(robotSide, new DoubleSupportStartCondition(walkingState, robotSide));
       }
