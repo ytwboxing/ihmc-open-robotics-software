@@ -13,6 +13,8 @@ import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.robotics.math.trajectories.Trajectory3D;
 import us.ihmc.yoVariables.providers.DoubleProvider;
+import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,8 +22,6 @@ import java.util.List;
 
 public class SimpleCoMTrajectoryPlanner implements CoMTrajectoryProvider
 {
-   private double nominalCoMHeight;
-
    private final FramePoint3D initialCoMPosition = new FramePoint3D();
 
    private final RecyclingArrayList<FramePoint3D> dcmCornerPointPool = new RecyclingArrayList<>(FramePoint3D::new);
@@ -34,6 +34,7 @@ public class SimpleCoMTrajectoryPlanner implements CoMTrajectoryProvider
    final RecyclingArrayList<FramePoint3D> comCornerPoints = new RecyclingArrayList<>(FramePoint3D::new);
 
    private final DoubleProvider omega0;
+   private final YoDouble nominalCoMHeight;
 
    private final FramePoint3D desiredDCMPosition = new FramePoint3D();
    private final FrameVector3D desiredDCMVelocity = new FrameVector3D();
@@ -47,9 +48,10 @@ public class SimpleCoMTrajectoryPlanner implements CoMTrajectoryProvider
 
    private CornerPointViewer viewer = null;
 
-   public SimpleCoMTrajectoryPlanner(DoubleProvider omega0)
+   public SimpleCoMTrajectoryPlanner(DoubleProvider omega0, YoRegistry registry)
    {
       this.omega0 = omega0;
+      nominalCoMHeight = new YoDouble("nominalCoMHeight", registry);
    }
 
    public void setCornerPointViewer(CornerPointViewer viewer)
@@ -60,13 +62,13 @@ public class SimpleCoMTrajectoryPlanner implements CoMTrajectoryProvider
    @Override
    public void setNominalCoMHeight(double nominalCoMHeight)
    {
-      this.nominalCoMHeight = nominalCoMHeight;
+      this.nominalCoMHeight.set(nominalCoMHeight);
    }
 
    @Override
    public double getNominalCoMHeight()
    {
-      return nominalCoMHeight;
+      return nominalCoMHeight.getDoubleValue();
    }
 
    @Override
@@ -98,7 +100,7 @@ public class SimpleCoMTrajectoryPlanner implements CoMTrajectoryProvider
       FramePoint3DReadOnly finalCoP = contactSequence.get(contactSequence.size() - 1).getCopEndPosition();
       FramePoint3D finalDCM = dcmCornerPointPool.add();
       finalDCM.set(finalCoP);
-      finalDCM.addZ(nominalCoMHeight);
+      finalDCM.addZ(nominalCoMHeight.getDoubleValue());
 
       dcmCornerPoints.add(finalDCM);
 
@@ -109,8 +111,8 @@ public class SimpleCoMTrajectoryPlanner implements CoMTrajectoryProvider
 
          finalVRP.set(contact.getCopEndPosition());
          startVRP.set(contact.getCopStartPosition());
-         finalVRP.addZ(nominalCoMHeight);
-         startVRP.addZ(nominalCoMHeight);
+         finalVRP.addZ(nominalCoMHeight.getDoubleValue());
+         startVRP.addZ(nominalCoMHeight.getDoubleValue());
 
          FramePoint3D nextCornerPoint = dcmCornerPointPool.add();
          dcmCornerPoints.add(nextCornerPoint);
@@ -182,7 +184,7 @@ public class SimpleCoMTrajectoryPlanner implements CoMTrajectoryProvider
       CenterOfMassDynamicsTools.computeDesiredDCMPositionForwardTime(omega, timeInPhase, duration, initialDCM, startVRP, finalVRP, dcmPositionToPack);
       vrpPositionToPack.set(vrpTrajectory.getPosition());
       ecmpPositionToPack.set(vrpPositionToPack);
-      ecmpPositionToPack.subZ(nominalCoMHeight);
+      ecmpPositionToPack.subZ(nominalCoMHeight.getDoubleValue());
 
       CapturePointTools.computeCapturePointVelocity(dcmPositionToPack, vrpPositionToPack, omega, dcmVelocityToPack);
 

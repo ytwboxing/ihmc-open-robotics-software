@@ -97,7 +97,7 @@ public class SimpleCoMTrajectoryPlannerVisualizer
 //      while (contactStates.size() > 1)
 //         contactStates.remove(contactStates.size() - 1);
 
-      planner = new SimpleCoMTrajectoryPlanner(omega);
+      planner = new SimpleCoMTrajectoryPlanner(omega, registry);
       planner.setNominalCoMHeight(nominalHeight);
 
       planner.setCornerPointViewer(new CornerPointViewer(registry, graphicsListRegistry));

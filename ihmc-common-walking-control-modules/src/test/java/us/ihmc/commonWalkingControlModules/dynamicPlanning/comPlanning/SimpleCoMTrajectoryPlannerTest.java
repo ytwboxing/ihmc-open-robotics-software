@@ -28,7 +28,7 @@ public class SimpleCoMTrajectoryPlannerTest
    @Test
    public void testIntegration()
    {
-      SimpleCoMTrajectoryPlanner planner = new SimpleCoMTrajectoryPlanner(() -> omega);
+      SimpleCoMTrajectoryPlanner planner = new SimpleCoMTrajectoryPlanner(() -> omega, null);
 
       List<SettableContactStateProvider> contactSequence = new ArrayList<>();
 
@@ -267,7 +267,7 @@ public class SimpleCoMTrajectoryPlannerTest
    @Test
    public void testCornerPoints()
    {
-      SimpleCoMTrajectoryPlanner planner = new SimpleCoMTrajectoryPlanner(() -> omega);
+      SimpleCoMTrajectoryPlanner planner = new SimpleCoMTrajectoryPlanner(() -> omega, null);
 
       List<SettableContactStateProvider> contactSequence = new ArrayList<>();
 

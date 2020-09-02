@@ -52,7 +52,7 @@ public class LQRMomentumControllerSimulation
          robots.add(sphereRobot1.getScsRobot());
 
          YoRegistry registry = sphereRobot1.getScsRobot().getRobotsYoRegistry();
-         SimpleCoMTrajectoryPlanner dcmPlan = new SimpleCoMTrajectoryPlanner(sphereRobot1.getOmega0Provider());
+         SimpleCoMTrajectoryPlanner dcmPlan = new SimpleCoMTrajectoryPlanner(sphereRobot1.getOmega0Provider(), registry);
          dcmPlan.setNominalCoMHeight(sphereRobot1.getDesiredHeight());
          dcmPlan.setCornerPointViewer(new CornerPointViewer(registry, yoGraphicsListRegistry1));
          controller1 = new BasicSphereController(sphereRobot1, dcmPlan, yoGraphicsListRegistry1);
@@ -79,7 +79,7 @@ public class LQRMomentumControllerSimulation
          robots.add(sphereRobot2.getScsRobot());
 
          YoRegistry registry = sphereRobot2.getScsRobot().getRobotsYoRegistry();
-         SimpleCoMTrajectoryPlanner dcmPlan = new SimpleCoMTrajectoryPlanner(sphereRobot2.getOmega0Provider());
+         SimpleCoMTrajectoryPlanner dcmPlan = new SimpleCoMTrajectoryPlanner(sphereRobot2.getOmega0Provider(), registry);
          dcmPlan.setNominalCoMHeight(sphereRobot2.getDesiredHeight());
          dcmPlan.setCornerPointViewer(new CornerPointViewer(registry, yoGraphicsListRegistry2));
          controller2 = new LQRSphereController(sphereRobot2, dcmPlan, yoGraphicsListRegistry2);

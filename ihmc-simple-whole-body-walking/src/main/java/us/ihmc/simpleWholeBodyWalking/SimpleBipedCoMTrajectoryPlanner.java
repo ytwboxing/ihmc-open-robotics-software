@@ -92,7 +92,7 @@ public class SimpleBipedCoMTrajectoryPlanner
                                              YoDouble yoTime, ICPPlannerParameters icpPlannerParameters, BipedSupportPolygons bipedSupportPolygons)
       {
       sequenceUpdater = new SimpleBipedContactSequenceUpdater(soleZUpFrames, registry, yoGraphicsListRegistry);
-      comTrajectoryPlanner = new SimpleCoMTrajectoryPlanner(omega0);
+      comTrajectoryPlanner = new SimpleCoMTrajectoryPlanner(omega0, registry);
       comTrajectoryPlanner.setNominalCoMHeight(nominalCoMHeight);
       
       if (yoGraphicsListRegistry != null && VISUALIZE)

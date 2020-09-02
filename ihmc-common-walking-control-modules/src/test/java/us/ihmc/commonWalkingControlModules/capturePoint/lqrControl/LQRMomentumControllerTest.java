@@ -1485,7 +1485,7 @@ public class LQRMomentumControllerTest
    @Test
    public void testBasicTrajectoryTracking()
    {
-      SimpleCoMTrajectoryPlanner planner = new SimpleCoMTrajectoryPlanner(() -> omega);
+      SimpleCoMTrajectoryPlanner planner = new SimpleCoMTrajectoryPlanner(() -> omega, null);
       LQRMomentumController controller = new LQRMomentumController(() -> omega);
 
       List<SettableContactStateProvider> contactSequence = new ArrayList<>();
