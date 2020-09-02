@@ -541,6 +541,8 @@ public class SimpleWalkingHighLevelHumanoidController implements JointLoadStatus
          walkingMessageHandler.clearFootsteps();
          walkingMessageHandler.clearFootTrajectory();
          commandInputManager.clearAllCommands();
+         walkingMessageHandler.reportControllerFailure(failureDetectionControlModule.getFallingDirection3D());
+         controllerToolbox.reportControllerFailureToListeners(failureDetectionControlModule.getFallingDirection2D());
       }
 
    }
