@@ -166,7 +166,7 @@ public class SimpleBalanceManager
          ankleFrame.getTransformToDesiredFrame(ankleToSole, soleFrame);
          ankleToGround = Math.max(ankleToGround, Math.abs(ankleToSole.getTranslationZ()));
       }
-      double nominalHeightAboveGround = walkingControllerParameters.nominalHeightAboveAnkle() + ankleToGround;
+      double nominalHeightAboveGround = 1.0;
       
       comPlanner = new SimpleBipedCoMTrajectoryPlanner(soleZUpFrames, controllerToolbox.getGravityZ(), 
                                                        nominalHeightAboveGround, 
