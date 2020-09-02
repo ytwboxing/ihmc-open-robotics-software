@@ -1,6 +1,7 @@
 package us.ihmc.atlas;
 
 import java.awt.BorderLayout;
+import java.io.InputStream;
 import java.util.Arrays;
 
 import javax.swing.JComboBox;
@@ -63,7 +64,22 @@ public class AtlasRobotModelFactory
          AtlasRobotVersion atlasRobotVersion = AtlasRobotVersion.valueOf(robotModelAsString);
          if (atlasRobotVersion != null)
          {
-            return new AtlasRobotModel(atlasRobotVersion, runningOnRealRobot, headless, simulationContactPoints);
+            return new AtlasRobotModel(atlasRobotVersion, runningOnRealRobot, headless, simulationContactPoints)
+            {
+               private static final String parameterFile = "/us/ihmc/atlas/parameters/experimental_controller_parameters.xml";
+
+               @Override
+               public InputStream getWholeBodyControllerParametersFile()
+               {
+                  return getClass().getResourceAsStream(parameterFile);
+               }
+
+               @Override
+               public InputStream getParameterOverwrites()
+               {
+                  return null;
+               }
+            };
          }
       }
       catch (Exception e)
