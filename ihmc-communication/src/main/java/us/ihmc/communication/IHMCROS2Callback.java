@@ -4,7 +4,6 @@ import geometry_msgs.msg.dds.PosePubSubType;
 import us.ihmc.commons.exception.DefaultExceptionHandler;
 import us.ihmc.commons.exception.ExceptionTools;
 import us.ihmc.euclid.geometry.Pose3D;
-import us.ihmc.log.LogTools;
 import us.ihmc.pubsub.TopicDataType;
 import us.ihmc.pubsub.subscriber.Subscriber;
 import us.ihmc.ros2.ROS2Topic;
@@ -13,10 +12,7 @@ import us.ihmc.ros2.ROS2NodeInterface;
 import us.ihmc.ros2.ROS2Subscription;
 import us.ihmc.ros2.rosidl.geometry_msgs.msg.dds.Pose3DPubSubTypeImpl;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * Callback listener to non-null reception of a message on a ROS 2 topic.
@@ -34,7 +30,7 @@ public class IHMCROS2Callback<T>
       this(ros2Node, topicName.getType(), topicName.getName(), messageCallback);
    }
 
-   public IHMCROS2Callback(ROS2NodeInterface ros2Node, Class<T> messageType, ROS2Topic topicName, Consumer<T> messageCallback)
+   public IHMCROS2Callback(ROS2NodeInterface ros2Node, Class<T> messageType, ROS2Topic<?> topicName, Consumer<T> messageCallback)
    {
       this(ros2Node, messageType, topicName.withTypeName(messageType).toString(), messageCallback);
    }
@@ -55,46 +51,17 @@ public class IHMCROS2Callback<T>
          PosePubSubType.setImplementation(new Pose3DPubSubTypeImpl());
          return (TopicDataType<T>) new PosePubSubType();
       }
-
-      Method pubSubTypeGetter;
-
-      try
+      else
       {
-         pubSubTypeGetter = messageType.getDeclaredMethod(ROS2TopicNameTools.pubSubTypeGetterName);
+         return ROS2TopicNameTools.newMessageTopicDataTypeInstance(messageType);
       }
-      catch (NoSuchMethodException | SecurityException e)
-      {
-         throw new RuntimeException(
-               "Something went wrong when looking up for the method " + messageType.getSimpleName() + "." + ROS2TopicNameTools.pubSubTypeGetterName + "().", e);
-      }
-
-      TopicDataType<T> topicDataType;
-
-      try
-      {
-         topicDataType = (TopicDataType<T>) ((Supplier) pubSubTypeGetter.invoke(ROS2TopicNameTools.newMessageInstance(messageType))).get();
-      }
-      catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e)
-      {
-         throw new RuntimeException(
-               "Something went wrong when invoking the method " + messageType.getSimpleName() + "." + ROS2TopicNameTools.pubSubTypeGetterName + "().", e);
-      }
-      return topicDataType;
    }
 
    private void nullOmissionCallback(Subscriber<T> subscriber)
    {
       if (enabled)
       {
-         T incomingData = subscriber.takeNextData();
-         if (incomingData != null)
-         {
-            messageCallback.accept(incomingData);
-         }
-         else
-         {
-            LogTools.warn("Received null from takeNextData()");
-         }
+         ROS2Tools.takeNextDataAndCallbackIfNotNull(subscriber, messageCallback);
       }
    }
 

@@ -2,13 +2,15 @@ package us.ihmc.communication;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import controller_msgs.msg.dds.*;
 import us.ihmc.commons.exception.ExceptionHandler;
+import us.ihmc.log.LogTools;
 import us.ihmc.pubsub.DomainFactory.PubSubImplementation;
 import us.ihmc.pubsub.TopicDataType;
-import us.ihmc.robotics.geometry.PlanarRegionsList;
+import us.ihmc.pubsub.subscriber.Subscriber;
 import us.ihmc.ros2.*;
 import us.ihmc.util.PeriodicNonRealtimeThreadSchedulerFactory;
 import us.ihmc.util.PeriodicRealtimeThreadSchedulerFactory;
@@ -259,6 +261,11 @@ public class ROS2Tools
       return createCallbackSubscription(ros2Node, topic.getType(), topic.getName(), newMessageListener);
    }
 
+   public static <T> ROS2Subscription<T> createCallback(ROS2NodeInterface ros2Node, ROS2Topic<T> topic, Consumer<T> messageCallback)
+   {
+      return createCallbackSubscription(ros2Node, topic.getType(), topic.getName(), createNullOmissionCallbackAdapter(messageCallback));
+   }
+
    public static <T> ROS2Subscription<T> createCallbackSubscription(ROS2NodeInterface ros2Node,
                                                                     Class<T> messageType,
                                                                     ROS2Topic<?> topicName,
@@ -448,6 +455,24 @@ public class ROS2Tools
       {
          exceptionHandler.handleException(e);
          return null;
+      }
+   }
+
+   public static <T> NewMessageListener<T> createNullOmissionCallbackAdapter(Consumer<T> messageCallback)
+   {
+      return subscriber -> takeNextDataAndCallbackIfNotNull(subscriber, messageCallback);
+   }
+
+   public static <T> void takeNextDataAndCallbackIfNotNull(Subscriber<T> subscriber, Consumer<T> messageCallback)
+   {
+      T incomingData = subscriber.takeNextData();
+      if (incomingData != null)
+      {
+         messageCallback.accept(incomingData);
+      }
+      else
+      {
+         LogTools.warn("Received null from takeNextData()");
       }
    }
 }
