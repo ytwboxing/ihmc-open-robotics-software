@@ -548,7 +548,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
 
       try
       {
-         HumanoidAvatarREAStateUpdater module = new HumanoidAvatarREAStateUpdater(robotModel, pubSubImplementation, stateRequest);
+         HumanoidAvatarREAStateUpdater module = new HumanoidAvatarREAStateUpdater(robotModel, pubSubImplementation);
          addModuleToClose(module, "Lidar");
          return module;
       }
@@ -565,7 +565,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
 
       try
       {
-         HumanoidAvatarREAStateUpdater module = new HumanoidAvatarREAStateUpdater(robotModel, pubSubImplementation, stateRequestStereo);
+         HumanoidAvatarREAStateUpdater module = new HumanoidAvatarREAStateUpdater(robotModel, pubSubImplementation, "stereo");
          addModuleToClose(module, "Realsense");
          return module;
       }
