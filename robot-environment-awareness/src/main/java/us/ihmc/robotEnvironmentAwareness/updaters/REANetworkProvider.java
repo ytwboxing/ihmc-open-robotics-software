@@ -37,10 +37,6 @@ public interface REANetworkProvider
    {
    }
 
-   default void registerPlanarRegionsListRequestHandler(NewMessageListener<RequestPlanarRegionsListMessage> requestHandler)
-   {
-   }
-
    default void registerREAStateRequestHandler(NewMessageListener<REAStateRequestMessage> requestHandler)
    {
    }

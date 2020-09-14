@@ -141,7 +141,6 @@ public class LIDARBasedREAModule implements PerceptionModule
       networkProvider.registerStereoVisionPointCloudHandler(reaMessager, this::dispatchStereoVisionPointCloudMessage);
       networkProvider.registerStampedPosePacketHandler(reaMessager, this::dispatchStampedPosePacket);
       networkProvider.registerCustomRegionsHandler(this::dispatchCustomPlanarRegion);
-      networkProvider.registerPlanarRegionsListRequestHandler(this::handleRequestPlanarRegionsListMessage);
       networkProvider.registerREAStateRequestHandler(this::handleREAStateRequestMessage);
       networkProvider.registerREASensorDataFilterParametersHandler(this::handleREASensorDataFilterParametersMessage);
 

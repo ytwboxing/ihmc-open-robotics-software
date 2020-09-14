@@ -34,7 +34,6 @@ import us.ihmc.robotEnvironmentAwareness.communication.converters.OcTreeMessageC
 import us.ihmc.robotEnvironmentAwareness.communication.packets.BoundingBoxParametersMessage;
 import us.ihmc.robotEnvironmentAwareness.io.FilePropertyHelper;
 import us.ihmc.robotEnvironmentAwareness.perceptionSuite.PerceptionModule;
-import us.ihmc.robotEnvironmentAwareness.ros.REASourceType;
 import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools;
 import us.ihmc.robotEnvironmentAwareness.tools.ExecutorServiceTools.ExceptionHandling;
 import us.ihmc.robotEnvironmentAwareness.updaters.OcTreeConsumer;
@@ -133,7 +132,7 @@ public class SLAMModule implements PerceptionModule
                                            this::handlePointCloud);
       ROS2Tools.createCallbackSubscription(ros2Node,
                                            REAStateRequestMessage.class,
-                                           REACommunicationProperties.stereoInputTopic,
+                                           REACommunicationProperties.stateRequestStereo,
                                            this::handleREAStateRequestMessage);
       new IHMCROS2Callback<>(ros2Node, SLAMModuleAPI.CLEAR, message -> clearSLAM());
       new IHMCROS2Callback<>(ros2Node, SLAMModuleAPI.SHUTDOWN, message ->

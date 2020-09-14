@@ -87,7 +87,6 @@ public class ROS2Tools
    public static final ROS2Topic<?> REA_SUPPORT_REGIONS = REA.withSuffix(REA_CUSTOM_REGION_NAME);
    public static final ROS2Topic<PlanarRegionsListMessage> REA_SUPPORT_REGIONS_INPUT
          = REA.withRobot(null).withInput().withType(PlanarRegionsListMessage.class).withSuffix(ROS2Tools.REA_CUSTOM_REGION_NAME);
-   public static final ROS2Topic<REAStateRequestMessage> REA_STATE_REQUEST = REA.withInput().withTypeName(REAStateRequestMessage.class);
 
    public static final ROS2Topic<VideoPacket> VIDEO = IHMC_ROOT.withTypeName(VideoPacket.class);
    public static final ROS2Topic<VideoPacket> D435_VIDEO = VIDEO.withModule(D435_NAME);

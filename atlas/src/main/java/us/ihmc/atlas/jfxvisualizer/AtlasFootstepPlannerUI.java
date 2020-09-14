@@ -4,7 +4,6 @@ import controller_msgs.msg.dds.REAStateRequestMessage;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.stage.Stage;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import us.ihmc.atlas.AtlasRobotModel;
 import us.ihmc.atlas.AtlasRobotVersion;
@@ -51,7 +50,7 @@ public class AtlasFootstepPlannerUI extends Application
       RealtimeROS2Node ros2Node = ROS2Tools.createRealtimeROS2Node(DomainFactory.PubSubImplementation.FAST_RTPS, "ihmc_footstep_planner_ui");
       AtlasLowLevelMessenger robotLowLevelMessenger = new AtlasLowLevelMessenger(ros2Node, drcRobotModel.getSimpleRobotName());
       IHMCRealtimeROS2Publisher<REAStateRequestMessage> reaStateRequestPublisher
-            = ROS2Tools.createPublisherTypeNamed(ros2Node, REAStateRequestMessage.class, REACommunicationProperties.inputTopic);
+            = ROS2Tools.createPublisher(ros2Node, REACommunicationProperties.stateRequest);
       messageConverter = new RemoteUIMessageConverter(ros2Node, messager, drcRobotModel.getSimpleRobotName());
 
       messager.startMessager();

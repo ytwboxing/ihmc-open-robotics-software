@@ -133,6 +133,20 @@ public abstract class AbstractBehavior implements RobotController
       return createPublisher(messageType, behaviorInputTopic);
    }
 
+   public <T> IHMCROS2Publisher<T> createPublisher(ROS2Topic<T> topicName)
+   {
+      ROS2Topic<T> typedNamedTopic = topicName.withTypeName();
+      IHMCROS2Publisher<T> publisher = (IHMCROS2Publisher<T>) publishers.get(typedNamedTopic);
+
+      if (publisher == null) // !containsKey
+      {
+         publisher = ROS2Tools.createPublisher(ros2Node, typedNamedTopic);
+         publishers.put(typedNamedTopic, publisher);
+      }
+
+      return publisher;
+   }
+
    @SuppressWarnings("unchecked")
    public <T> IHMCROS2Publisher<T> createPublisher(Class<T> messageType, ROS2Topic<?> topicName)
    {

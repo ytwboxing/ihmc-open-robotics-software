@@ -81,7 +81,7 @@ public class PlanarSegmentationModule implements OcTreeConsumer, PerceptionModul
    private PlanarSegmentationModule(Messager reaMessager, Path configurationFilePath) throws Exception
    {
       this(ROS2Tools.createROS2Node(PubSubImplementation.FAST_RTPS, ROS2Tools.REA_NODE_NAME),
-           REACommunicationProperties.inputTopic,
+           REACommunicationProperties.stateRequest,
            REACommunicationProperties.subscriberCustomRegionsTopicName,
            ROS2Tools.REALSENSE_SLAM_MODULE,
            reaMessager,
@@ -93,7 +93,7 @@ public class PlanarSegmentationModule implements OcTreeConsumer, PerceptionModul
    private PlanarSegmentationModule(ROS2Node ros2Node, Messager reaMessager, Path configurationFilePath) throws Exception
    {
       this(ros2Node,
-           REACommunicationProperties.inputTopic,
+           REACommunicationProperties.stateRequest,
            REACommunicationProperties.subscriberCustomRegionsTopicName,
            ROS2Tools.REALSENSE_SLAM_REGIONS,
            reaMessager,
@@ -105,7 +105,7 @@ public class PlanarSegmentationModule implements OcTreeConsumer, PerceptionModul
    private PlanarSegmentationModule(ROS2Node ros2Node, Messager reaMessager, Path configurationFilePath, boolean runAsynchronously) throws Exception
    {
       this(ros2Node,
-           REACommunicationProperties.inputTopic,
+           REACommunicationProperties.stateRequest,
            REACommunicationProperties.subscriberCustomRegionsTopicName,
            ROS2Tools.REALSENSE_SLAM_MODULE,
            reaMessager,

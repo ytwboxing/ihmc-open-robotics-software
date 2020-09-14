@@ -15,8 +15,7 @@ import us.ihmc.ros2.NewMessageListener;
 import us.ihmc.ros2.ROS2Topic;
 import us.ihmc.ros2.ROS2Node;
 
-import static us.ihmc.robotEnvironmentAwareness.communication.REACommunicationProperties.inputTopic;
-import static us.ihmc.robotEnvironmentAwareness.communication.REACommunicationProperties.subscriberCustomRegionsTopicName;
+import static us.ihmc.robotEnvironmentAwareness.communication.REACommunicationProperties.*;
 
 public class REAPlanarRegionPublicNetworkProvider implements REANetworkProvider
 {
@@ -147,21 +146,15 @@ public class REAPlanarRegionPublicNetworkProvider implements REANetworkProvider
    }
 
    @Override
-   public void registerPlanarRegionsListRequestHandler(NewMessageListener<RequestPlanarRegionsListMessage> requestHandler)
-   {
-      ROS2Tools.createCallbackSubscriptionTypeNamed(ros2Node, RequestPlanarRegionsListMessage.class, inputTopic, requestHandler);
-   }
-
-   @Override
    public void registerREAStateRequestHandler(NewMessageListener<REAStateRequestMessage> requestHandler)
    {
-      ROS2Tools.createCallbackSubscriptionTypeNamed(ros2Node, REAStateRequestMessage.class, inputTopic, requestHandler);
+      ROS2Tools.createCallbackSubscription(ros2Node, stateRequest, requestHandler);
    }
 
    @Override
    public void registerREASensorDataFilterParametersHandler(NewMessageListener<REASensorDataFilterParametersMessage> parametersHandler)
    {
-      ROS2Tools.createCallbackSubscriptionTypeNamed(ros2Node, REASensorDataFilterParametersMessage.class, inputTopic, parametersHandler);
+      ROS2Tools.createCallbackSubscription(ros2Node, sensorDataFilterParameters, parametersHandler);
    }
 
    @Override

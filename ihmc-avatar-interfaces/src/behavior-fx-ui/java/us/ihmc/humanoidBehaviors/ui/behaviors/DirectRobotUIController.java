@@ -27,6 +27,7 @@ import us.ihmc.humanoidRobotics.communication.controllerAPI.command.GoHomeComman
 import us.ihmc.humanoidRobotics.communication.packets.HumanoidMessageTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
+import us.ihmc.robotEnvironmentAwareness.communication.REACommunicationProperties;
 import us.ihmc.robotEnvironmentAwareness.communication.SLAMModuleAPI;
 import us.ihmc.robotModels.FullHumanoidRobotModel;
 import us.ihmc.robotics.partNames.NeckJointName;
@@ -139,7 +140,7 @@ public class DirectRobotUIController extends Group
       realsenseVideoOverlay.getNode().addEventHandler(MouseEvent.MOUSE_PRESSED, event -> realsenseVideoOverlay.toggleMode());
       mainAnchorPane.getChildren().add(realsenseVideoStackPane);
 
-      reaStateRequestPublisher = new IHMCROS2Publisher<>(ros2Node, ROS2Tools.REA_STATE_REQUEST);
+      reaStateRequestPublisher = new IHMCROS2Publisher<>(ros2Node, REACommunicationProperties.stateRequest);
       clearSLAMPublisher = ROS2Tools.createPublisher(ros2Node, SLAMModuleAPI.CLEAR);
 
       supportRegionScale.setValueFactory(new DoubleSpinnerValueFactory(0.0, 10.0, BipedalSupportPlanarRegionPublisher.defaultScaleFactor, 0.1));

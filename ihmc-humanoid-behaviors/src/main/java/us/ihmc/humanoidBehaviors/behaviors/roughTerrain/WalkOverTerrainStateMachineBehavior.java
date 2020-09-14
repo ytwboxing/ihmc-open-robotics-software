@@ -115,7 +115,7 @@ public class WalkOverTerrainStateMachineBehavior extends AbstractBehavior
       headTrajectoryPublisher = createPublisherForController(HeadTrajectoryMessage.class);
       toolboxStatePublisher = createPublisher(ToolboxStateMessage.class, footstepPlannerInputTopic);
       planningRequestPublisher = createPublisher(FootstepPlanningRequestPacket.class, footstepPlannerInputTopic);
-      reaStateRequestPublisher = createPublisher(REAStateRequestMessage.class, REACommunicationProperties.inputTopic);
+      reaStateRequestPublisher = createPublisher(REACommunicationProperties.stateRequest);
 
       stateMachine = setupStateMachine(yoTime);
    }

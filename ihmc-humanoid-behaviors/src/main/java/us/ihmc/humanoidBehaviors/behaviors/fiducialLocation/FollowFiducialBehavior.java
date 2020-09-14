@@ -128,7 +128,7 @@ public class FollowFiducialBehavior extends StateMachineBehavior<FollowFiducialS
       headTrajectoryPublisher = createPublisherForController(HeadTrajectoryMessage.class);
       toolboxStatePublisher = createPublisher(ToolboxStateMessage.class, footstepPlannerInputTopic);
       planningRequestPublisher = createPublisher(FootstepPlanningRequestPacket.class, footstepPlannerInputTopic);
-      reaStateRequestPublisher = createPublisher(REAStateRequestMessage.class, REACommunicationProperties.inputTopic);
+      reaStateRequestPublisher = createPublisher(REACommunicationProperties.stateRequest);
       setupStateMachine();
    }
 

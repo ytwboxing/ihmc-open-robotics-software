@@ -68,7 +68,7 @@ public class PerceptionSuite
 //      slamConfigurationFilePath = Paths.get(rootPath.toString(), directory + SLAM_CONFIGURATION_FILE_NAME);
 
       REANetworkProvider lidarREANetworkProvider = new LidarREANetworkProvider(ros2Node, outputTopic, lidarOutputTopic);
-      REANetworkProvider realSenseREANetworkProvider = new RealSenseREANetworkProvider(ros2Node, stereoInputTopic, stereoOutputTopic);
+      REANetworkProvider realSenseREANetworkProvider = new RealSenseREANetworkProvider(ros2Node, stateRequestStereo, stereoOutputTopic);
       slamModule = new PerceptionSuiteComponent<>("RealSense SLAM",
                                                   () -> new SLAMPerceptionSuiteElement(this::createSLAMModuleInternal,
                                                                                        SLAMBasedEnvironmentAwarenessUI::creatIntraprocessUI),

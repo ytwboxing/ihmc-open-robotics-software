@@ -173,7 +173,7 @@ public class StepGeneratorJavaFXController
 
       pauseWalkingPublisher = ROS2Tools.createPublisherTypeNamed(ros2Node, PauseWalkingMessage.class, controllerInputTopic);
       footstepPublisher = ROS2Tools.createPublisherTypeNamed(ros2Node, FootstepDataListMessage.class, controllerInputTopic);
-      reaStateRequestPublisher = ROS2Tools.createPublisherTypeNamed(ros2Node, REAStateRequestMessage.class, REACommunicationProperties.inputTopic);
+      reaStateRequestPublisher = ROS2Tools.createPublisher(ros2Node, REACommunicationProperties.stateRequest);
 
       trajectoryDuration = messager.createInput(WalkingTrajectoryDuration, 1.0);
       stepTime = () -> stepParametersReference.get().getSwingDuration() + stepParametersReference.get().getTransferDuration();
