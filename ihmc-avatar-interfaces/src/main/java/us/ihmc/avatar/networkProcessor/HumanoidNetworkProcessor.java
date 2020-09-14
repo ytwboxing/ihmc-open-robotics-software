@@ -1,6 +1,7 @@
 package us.ihmc.avatar.networkProcessor;
 
 import controller_msgs.msg.dds.PlanarRegionsListMessage;
+import org.apache.commons.lang3.tuple.Pair;
 import us.ihmc.avatar.drcRobot.DRCRobotModel;
 import us.ihmc.avatar.drcRobot.RobotTarget;
 import us.ihmc.avatar.networkProcessor.fiducialDetectorToolBox.FiducialDetectorToolboxModule;
@@ -16,7 +17,6 @@ import us.ihmc.avatar.networkProcessor.modules.mocap.MocapPlanarRegionsListManag
 import us.ihmc.avatar.networkProcessor.objectDetectorToolBox.ObjectDetectorToolboxModule;
 import us.ihmc.avatar.networkProcessor.quadTreeHeightMap.HeightQuadTreeToolboxModule;
 import us.ihmc.avatar.networkProcessor.reaStateUpdater.HumanoidAvatarREAStateUpdater;
-import us.ihmc.avatar.networkProcessor.reaStateUpdater.HumanoidAvatarStereoREAStateUpdater;
 import us.ihmc.avatar.networkProcessor.supportingPlanarRegionPublisher.BipedalSupportPlanarRegionPublisher;
 import us.ihmc.avatar.networkProcessor.walkingPreview.WalkingControllerPreviewToolboxModule;
 import us.ihmc.avatar.networkProcessor.wholeBodyTrajectoryToolboxModule.WholeBodyTrajectoryToolboxModule;
@@ -56,7 +56,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
    private boolean hasStarted = false;
    private boolean isShutdownHookSetup = false;
    private final List<Runnable> modulesToStart = new ArrayList<>();
-   private final List<CloseableAndDisposable> modulesToClose = new ArrayList<>();
+   private final List<Pair<String, CloseableAndDisposable>> modulesToClose = new ArrayList<>();
 
    private final DRCRobotModel robotModel;
    private final PubSubImplementation pubSubImplementation;
@@ -157,7 +157,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       if (ros2Node == null)
       {
          ros2Node = ROS2Tools.createROS2Node(pubSubImplementation, NETWORK_PROCESSOR_ROS2_NODE_NAME);
-         modulesToClose.add(ros2Node::destroy);
+         addModuleToClose(ros2Node::destroy);
       }
       return ros2Node;
    }
@@ -183,7 +183,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       try
       {
          TextToSpeechNetworkModule module = new TextToSpeechNetworkModule(pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module);
          return module;
       }
       catch (Throwable e)
@@ -200,7 +200,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       try
       {
          ZeroPoseMockRobotConfigurationDataPublisherModule module = new ZeroPoseMockRobotConfigurationDataPublisherModule(robotModel, pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module);
          return module;
       }
       catch (Throwable e)
@@ -217,7 +217,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       try
       {
          WholeBodyTrajectoryToolboxModule module = new WholeBodyTrajectoryToolboxModule(robotModel, enableYoVariableServer, pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module);
          return module;
       }
       catch (Throwable e)
@@ -234,7 +234,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       try
       {
          KinematicsToolboxModule module = new KinematicsToolboxModule(robotModel, enableYoVariableServer, pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module);
          return module;
       }
       catch (Throwable e)
@@ -251,7 +251,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       try
       {
          KinematicsPlanningToolboxModule module = new KinematicsPlanningToolboxModule(robotModel, enableYoVariableServer, pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module);
          return module;
       }
       catch (Throwable e)
@@ -265,20 +265,20 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
    {
       try
       {
-         modulesToClose.add(new KinematicsStreamingToolboxMessageLogger(robotModel.getSimpleRobotName(), pubSubImplementation));
+         addModuleToClose(new KinematicsStreamingToolboxMessageLogger(robotModel.getSimpleRobotName(), pubSubImplementation));
 
          if (launcherClass == null)
          {
             checkIfModuleCanBeCreated(KinematicsStreamingToolboxModule.class);
 
             KinematicsStreamingToolboxModule module = new KinematicsStreamingToolboxModule(robotModel, enableYoVariableServer, pubSubImplementation);
-            modulesToClose.add(module);
+            addModuleToClose(module);
             return module;
          }
          else
          {
             Process process = new JavaProcessSpawner(true, true).spawn(launcherClass, programArgs);
-            modulesToClose.add(process::destroy);
+            addModuleToClose(process::destroy);
             return null;
          }
       }
@@ -297,7 +297,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       try
       {
          FootstepPlanningModule module = FootstepPlanningModuleLauncher.createModule(robotModel, PubSubImplementation.FAST_RTPS);
-         modulesToClose.add(module);
+         addModuleToClose(module);
 
          return module;
       }
@@ -360,7 +360,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
                                                               enableYoVariableServer,
                                                               sensorInformation);
          }
-         modulesToClose.add(behaviorManager);
+         addModuleToClose(behaviorManager);
          return behaviorManager;
       }
       catch (Throwable e)
@@ -377,7 +377,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       try
       {
          RosModule rosModule = new RosModule(robotModel, getOrCreateRosURI(), simulatedSensorCommunicator, pubSubImplementation);
-         modulesToClose.add(rosModule);
+         addModuleToClose(rosModule);
          return rosModule;
       }
       catch (Throwable e)
@@ -404,7 +404,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
          {
             sensorSuiteManager.initializePhysicalSensors(getOrCreateRosURI());
          }
-         modulesToClose.add(sensorSuiteManager);
+         addModuleToClose(sensorSuiteManager);
          modulesToStart.add(sensorSuiteManager::connect);
          return sensorSuiteManager;
       }
@@ -425,7 +425,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
                                                                               robotModel.createFullRobotModel(),
                                                                               robotModel.getLogModelProvider(),
                                                                               pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module);
          return module;
       }
       catch (Throwable e)
@@ -447,7 +447,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
                                                                               robotModel.createFullRobotModel(),
                                                                               robotModel.getLogModelProvider(),
                                                                               pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module);
          return module;
       }
       catch (Throwable e)
@@ -467,7 +467,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
                                                                               robotModel.createFullRobotModel(),
                                                                               robotModel.getLogModelProvider(),
                                                                               pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module);
          return module;
       }
       catch (Throwable e)
@@ -496,7 +496,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
          else
             filePropertyHelper = new FilePropertyHelper(DEFAULT_REA_CONFIG_FILE_PATH);
          module = LIDARBasedREAModule.createRemoteModule(filePropertyHelper, networkProvider);
-         modulesToClose.add(module::stop);
+         addModuleToClose(module::stop);
          modulesToStart.add(module::start);
          return module;
       }
@@ -514,7 +514,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       try
       {
          BipedalSupportPlanarRegionPublisher module = new BipedalSupportPlanarRegionPublisher(robotModel, pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module);
          modulesToStart.add(module::start);
          return module;
       }
@@ -532,7 +532,7 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       try
       {
          WalkingControllerPreviewToolboxModule module = new WalkingControllerPreviewToolboxModule(robotModel, enableYoVariableServer, pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module);
          return module;
       }
       catch (Throwable e)
@@ -544,12 +544,12 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
 
    public HumanoidAvatarREAStateUpdater setupHumanoidAvatarLidarREAStateUpdater()
    {
-      checkIfModuleCanBeCreated(HumanoidAvatarREAStateUpdater.class);
+      checkIfModuleCanBeCreated(HumanoidAvatarREAStateUpdater.class.getSimpleName() + "Lidar");
 
       try
       {
          HumanoidAvatarREAStateUpdater module = new HumanoidAvatarREAStateUpdater(robotModel, pubSubImplementation);
-         modulesToClose.add(module);
+         addModuleToClose(module, "Lidar");
          return module;
       }
       catch (Throwable e)
@@ -559,14 +559,14 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       }
    }
 
-   public HumanoidAvatarStereoREAStateUpdater setupHumanoidAvatarRealSenseREAStateUpdater()
+   public HumanoidAvatarREAStateUpdater setupHumanoidAvatarRealSenseREAStateUpdater()
    {
-      checkIfModuleCanBeCreated(HumanoidAvatarStereoREAStateUpdater.class);
+      checkIfModuleCanBeCreated(HumanoidAvatarREAStateUpdater.class.getSimpleName() + "Realsense");
 
       try
       {
-         HumanoidAvatarStereoREAStateUpdater module = new HumanoidAvatarStereoREAStateUpdater(robotModel, pubSubImplementation, stereoInputTopic);
-         modulesToClose.add(module);
+         HumanoidAvatarREAStateUpdater module = new HumanoidAvatarREAStateUpdater(robotModel, pubSubImplementation, stereoInputTopic);
+         addModuleToClose(module, "Realsense");
          return module;
       }
       catch (Throwable e)
@@ -582,17 +582,32 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
       e.printStackTrace();
    }
 
+   private void addModuleToClose(CloseableAndDisposable module)
+   {
+      modulesToClose.add(Pair.of(module.getClass().getSimpleName(), module));
+   }
+
+   private void addModuleToClose(CloseableAndDisposable module, String suffix)
+   {
+      modulesToClose.add(Pair.of(module.getClass().getSimpleName() + suffix, module));
+   }
+
    private void checkIfModuleCanBeCreated(Class<?> moduleType)
    {
-      if (hasModuleBeenSetup(moduleType))
-         throw new IllegalStateException("Attempting to instantiate a second time the module: " + moduleType.getSimpleName());
+      checkIfModuleCanBeCreated(moduleType.getSimpleName());
+   }
+
+   private void checkIfModuleCanBeCreated(String moduleName)
+   {
+      if (hasModuleBeenSetup(moduleName))
+         throw new IllegalStateException("Attempting to instantiate a second time the module: " + moduleName);
       if (hasStarted)
          throw new IllegalStateException("Attempting to instantiate a module but the network processor has already started.");
    }
 
-   private boolean hasModuleBeenSetup(Class<?> moduleType)
+   private boolean hasModuleBeenSetup(String moduleName)
    {
-      return modulesToClose.stream().anyMatch(module -> module.getClass().equals(moduleType));
+      return modulesToClose.stream().anyMatch(module -> module.getLeft().equals(moduleName));
    }
 
    public void start()
@@ -615,11 +630,11 @@ public class HumanoidNetworkProcessor implements CloseableAndDisposable
    @Override
    public void closeAndDispose()
    {
-      for (CloseableAndDisposable module : modulesToClose)
+      for (Pair<String, CloseableAndDisposable> module : modulesToClose)
       {
          try
          {
-            module.closeAndDispose();
+            module.getRight().closeAndDispose();
          }
          catch (Exception e)
          {
