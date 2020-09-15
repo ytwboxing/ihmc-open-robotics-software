@@ -6,9 +6,7 @@ import java.awt.Color;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import us.ihmc.commonWalkingControlModules.capturePoint.ICPControlGains;
 import us.ihmc.commonWalkingControlModules.capturePoint.optimization.ICPOptimizationParameters;
@@ -17,7 +15,6 @@ import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.
 import us.ihmc.commonWalkingControlModules.trajectories.SwingOverPlanarRegionsTrajectoryExpander;
 import us.ihmc.commonWalkingControlModules.trajectories.SwingOverPlanarRegionsVisualizer;
 import us.ihmc.commonWalkingControlModules.trajectories.TwoWaypointSwingGenerator;
-import us.ihmc.commons.ContinuousIntegrationTools;
 import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
@@ -62,17 +59,13 @@ import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoint3D;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class SwingOverPlanarRegionsTest
 {
-   private static boolean visualize = false;
-
-   @BeforeEach
-   public void setup()
-   {
-      visualize = visualize && !ContinuousIntegrationTools.isRunningOnContinuousIntegrationServer();
-   }
+   private static final boolean VISUALIZE = Boolean.parseBoolean(System.getProperty("visualize"));
 
    @Test
+   @Order(1)
    public void testAngleStepDown()
    {
       PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
@@ -97,6 +90,7 @@ public class SwingOverPlanarRegionsTest
    }
 
    @Test
+   @Order(2)
    public void testAngleStepSlightPitch()
    {
       PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
@@ -125,6 +119,7 @@ public class SwingOverPlanarRegionsTest
    }
 
    @Test
+   @Order(3)
    public void testBigStepDown()
    {
       PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
@@ -147,6 +142,7 @@ public class SwingOverPlanarRegionsTest
    }
 
    @Test
+   @Order(4)
    public void testFlatClearance()
    {
       PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
@@ -164,6 +160,7 @@ public class SwingOverPlanarRegionsTest
    }
 
    @Test
+   @Order(5)
    public void testFlatClearanceOfCurb()
    {
       PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
@@ -189,6 +186,7 @@ public class SwingOverPlanarRegionsTest
    }
 
    @Test
+   @Order(6)
    public void testFlatClearanceOfCurbNoGround()
    {
       PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
@@ -212,6 +210,7 @@ public class SwingOverPlanarRegionsTest
    }
 
    @Test
+   @Order(7)
    public void testTrickyStep1()
    {
       LittleWallsWithIncreasingHeightPlanarRegionEnvironment environment = new LittleWallsWithIncreasingHeightPlanarRegionEnvironment();
@@ -231,6 +230,7 @@ public class SwingOverPlanarRegionsTest
    }
 
    @Test
+   @Order(8)
    public void testTrickyStep2()
    {
       LittleWallsWithIncreasingHeightPlanarRegionEnvironment environment = new LittleWallsWithIncreasingHeightPlanarRegionEnvironment();
@@ -250,6 +250,7 @@ public class SwingOverPlanarRegionsTest
    }
 
    @Test
+   @Order(9)
    public void testTrickyStep1FullTrajectory()
    {
       LittleWallsWithIncreasingHeightPlanarRegionEnvironment environment = new LittleWallsWithIncreasingHeightPlanarRegionEnvironment(false);
@@ -270,6 +271,7 @@ public class SwingOverPlanarRegionsTest
 
    @Disabled
    @Test
+   @Order(10)
    public void testTrickyStep2FullTrajectory()
    {
       LittleWallsWithIncreasingHeightPlanarRegionEnvironment environment = new LittleWallsWithIncreasingHeightPlanarRegionEnvironment(false);
@@ -346,7 +348,7 @@ public class SwingOverPlanarRegionsTest
       SwingOverPlanarRegionsTrajectoryExpander expander = planningModule.getSwingOverPlanarRegionsTrajectoryExpander();
 
       SimulationConstructionSet scs = null;
-      if (visualize)
+      if (VISUALIZE)
       {
          scs = new SimulationConstructionSet(new Robot("Dummy"));
 
@@ -385,7 +387,7 @@ public class SwingOverPlanarRegionsTest
          secondWaypoint.setToNaN();
       }
 
-      if (visualize)
+      if (VISUALIZE)
       {
          scs.startOnAThread();
          scs.cropBuffer();
