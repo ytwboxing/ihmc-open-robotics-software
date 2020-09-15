@@ -2,7 +2,6 @@ package us.ihmc.avatar.networkProcessor.supportingPlanarRegionPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +53,7 @@ public class BipedalSupportPlanarRegionPublisher implements CloseableAndDisposab
    private final AtomicReference<RobotConfigurationData> latestRobotConfigurationData = new AtomicReference<>(null);
    private final AtomicReference<BipedalSupportPlanarRegionParametersMessage> latestParametersMessage = new AtomicReference<>(null);
 
-   private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(ThreadTools.getNamedThreadFactory(getClass().getSimpleName()));
+   private final ScheduledExecutorService executorService = ThreadTools.newSingleThreadScheduledExecutor(getClass().getSimpleName());
    private ScheduledFuture<?> task;
 
    private final FullHumanoidRobotModel fullRobotModel;
@@ -89,19 +88,18 @@ public class BipedalSupportPlanarRegionPublisher implements CloseableAndDisposab
                                                            REACommunicationProperties.subscriberCustomRegionsTopicName);
       ROS2Tools.createCallbackSubscription(ros2Node, BipedalSupportPlanarRegionParametersMessage.class, getTopic(robotName),
                                            s -> latestParametersMessage.set(s.takeNextData()));
-      ROS2Tools.createCallbackSubscriptionTypeNamed(ros2Node,
-                                                    WalkingStatusMessage.class,
-                                                    ControllerAPIDefinition.getOutputTopic(robotName),
-                                                    status ->
-                                                    {
-                                                       if (WalkingStatus.fromByte(status.takeNextData().getWalkingStatus())
-                                                       == WalkingStatus.STARTED)
-                                                       {
-                                                          BipedalSupportPlanarRegionParametersMessage parameters = new BipedalSupportPlanarRegionParametersMessage();
-                                                          parameters.setEnable(false);
-                                                          latestParametersMessage.set(parameters);
-                                                       }
-                                                    });
+      ROS2Tools.createCallbackSubscription(ros2Node,
+                                           ControllerAPIDefinition.getTopic(WalkingStatusMessage.class, robotName),
+                                           status ->
+                                           {
+                                              if (WalkingStatus.fromByte(status.takeNextData().getWalkingStatus())
+                                              == WalkingStatus.STARTED)
+                                              {
+                                                 BipedalSupportPlanarRegionParametersMessage parameters = new BipedalSupportPlanarRegionParametersMessage();
+                                                 parameters.setEnable(false);
+                                                 latestParametersMessage.set(parameters);
+                                              }
+                                           });
 
       BipedalSupportPlanarRegionParametersMessage defaultParameters = new BipedalSupportPlanarRegionParametersMessage();
       defaultParameters.setEnable(true);
