@@ -1,25 +1,19 @@
 package us.ihmc.commonWalkingControlModules.trajectories;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import us.ihmc.commonWalkingControlModules.trajectories.SwingOverPlanarRegionsTrajectoryExpander.SwingOverPlanarRegionsCollisionType;
 import us.ihmc.euclid.geometry.interfaces.ConvexPolygon2DReadOnly;
+import us.ihmc.euclid.referenceFrame.FrameBox3D;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.transform.RigidBodyTransform;
-import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.*;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameConvexPolygon2D;
-import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoint3D;
-import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
-import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
+import us.ihmc.yoVariables.euclid.referenceFrame.*;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SwingOverPlanarRegionsVisualizer
@@ -29,17 +23,16 @@ public class SwingOverPlanarRegionsVisualizer
    private final SimulationConstructionSet scs;
 
    private final YoFrameConvexPolygon2D yoFootPolygon;
-   private final YoFrameConvexPolygon2D yoCollisionPolygon;
    private final YoFrameVector3D planeNormal;
    private final YoFramePoint3D planeOrigin;
    private final YoFramePoseUsingYawPitchRoll solePose;
+   private final YoFrameYawPitchRoll collisionBoxOrientation;
    private final YoFramePoint3D swingFootPoint;
    private final YoFramePoint3D collisionBoxPoint;
    private final YoFramePoint3D firstWaypoint;
    private final YoFramePoint3D secondWaypoint;
-   private final YoGraphicEllipsoid collisionSphere;
    private final YoGraphicPolygon swingFoot;
-   private final YoGraphicPolygon collisionBox;
+   private final YoGraphicShape collisionGraphicBox;
    private final YoGraphicPolygon stanceFootGraphic;
    private final YoGraphicPolygon swingStartGraphic;
    private final YoGraphicPolygon swingEndGraphic;
@@ -53,38 +46,34 @@ public class SwingOverPlanarRegionsVisualizer
 
    public SwingOverPlanarRegionsVisualizer(SimulationConstructionSet scs, YoRegistry registry, YoGraphicsListRegistry yoGraphicsListRegistry,
                                            ConvexPolygon2DReadOnly footPolygon,
-                                           SwingOverPlanarRegionsTrajectoryExpander swingOverPlanarRegionsTrajectoryExpander)
+                                           SwingOverPlanarRegionsTrajectoryExpander trajectoryExpander)
    {
       this.scs = scs;
-      this.trajectoryExpander = swingOverPlanarRegionsTrajectoryExpander;
+      this.trajectoryExpander = trajectoryExpander;
 
       this.footPolygon = footPolygon;
 
       yoFootPolygon = new YoFrameConvexPolygon2D("footPolygon", ReferenceFrame.getWorldFrame(), 4, registry);
-      yoCollisionPolygon = new YoFrameConvexPolygon2D("collisionPolygon", ReferenceFrame.getWorldFrame(), 4, registry);
       yoFootPolygon.set(footPolygon);
-      double clearance = swingOverPlanarRegionsTrajectoryExpander.getMinimumClearance();
-      yoCollisionPolygon.addVertex(trajectoryExpander.getToeLength() + clearance, 0.5 * trajectoryExpander.getFootWidth() + clearance);
-      yoCollisionPolygon.addVertex(trajectoryExpander.getToeLength() + clearance, -0.5 * trajectoryExpander.getFootWidth() - clearance);
-      yoCollisionPolygon.addVertex(-trajectoryExpander.getHeelLength() - clearance, 0.5 * trajectoryExpander.getFootWidth() + clearance);
-      yoCollisionPolygon.addVertex(-trajectoryExpander.getHeelLength() - clearance, -0.5 * trajectoryExpander.getFootWidth() - clearance);
 
-      swingOverPlanarRegionsTrajectoryExpander.attachVisualizer(this::update);
+      trajectoryExpander.attachVisualizer(this::update);
 
       double footHeight = trajectoryExpander.getFootHeight();
-      double collisionBoxHeight = footHeight + 2.0 * trajectoryExpander.getMinimumClearance();
 
       solePose = new YoFramePoseUsingYawPitchRoll("SolePose", WORLD, registry);
       swingFootPoint = new YoFramePoint3D("SwingFootPoint", WORLD, registry);
-      collisionBoxPoint = new YoFramePoint3D("collisionBoxPoint", WORLD, registry);
       firstWaypoint = new YoFramePoint3D("FirstWaypointViz", WORLD, registry);
       secondWaypoint = new YoFramePoint3D("SecondWaypointViz", WORLD, registry);
       AppearanceDefinition bubble = YoAppearance.LightBlue();
       bubble.setTransparency(0.5);
-      collisionSphere = new YoGraphicEllipsoid("CollisionSphere", solePose.getPosition(), solePose.getYawPitchRoll(), bubble, new Vector3D());
       YoGraphicPosition trajectoryPosition = new YoGraphicPosition("TrajectoryPosition", swingFootPoint, 0.03, YoAppearance.Red());
-      collisionBox = new YoGraphicPolygon("CollisionBox", yoCollisionPolygon, collisionBoxPoint, solePose.getYawPitchRoll(),
-                                          1.0, collisionBoxHeight, bubble);
+
+      Graphics3DObject boxGraphicDefinition = new Graphics3DObject();
+      FrameBox3D collisionBox = trajectoryExpander.getCollisionBox();
+      boxGraphicDefinition.addCube(collisionBox.getSizeX(), collisionBox.getSizeY(), collisionBox.getSizeZ(), true, YoAppearance.CornflowerBlue());
+      collisionBoxPoint = new YoFramePoint3D("collisionBoxPoint", WORLD, registry);
+      collisionBoxOrientation = new YoFrameYawPitchRoll("CollisionBoxYawPitchRoll", WORLD, registry);
+      collisionGraphicBox = new YoGraphicShape("CollisionBox", boxGraphicDefinition, collisionBoxPoint, solePose.getYawPitchRoll(), 1.0);
       swingFoot = new YoGraphicPolygon("SwingFoot", yoFootPolygon, solePose.getPosition(), solePose.getYawPitchRoll(),
                                          1.0, footHeight, YoAppearance.Green());
       stanceFootGraphic = new YoGraphicPolygon("StanceFootGraphic", footPolygon.getNumberOfVertices(), registry, true, 1.0, YoAppearance.Blue());
@@ -136,8 +125,7 @@ public class SwingOverPlanarRegionsVisualizer
 
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", trajectoryPosition);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", planeVector);
-      yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", collisionSphere);
-      yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", collisionBox);
+      yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", collisionGraphicBox);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", swingFoot);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", stanceFootGraphic);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", swingStartGraphic);
@@ -155,20 +143,15 @@ public class SwingOverPlanarRegionsVisualizer
          intersectionMap.get(collisionType).setPosition(trajectoryExpander.getClosestPolygonPoint(collisionType));
       }
 
-      double sphereRadius = trajectoryExpander.getCollisionSphereRadius() + trajectoryExpander.getMinimumClearance();
-      collisionSphere.setRadii(new Vector3D(sphereRadius, sphereRadius, sphereRadius));
-      collisionSphere.update();
-
       double footHeight = trajectoryExpander.getFootHeight();
-      double collisionBoxHeight = footHeight + 2.0 * trajectoryExpander.getMinimumClearance();
 
       swingFootPoint.set(solePose.getPosition());
       swingFootPoint.addZ(0.5 * footHeight);
-      collisionBoxPoint.set(solePose.getPosition());
-      collisionBoxPoint.subZ(0.5 * collisionBoxHeight);
 
       swingFoot.update();
-      collisionBox.update();
+      collisionBoxOrientation.set(trajectoryExpander.getCollisionBox().getOrientation());
+      collisionBoxPoint.set(trajectoryExpander.getCollisionBox().getPosition());
+      collisionGraphicBox.update();
 
       firstWaypoint.set(trajectoryExpander.getExpandedWaypoints().get(0));
       secondWaypoint.set(trajectoryExpander.getExpandedWaypoints().get(1));
