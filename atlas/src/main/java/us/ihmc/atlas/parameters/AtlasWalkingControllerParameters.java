@@ -21,6 +21,7 @@ import us.ihmc.commonWalkingControlModules.configurations.ToeOffParameters;
 import us.ihmc.commonWalkingControlModules.configurations.ToeSlippingDetectorParameters;
 import us.ihmc.commonWalkingControlModules.configurations.WalkingControllerParameters;
 import us.ihmc.commonWalkingControlModules.controlModules.rigidBody.RigidBodyControlMode;
+import us.ihmc.commonWalkingControlModules.momentumBasedController.feedbackController.FeedbackControllerSettings;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.JointLimitParameters;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
 import us.ihmc.commonWalkingControlModules.sensors.footSwitch.WrenchBasedFootSwitchFactory;
@@ -113,6 +114,12 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
 
          handPosesWithRespectToChestFrame.put(robotSide, transform);
       }
+   }
+
+   @Override
+   public FeedbackControllerSettings getFeedbackControllerSettings()
+   {
+      return new AtlasFeedbackControllerSettings(jointMap, target);
    }
 
    @Override
@@ -434,11 +441,23 @@ public class AtlasWalkingControllerParameters extends WalkingControllerParameter
    {
       return 0.035 * jointMap.getModelScale();
    }
+   
+   @Override
+   public double getMaxICPErrorBeforeSingleSupportBackwardX()
+   {
+      return 0.04 * jointMap.getModelScale();
+   }
 
    @Override
    public double getMaxICPErrorBeforeSingleSupportInnerY()
    {
       return 0.015 * jointMap.getModelScale();
+   }
+
+   @Override
+   public double getMaxICPErrorBeforeSingleSupportOuterY()
+   {
+      return 0.15 * jointMap.getModelScale(); // Switch to single support 
    }
 
    @Override

@@ -12,6 +12,12 @@ public class AtlasToeOffParameters extends ToeOffParameters
       this.jointMap = jointMap;
    }
 
+   @Override
+   public boolean forceToeOffAtJointLimit()
+   {
+      return true;
+   }
+
    /** {@inheritDoc} */
    @Override
    public boolean doToeOffIfPossible()
