@@ -1,4 +1,4 @@
-package us.ihmc.footstepPlanning.swing;
+package us.ihmc.commonWalkingControlModules.trajectories;
 
 import javafx.scene.paint.Color;
 import us.ihmc.communication.packets.PlanarRegionMessageConverter;
@@ -9,6 +9,9 @@ import us.ihmc.footstepPlanning.graphSearch.parameters.DefaultFootstepPlannerPar
 import us.ihmc.footstepPlanning.graphSearch.parameters.FootstepPlannerParametersBasics;
 import us.ihmc.footstepPlanning.log.FootstepPlannerLog;
 import us.ihmc.footstepPlanning.log.FootstepPlannerLogLoader;
+import us.ihmc.footstepPlanning.swing.AdaptiveSwingTrajectoryCalculator;
+import us.ihmc.footstepPlanning.swing.DefaultSwingPlannerParameters;
+import us.ihmc.footstepPlanning.swing.SwingPlannerParametersBasics;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;

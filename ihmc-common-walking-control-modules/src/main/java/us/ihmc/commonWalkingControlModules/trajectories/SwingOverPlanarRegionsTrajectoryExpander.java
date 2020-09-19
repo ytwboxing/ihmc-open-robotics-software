@@ -82,7 +82,6 @@ public class SwingOverPlanarRegionsTrajectoryExpander
    private final RecyclingArrayList<FramePoint3D> adjustedWaypoints;
    private final double minimumSwingHeight;
    private final double maximumSwingHeight;
-   private final double footLengthOffset;
    private double heelLength;
    private double toeLength;
    private final double footLength;
@@ -143,7 +142,6 @@ public class SwingOverPlanarRegionsTrajectoryExpander
       maximumSwingHeight = steppingParameters.getMaxSwingHeightFromStanceFoot();
       toeLength = steppingParameters.getFootForwardOffset();
       heelLength = steppingParameters.getFootBackwardOffset();
-      footLengthOffset = 0.5 * (heelLength - toeLength);
       double scaleUp = steppingParameters.getActualFootLength() / steppingParameters.getFootLength();
       toeLength *= scaleUp;
       heelLength *= scaleUp;
@@ -822,8 +820,8 @@ public class SwingOverPlanarRegionsTrajectoryExpander
       endOfSwingReferenceFrame.getOrientation(endRotation);
       interpolatedSolePoseOrientation.interpolate(startRotation, endRotation, fraction);
       solePoseReferenceFrame.setPoseAndUpdate(trajectoryPosition, interpolatedSolePoseOrientation);
-      collisionBox.setReferenceFrame(solePoseReferenceFrame);
-      collisionBox.getPosition().set(footLengthOffset, 0.0, collisionBox.getSizeZ() / 2.0); // TODO: Why do these need to be negative?
+      collisionBox.setToZero(solePoseReferenceFrame);
+      collisionBox.getPosition().set(toeLength - ((heelLength + toeLength) / 2.0), 0.0, collisionBox.getSizeZ() / 2.0); // TODO: Why do these need to be negative?
       collisionBox.changeFrame(worldFrame);
    }
 

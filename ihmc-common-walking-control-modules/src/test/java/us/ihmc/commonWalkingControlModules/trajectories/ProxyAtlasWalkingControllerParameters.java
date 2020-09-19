@@ -1,4 +1,4 @@
-package us.ihmc.footstepPlanning.swing;
+package us.ihmc.commonWalkingControlModules.trajectories;
 
 import us.ihmc.commonWalkingControlModules.capturePoint.ICPControlGains;
 import us.ihmc.commonWalkingControlModules.capturePoint.optimization.ICPOptimizationParameters;

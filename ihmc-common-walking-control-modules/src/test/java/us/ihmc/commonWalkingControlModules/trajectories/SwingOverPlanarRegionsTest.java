@@ -1,4 +1,4 @@
-package us.ihmc.footstepPlanning.swing;
+package us.ihmc.commonWalkingControlModules.trajectories;
 
 import static us.ihmc.robotics.Assert.assertTrue;
 
@@ -12,9 +12,7 @@ import us.ihmc.commonWalkingControlModules.capturePoint.ICPControlGains;
 import us.ihmc.commonWalkingControlModules.capturePoint.optimization.ICPOptimizationParameters;
 import us.ihmc.commonWalkingControlModules.configurations.*;
 import us.ihmc.commonWalkingControlModules.momentumBasedController.optimization.MomentumOptimizationSettings;
-import us.ihmc.commonWalkingControlModules.trajectories.SwingOverPlanarRegionsTrajectoryExpander;
-import us.ihmc.commonWalkingControlModules.trajectories.SwingOverPlanarRegionsVisualizer;
-import us.ihmc.commonWalkingControlModules.trajectories.TwoWaypointSwingGenerator;
+import us.ihmc.commons.MutationTestFacilitator;
 import us.ihmc.commons.lists.RecyclingArrayList;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
@@ -33,6 +31,8 @@ import us.ihmc.footstepPlanning.FootstepPlanningModule;
 import us.ihmc.footstepPlanning.PlannedFootstep;
 import us.ihmc.footstepPlanning.graphSearch.parameters.DefaultFootstepPlannerParameters;
 import us.ihmc.footstepPlanning.icp.DefaultSplitFractionCalculatorParameters;
+import us.ihmc.footstepPlanning.swing.DefaultSwingPlannerParameters;
+import us.ihmc.footstepPlanning.swing.SwingPlannerParametersBasics;
 import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
@@ -346,6 +346,7 @@ public class SwingOverPlanarRegionsTest
       PlanarRegionsListDefinedEnvironment environment = new PlanarRegionsListDefinedEnvironment("environment", planarRegionsList, 1e-2, false);
 
       SwingOverPlanarRegionsTrajectoryExpander expander = planningModule.getSwingOverPlanarRegionsTrajectoryExpander();
+      expander.setMinimumSwingFootClearance(getParameters().getMinimumSwingFootClearance());
 
       SimulationConstructionSet scs = null;
       if (VISUALIZE)
@@ -360,6 +361,7 @@ public class SwingOverPlanarRegionsTest
          scs.addYoGraphicsListRegistry(yoGraphicsListRegistry);
          scs.setGroundVisible(false);
          scs.addStaticLinkGraphics(environment.getTerrainObject3D().getLinkGraphics());
+         scs.setupGraph("t");
       }
 
       planningModule.getPostProcessHandler().computeSwingWaypoints(request, footstepPlan);
@@ -927,5 +929,10 @@ public class SwingOverPlanarRegionsTest
             return true;
          }
       };
+   }
+
+   public static void main(String[] args)
+   {
+      MutationTestFacilitator.facilitateMutationTestForClass(SwingOverPlanarRegionsTrajectoryExpander.class, SwingOverPlanarRegionsTest.class);
    }
 }

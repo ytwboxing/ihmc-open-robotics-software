@@ -12,6 +12,7 @@ import us.ihmc.graphicsDescription.Graphics3DObject;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.*;
+import us.ihmc.robotics.referenceFrames.PoseReferenceFrame;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
 import us.ihmc.yoVariables.euclid.referenceFrame.*;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -26,13 +27,18 @@ public class SwingOverPlanarRegionsVisualizer
    private final YoFrameVector3D planeNormal;
    private final YoFramePoint3D planeOrigin;
    private final YoFramePoseUsingYawPitchRoll solePose;
-   private final YoFrameYawPitchRoll collisionBoxOrientation;
-   private final YoFramePoint3D swingFootPoint;
+   private final YoFramePoint3D actualFootBoxPoint;
+   private final YoFrameYawPitchRoll actualFootBoxOrientation;
+   private final YoGraphicShape actualFootGraphicBox;
    private final YoFramePoint3D collisionBoxPoint;
+   private final YoFrameYawPitchRoll collisionBoxOrientation;
+   private final YoGraphicShape collisionGraphicBox;
+   private final PoseReferenceFrame actualFootBoxReferenceFrame = new PoseReferenceFrame("footPose", WORLD);
+   private final FramePose3D collisionBoxPose = new FramePose3D();
+   private final YoFramePoint3D swingFootPoint;
    private final YoFramePoint3D firstWaypoint;
    private final YoFramePoint3D secondWaypoint;
    private final YoGraphicPolygon swingFoot;
-   private final YoGraphicShape collisionGraphicBox;
    private final YoGraphicPolygon stanceFootGraphic;
    private final YoGraphicPolygon swingStartGraphic;
    private final YoGraphicPolygon swingEndGraphic;
@@ -44,7 +50,9 @@ public class SwingOverPlanarRegionsVisualizer
    private final ConvexPolygon2DReadOnly footPolygon;
    private final SwingOverPlanarRegionsTrajectoryExpander trajectoryExpander;
 
-   public SwingOverPlanarRegionsVisualizer(SimulationConstructionSet scs, YoRegistry registry, YoGraphicsListRegistry yoGraphicsListRegistry,
+   public SwingOverPlanarRegionsVisualizer(SimulationConstructionSet scs,
+                                           YoRegistry registry,
+                                           YoGraphicsListRegistry yoGraphicsListRegistry,
                                            ConvexPolygon2DReadOnly footPolygon,
                                            SwingOverPlanarRegionsTrajectoryExpander trajectoryExpander)
    {
@@ -68,14 +76,27 @@ public class SwingOverPlanarRegionsVisualizer
       bubble.setTransparency(0.5);
       YoGraphicPosition trajectoryPosition = new YoGraphicPosition("TrajectoryPosition", swingFootPoint, 0.03, YoAppearance.Red());
 
-      Graphics3DObject boxGraphicDefinition = new Graphics3DObject();
+      Graphics3DObject actualFootGraphicDefinition = new Graphics3DObject();
       FrameBox3D collisionBox = trajectoryExpander.getCollisionBox();
-      boxGraphicDefinition.addCube(collisionBox.getSizeX(), collisionBox.getSizeY(), collisionBox.getSizeZ(), true, YoAppearance.CornflowerBlue());
-      collisionBoxPoint = new YoFramePoint3D("collisionBoxPoint", WORLD, registry);
-      collisionBoxOrientation = new YoFrameYawPitchRoll("CollisionBoxYawPitchRoll", WORLD, registry);
-      collisionGraphicBox = new YoGraphicShape("CollisionBox", boxGraphicDefinition, collisionBoxPoint, solePose.getYawPitchRoll(), 1.0);
-      swingFoot = new YoGraphicPolygon("SwingFoot", yoFootPolygon, solePose.getPosition(), solePose.getYawPitchRoll(),
-                                         1.0, footHeight, YoAppearance.Green());
+      AppearanceDefinition actualFootBoxAppearance = YoAppearance.CornflowerBlue();
+      actualFootBoxAppearance.setTransparency(0.6);
+      actualFootGraphicDefinition.addCube(collisionBox.getSizeX(), collisionBox.getSizeY(), collisionBox.getSizeZ(), false, actualFootBoxAppearance);
+      actualFootBoxPoint = new YoFramePoint3D("ActualFootBoxPoint", WORLD, registry);
+      actualFootBoxOrientation = new YoFrameYawPitchRoll("ActualFootBoxOrientation", WORLD, registry);
+      actualFootGraphicBox = new YoGraphicShape("ActualFootGraphicBox", actualFootGraphicDefinition, actualFootBoxPoint, actualFootBoxOrientation, 1.0);
+      AppearanceDefinition collisionBoxAppearance = YoAppearance.DarkRed();
+      collisionBoxAppearance.setTransparency(0.8);
+      double extraSize = trajectoryExpander.getMinimumClearance() * 2.0;
+      Graphics3DObject collisionBoxGraphicDefinition = new Graphics3DObject();
+      collisionBoxGraphicDefinition.addCube(collisionBox.getSizeX() + extraSize,
+                                            collisionBox.getSizeY() + extraSize,
+                                            collisionBox.getSizeZ() + extraSize,
+                                            false,
+                                            collisionBoxAppearance);
+      collisionBoxPoint = new YoFramePoint3D("CollisionBoxPoint", WORLD, registry);
+      collisionBoxOrientation = new YoFrameYawPitchRoll("CollisionBoxOrientation", WORLD, registry);
+      collisionGraphicBox = new YoGraphicShape("CollisionGraphicBox", collisionBoxGraphicDefinition, collisionBoxPoint, collisionBoxOrientation, 1.0);
+      swingFoot = new YoGraphicPolygon("SwingFoot", yoFootPolygon, solePose.getPosition(), solePose.getYawPitchRoll(), 1.0, footHeight, YoAppearance.Green());
       stanceFootGraphic = new YoGraphicPolygon("StanceFootGraphic", footPolygon.getNumberOfVertices(), registry, true, 1.0, YoAppearance.Blue());
       swingStartGraphic = new YoGraphicPolygon("SwingStartGraphic", footPolygon.getNumberOfVertices(), registry, true, 1.0, YoAppearance.Green());
       swingEndGraphic = new YoGraphicPolygon("SwingEndGraphic", footPolygon.getNumberOfVertices(), registry, true, 1.0, YoAppearance.Yellow());
@@ -125,6 +146,7 @@ public class SwingOverPlanarRegionsVisualizer
 
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", trajectoryPosition);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", planeVector);
+      yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", actualFootGraphicBox);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", collisionGraphicBox);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", swingFoot);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", stanceFootGraphic);
@@ -146,11 +168,20 @@ public class SwingOverPlanarRegionsVisualizer
       double footHeight = trajectoryExpander.getFootHeight();
 
       swingFootPoint.set(solePose.getPosition());
-      swingFootPoint.addZ(0.5 * footHeight);
+//      swingFootPoint.addZ(0.5 * footHeight);
 
       swingFoot.update();
-      collisionBoxOrientation.set(trajectoryExpander.getCollisionBox().getOrientation());
-      collisionBoxPoint.set(trajectoryExpander.getCollisionBox().getPosition());
+
+      actualFootBoxOrientation.set(trajectoryExpander.getCollisionBox().getOrientation());
+      actualFootBoxPoint.set(trajectoryExpander.getCollisionBox().getPosition());
+      actualFootGraphicBox.update();
+
+      actualFootBoxReferenceFrame.setPoseAndUpdate(trajectoryExpander.getCollisionBox().getPosition(), trajectoryExpander.getCollisionBox().getOrientation());
+      collisionBoxPose.setToZero(actualFootBoxReferenceFrame);
+      collisionBoxPose.appendTranslation(0.0, 0.0, -trajectoryExpander.getMinimumClearance());
+      collisionBoxPose.changeFrame(WORLD);
+      collisionBoxOrientation.set(collisionBoxPose.getOrientation());
+      collisionBoxPoint.set(collisionBoxPose.getPosition());
       collisionGraphicBox.update();
 
       firstWaypoint.set(trajectoryExpander.getExpandedWaypoints().get(0));
