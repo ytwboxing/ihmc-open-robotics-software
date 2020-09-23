@@ -61,6 +61,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
    private final YoDouble adjustmentIncrementDistanceGain;
    private final YoDouble maximumAdjustmentDistance;
    private final YoDouble minimumHeightAboveFloorForCollision;
+   private final YoDouble distanceToCollision;
    private final YoEnum<SwingOverPlanarRegionsCollisionType> mostSevereCollisionType;
    private final YoEnum<SwingOverPlanarRegionsStatus> status;
 
@@ -171,6 +172,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
       maximumAdjustmentIncrementDistance = new YoDouble(namePrefix + "MaximumAdjustmentIncrementDistance", registry);
       adjustmentIncrementDistanceGain = new YoDouble(namePrefix + "AdjustmentIncrementDistanceGain", registry);
       maximumAdjustmentDistance = new YoDouble(namePrefix + "MaximumAdjustmentDistance", registry);
+      distanceToCollision = new YoDouble(namePrefix + "DistanceToCollision", registry);
       wereWaypointsAdjusted = new YoBoolean(namePrefix + "WereWaypointsAdjusted", registry);
       status = new YoEnum<>(namePrefix + "Status", registry, SwingOverPlanarRegionsStatus.class);
       mostSevereCollisionType = new YoEnum<>(namePrefix + "CollisionType", registry, SwingOverPlanarRegionsCollisionType.class);
@@ -356,6 +358,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
                                   .setIncludingFrame(worldFrame, Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
          }
          mostSevereCollisionType.set(SwingOverPlanarRegionsCollisionType.NO_INTERSECTION);
+         distanceToCollision.set(Double.POSITIVE_INFINITY);
 
          status.set(checkAndAdjustForCollisions(filteredRegions, this::getFractionAlongLineForCollision));
          updateVisualizer();
@@ -377,6 +380,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
                                   .setIncludingFrame(worldFrame, Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
          }
          mostSevereCollisionType.set(SwingOverPlanarRegionsCollisionType.NO_INTERSECTION);
+         distanceToCollision.set(Double.POSITIVE_INFINITY);
 
          status.set(checkAndAdjustForCollisions(filteredRegions, this::getFractionThroughTrajectoryForCollision));
 
@@ -571,7 +575,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
          trajectoryPosition.set(collisionOnSegmentToPack);
          updateCollisionBoxPosition();
 
-         updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.NO_INTERSECTION, collisionOnRegionToPack);
+         updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.NO_INTERSECTION, collisionOnRegionToPack, Double.POSITIVE_INFINITY);
 
          if (checkValidityOfCollisionPoint(collisionInFootToPack, collisionOnRegionToPack, collisionBox, minimumClearance.getDoubleValue(), collisionIsOnRising))
          {
@@ -616,14 +620,13 @@ public class SwingOverPlanarRegionsTrajectoryExpander
 
          updateCollisionBoxFraction(fraction);
 
-         twoWaypointSwingGenerator.getWaypointTime(0);
          if (collisionIsOnRising && fraction > twoWaypointSwingGenerator.getWaypointTime(0))
             collisionIsOnRising = false;
 
          for (PlanarRegion planarRegion : planarRegions)
          {
             Point3DReadOnly closestPointOnRegion = PlanarRegionTools.closestPointOnPlane(trajectoryPosition, planarRegion);
-            updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.NO_INTERSECTION, closestPointOnRegion);
+            updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.NO_INTERSECTION, closestPointOnRegion, Double.POSITIVE_INFINITY);
 
             if (closestPointOnRegion == null)
                continue;
@@ -643,6 +646,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
 
       pointOnTrajectoryToPack.setToNaN();
       closestPointOnRegionToPack.setToNaN();
+      closestPointInFootToPack.setToNaN();
       return -1.0;
    }
 
@@ -661,11 +665,12 @@ public class SwingOverPlanarRegionsTrajectoryExpander
 
       footCollisionBox.orthogonalProjection(closestPointOnRegion, closestPointInFootToPack);
 
+      double distanceToCollision = footCollisionBox.distance(closestPointOnRegion);
       // if it's too far away, it's not a valid collision
-      if (footCollisionBox.distance(closestPointOnRegion) > minimumClearance)
+      if (distanceToCollision  > minimumClearance)
          return false;
 
-      updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.TOO_CLOSE_TO_IGNORE_PLANE, closestPointOnRegion);
+      updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.TOO_CLOSE_TO_IGNORE_PLANE, closestPointOnRegion, distanceToCollision);
 
       // checks we're not colliding with the floor
       if (!checkIfCollidingWithFloorPlane(closestPointOnRegion))
@@ -676,7 +681,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
                isCollisionAboveStartFoot(closestPointOnRegion, collisionIsOnRising) || isCollisionAboveEndFoot(closestPointOnRegion);
          if (isCollisionAboveFootholds)
          {  // move on, we're above the foot
-            updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.COLLISION_ABOVE_FOOT, closestPointOnRegion);
+            updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.COLLISION_ABOVE_FOOT, closestPointOnRegion, distanceToCollision);
          }
          else
          {
@@ -688,7 +693,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
 
             if (isCollisionInsideTheTrajectory)
             {  // If that condition is valid, we know we have a bad collision and we need to adjust.
-               updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.COLLISION_INSIDE_TRAJECTORY, closestPointOnRegion);
+               updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.COLLISION_INSIDE_TRAJECTORY, closestPointOnRegion, distanceToCollision);
                return true;
             }
 
@@ -705,27 +710,28 @@ public class SwingOverPlanarRegionsTrajectoryExpander
 
             if (collisionIsBetweenToeAndHeel)
             {
-               updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.COLLISION_BETWEEN_FEET, closestPointOnRegion);
+               updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.COLLISION_BETWEEN_FEET, closestPointOnRegion, distanceToCollision);
                return true;
             }
 
-            updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.OUTSIDE_TRAJECTORY, closestPointOnRegion);
+            updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.OUTSIDE_TRAJECTORY, closestPointOnRegion, distanceToCollision);
          }
       }
 
       return false;
    }
 
-   private void updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType collisionType, Point3DReadOnly collision)
+   private void updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType collisionType, Point3DReadOnly collision, double distanceToCollision)
    {
       if (collisionType.ordinal() > mostSevereCollisionType.getEnumValue().ordinal())
       {
          mostSevereCollisionType.set(collisionType);
+         this.distanceToCollision.set(distanceToCollision);
       }
 
       if (collision != null)
       {
-         if (trajectoryPosition.distanceSquared(collision) < trajectoryPosition.distanceSquared(closestPolygonPointMap.get(collisionType)))
+         if (collisionBox.signedDistance(collision) < collisionBox.signedDistance(closestPolygonPointMap.get(collisionType)))
             closestPolygonPointMap.get(collisionType).set(collision);
       }
    }
@@ -833,6 +839,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
    private void updateCollisionBox()
    {
       collisionBox.setToZero(solePoseReferenceFrame);
+      collisionBox.getSize().set(footLength, footWidth, footHeight);
       collisionBox.getPosition().set(toeLength - ((heelLength + toeLength) / 2.0), 0.0, collisionBox.getSizeZ() / 2.0);
       collisionBox.changeFrame(worldFrame);
    }
