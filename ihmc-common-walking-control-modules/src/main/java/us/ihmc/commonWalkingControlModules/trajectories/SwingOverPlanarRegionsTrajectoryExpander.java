@@ -14,6 +14,7 @@ import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.geometry.Plane3D;
 import us.ihmc.euclid.geometry.interfaces.Plane3DReadOnly;
 import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.orientation.interfaces.Orientation3DReadOnly;
 import us.ihmc.euclid.referenceFrame.*;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DBasics;
 import us.ihmc.euclid.referenceFrame.interfaces.FramePose3DReadOnly;
@@ -24,6 +25,7 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.log.LogTools;
 import us.ihmc.robotics.geometry.PlanarRegion;
 import us.ihmc.robotics.geometry.PlanarRegionTools;
 import us.ihmc.robotics.geometry.PlanarRegionsList;
@@ -360,6 +362,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
          numberOfTriesCounter.countOne();
       }
 
+      initializeSwingWaypoints();
       twoWaypointSwingGenerator.setTrajectoryType(TrajectoryType.CUSTOM, adjustedWaypoints);
       twoWaypointSwingGenerator.initialize();
       calculateTrajectoryLength(initialTrajectoryLength);
@@ -493,17 +496,13 @@ public class SwingOverPlanarRegionsTrajectoryExpander
       double thirdSegmentLength = adjustedWaypoints.get(1).distance(swingEndPosition);
       double totalLength = firstSegmentLength + secondSegmentLength + thirdSegmentLength;
 
-      twoWaypointSwingGenerator.setTrajectoryType(TrajectoryType.CUSTOM, adjustedWaypoints);
-      twoWaypointSwingGenerator.initialize();
-      adjustedWaypoints.get(0).set(twoWaypointSwingGenerator.getWaypoint(0));
-      adjustedWaypoints.get(1).set(twoWaypointSwingGenerator.getWaypoint(1));
-
-      double fraction = 1.0 / 6.0;
-      twoWaypointSwingGenerator.compute(fraction);
-      FramePoint3D frameTupleUnsafe = new FramePoint3D();
-      twoWaypointSwingGenerator.getPosition(frameTupleUnsafe);
-      trajectoryPosition.set(frameTupleUnsafe);
-      updateCollisionBox(fraction);
+      RotationMatrix startRotation = new RotationMatrix();
+      RotationMatrix endRotation = new RotationMatrix();
+      RotationMatrix interpolated = new RotationMatrix();
+      startOfSwingReferenceFrame.getOrientation(startRotation);
+      endOfSwingReferenceFrame.getOrientation(endRotation);
+      interpolated.interpolate(startRotation, endRotation, 0.5);
+      updateCollisionBoxOrientation(interpolated);
 
       double fractionThroughSegmentForCollision = checkLineSegmentForCollision(swingStartPosition,
                                                                                adjustedWaypoints.get(0),
@@ -517,12 +516,6 @@ public class SwingOverPlanarRegionsTrajectoryExpander
          return fractionThroughSegmentForCollision * firstSegmentLength / totalLength;
       }
 
-      fraction = 3.0 / 6.0;
-      twoWaypointSwingGenerator.compute(fraction);
-      twoWaypointSwingGenerator.getPosition(frameTupleUnsafe);
-      trajectoryPosition.set(frameTupleUnsafe);
-      updateCollisionBox(fraction);
-
       fractionThroughSegmentForCollision = checkLineSegmentForCollision(adjustedWaypoints.get(0),
                                                                         adjustedWaypoints.get(1),
                                                                         planarRegions,
@@ -534,12 +527,6 @@ public class SwingOverPlanarRegionsTrajectoryExpander
       {
          return (fractionThroughSegmentForCollision * secondSegmentLength + firstSegmentLength) / totalLength;
       }
-
-      fraction = 5.0 / 6.0;
-      twoWaypointSwingGenerator.compute(fraction);
-      twoWaypointSwingGenerator.getPosition(frameTupleUnsafe);
-      trajectoryPosition.set(frameTupleUnsafe);
-      updateCollisionBox(fraction);
 
       fractionThroughSegmentForCollision = checkLineSegmentForCollision(adjustedWaypoints.get(1),
                                                                         swingEndPosition,
@@ -567,6 +554,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
                                                Point3DBasics collisionOnRegionToPack,
                                                boolean collisionIsOnRising)
    {
+      double fraction = -1.0;
       for (PlanarRegion planarRegion : planarRegions)
       {
          Point3D startInLocal = new Point3D(firstEndpoint);
@@ -580,16 +568,23 @@ public class SwingOverPlanarRegionsTrajectoryExpander
 
          planarRegion.transformFromLocalToWorld(collisionOnRegionToPack);
          planarRegion.getTransformToWorld().transform(closestPointOnSegment, collisionOnSegmentToPack);
+         trajectoryPosition.set(collisionOnSegmentToPack);
+         updateCollisionBoxPosition();
 
          updateClosestAndMostSevereIntersectionPoint(SwingOverPlanarRegionsCollisionType.NO_INTERSECTION, collisionOnRegionToPack);
 
          if (checkValidityOfCollisionPoint(collisionInFootToPack, collisionOnRegionToPack, collisionBox, minimumClearance.getDoubleValue(), collisionIsOnRising))
-            return closestPointOnSegment.distance(startInLocal) / endInLocal.distance(startInLocal);
+         {
+            fraction = closestPointOnSegment.distance(startInLocal) / endInLocal.distance(startInLocal);
+            break;
+         }
       }
+
+      updateVisualizer();
 
       collisionOnSegmentToPack.setToNaN();
       collisionOnRegionToPack.setToNaN();
-      return -1.0;
+      return fraction;
    }
 
    /**
@@ -619,7 +614,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
 
          pointOnTrajectoryToPack.set(trajectoryPosition);
 
-         updateCollisionBox(fraction);
+         updateCollisionBoxFraction(fraction);
 
          twoWaypointSwingGenerator.getWaypointTime(0);
          if (collisionIsOnRising && fraction > twoWaypointSwingGenerator.getWaypointTime(0))
@@ -811,7 +806,7 @@ public class SwingOverPlanarRegionsTrajectoryExpander
       trajectoryLengthToSet.set(distance);
    }
 
-   private void updateCollisionBox(double fraction)
+   private void updateCollisionBoxFraction(double fraction)
    {
       RotationMatrix startRotation = new RotationMatrix();
       RotationMatrix endRotation = new RotationMatrix();
@@ -820,8 +815,25 @@ public class SwingOverPlanarRegionsTrajectoryExpander
       endOfSwingReferenceFrame.getOrientation(endRotation);
       interpolatedSolePoseOrientation.interpolate(startRotation, endRotation, fraction);
       solePoseReferenceFrame.setPoseAndUpdate(trajectoryPosition, interpolatedSolePoseOrientation);
+      updateCollisionBox();
+   }
+
+   private void updateCollisionBoxOrientation(Orientation3DReadOnly orientation)
+   {
+      solePoseReferenceFrame.setOrientationAndUpdate(orientation);
+      updateCollisionBox();
+   }
+
+   private void updateCollisionBoxPosition()
+   {
+      solePoseReferenceFrame.setPositionAndUpdate(trajectoryPosition);
+      updateCollisionBox();
+   }
+
+   private void updateCollisionBox()
+   {
       collisionBox.setToZero(solePoseReferenceFrame);
-      collisionBox.getPosition().set(toeLength - ((heelLength + toeLength) / 2.0), 0.0, collisionBox.getSizeZ() / 2.0); // TODO: Why do these need to be negative?
+      collisionBox.getPosition().set(toeLength - ((heelLength + toeLength) / 2.0), 0.0, collisionBox.getSizeZ() / 2.0);
       collisionBox.changeFrame(worldFrame);
    }
 
