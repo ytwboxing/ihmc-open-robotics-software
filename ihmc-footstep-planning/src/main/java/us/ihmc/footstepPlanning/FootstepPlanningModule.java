@@ -131,6 +131,10 @@ public class FootstepPlanningModule implements CloseableAndDisposable
          LogTools.info("Received planning request packet but planner is currently running");
          return null;
       }
+      else
+      {
+         LogTools.info("Handling footstep planner request...");
+      }
 
       stopwatch.start();
       output.clear();
