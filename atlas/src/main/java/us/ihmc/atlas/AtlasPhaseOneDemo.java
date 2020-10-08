@@ -38,10 +38,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * It is expected to run this class to produce simulation data
+ * and to run AtlasMissionControl to operate.
+ */
 public class AtlasPhaseOneDemo
 {
-   private static boolean START_LOOK_AND_STEP_UI = Boolean.parseBoolean(System.getProperty("start.look.and.step.ui"));
-   private static int STARTING_LOCATION = Integer.parseInt(System.getProperty("starting.location", "0"));
+   private static int STARTING_LOCATION = Integer.parseInt(System.getProperty("starting.location", "2"));
    private static boolean CREATE_PUSH_DOOR = Boolean.parseBoolean(System.getProperty("create.push.door", "true"));
    private static boolean CREATE_PULL_DOOR = Boolean.parseBoolean(System.getProperty("create.pull.door", "true"));
    private static boolean CREATE_DEBRIS = Boolean.parseBoolean(System.getProperty("create.debris", "false"));
@@ -105,17 +108,13 @@ public class AtlasPhaseOneDemo
       DRCSimulationTools.startSimulation(simulationStarter, null, args, null, modulesToStart);
 
       simulationStarter.getSimulationConstructionSet().addButton(ignoreDebrisButton);
+      simulationStarter.getSimulationConstructionSet().setupGraph("t");
 
       // Start Look and Step behavior
       BehaviorRegistry behaviorRegistry = BehaviorUIRegistry.of(LookAndStepBehaviorUI.DEFINITION, TraverseStairsBehavior.DEFINITION);
       BehaviorModule.createInterprocess(behaviorRegistry, robotModel);
 
-      if (START_LOOK_AND_STEP_UI)
-      {
-         BehaviorUI.createInterprocess(BehaviorUIRegistry.of(LookAndStepBehaviorUI.DEFINITION), robotModel, "127.0.0.1");
-      }
-
-      ThreadTools.startAsDaemon(this::startPerceptionStack, "PerceptionStack");
+//      ThreadTools.startAsDaemon(this::startPerceptionStack, "PerceptionStack");
       wakeUpToolboxes(robotModel);
    }
 
