@@ -966,4 +966,79 @@ public class SwingOverPlanarRegionsTrajectoryExpander
                                                       Point3DBasics collisionPointOnFootToPack,
                                                       Point3DBasics nearestPointInWorldToPack);
    }
+
+   public YoBoolean getDoInitialFastApproximation()
+   {
+      return doInitialFastApproximation;
+   }
+
+   public YoInteger getNumberOfCheckpoints()
+   {
+      return numberOfCheckpoints;
+   }
+
+   public YoCounter getNumberOfTriesCounter()
+   {
+      return numberOfTriesCounter;
+   }
+
+   public YoDouble getFastApproximationLessClearance()
+   {
+      return fastApproximationLessClearance;
+   }
+
+   public YoDouble getMinimumAdjustmentIncrementDistance()
+   {
+      return minimumAdjustmentIncrementDistance;
+   }
+
+   public YoDouble getMaximumAdjustmentIncrementDistance()
+   {
+      return maximumAdjustmentIncrementDistance;
+   }
+
+   public YoDouble getAdjustmentIncrementDistanceGain()
+   {
+      return adjustmentIncrementDistanceGain;
+   }
+
+   public YoDouble getMaximumAdjustmentDistance()
+   {
+      return maximumAdjustmentDistance;
+   }
+
+   public YoDouble getMinimumHeightAboveFloorForCollision()
+   {
+      return minimumHeightAboveFloorForCollision;
+   }
+
+   public YoDouble getDistanceToCollision()
+   {
+      return distanceToCollision;
+   }
+
+   public YoEnum<SwingOverPlanarRegionsCollisionType> getMostSevereCollisionType()
+   {
+      return mostSevereCollisionType;
+   }
+
+   public YoBoolean getCollisionIsOnRising()
+   {
+      return collisionIsOnRising;
+   }
+
+   public YoDouble getHeightAboveFloorPlane()
+   {
+      return heightAboveFloorPlane;
+   }
+
+   public YoDouble getHeightAboveEndFoot()
+   {
+      return heightAboveEndFoot;
+   }
+
+   public YoBoolean getWereWaypointsAdjusted()
+   {
+      return wereWaypointsAdjusted;
+   }
 }

@@ -49,6 +49,7 @@ public class SwingOverPlanarRegionsStandaloneVisualizer
       scs.addYoGraphicsListRegistry(yoGraphicsListRegistry);
       scs.setDT(1.0, 1);
       scs.setCameraFix(0.4, 0.0, 0.0);
+      visualizer.setupSCSGraphs();
 
       PlanarRegionsListGenerator generator = new PlanarRegionsListGenerator();
       generator.translate(0.4, 0.0, 0.0001);

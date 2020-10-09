@@ -58,7 +58,6 @@ public class SwingOverPlanarRegionsVisualizer
    {
       this.scs = scs;
       this.trajectoryExpander = trajectoryExpander;
-
       this.footPolygon = footPolygon;
 
       yoFootPolygon = new YoFrameConvexPolygon2D("footPolygon", ReferenceFrame.getWorldFrame(), 4, registry);
@@ -154,6 +153,31 @@ public class SwingOverPlanarRegionsVisualizer
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", swingEndGraphic);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", firstWaypointGraphic);
       yoGraphicsListRegistry.registerYoGraphic("SwingOverPlanarRegions", secondWaypointGraphic);
+   }
+
+   public void setupSCSGraphs()
+   {
+      if (scs.getGUI().getGraphArrayPanel().getGraphsOnThisPanel().isEmpty())
+      {
+         scs.setupGraph("t");
+      }
+      scs.setupGraph(trajectoryExpander.getNumberOfTriesCounter().getYoCount().getName());
+      scs.setupGraph(trajectoryExpander.getDistanceToCollision().getName());
+      scs.setupGraph(trajectoryExpander.getMostSevereCollisionType().getName());
+      scs.getGUI().getGraphArrayPanel().addColumn();
+      scs.setupGraph(trajectoryExpander.getCollisionIsOnRising().getName());
+      scs.setupGraph(trajectoryExpander.getHeightAboveFloorPlane().getName());
+      scs.setupGraph(trajectoryExpander.getHeightAboveEndFoot().getName());
+      scs.setupGraph(trajectoryExpander.getWereWaypointsAdjusted().getName());
+      scs.setupEntryBox(trajectoryExpander.getDoInitialFastApproximation().getName());
+      scs.setupEntryBox(trajectoryExpander.getNumberOfCheckpoints().getName());
+      scs.setupEntryBox(trajectoryExpander.getNumberOfTriesCounter().getYoMaxCount().getName());
+      scs.setupEntryBox(trajectoryExpander.getFastApproximationLessClearance().getName());
+      scs.setupEntryBox(trajectoryExpander.getMinimumAdjustmentIncrementDistance().getName());
+      scs.setupEntryBox(trajectoryExpander.getMaximumAdjustmentIncrementDistance().getName());
+      scs.setupEntryBox(trajectoryExpander.getAdjustmentIncrementDistanceGain().getName());
+      scs.setupEntryBox(trajectoryExpander.getMaximumAdjustmentDistance().getName());
+      scs.setupEntryBox(trajectoryExpander.getMinimumHeightAboveFloorForCollision().getName());
    }
 
    public void update()

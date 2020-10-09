@@ -38,4 +38,14 @@ public class YoCounter
    {
       this.maxCount.set(maxCount);
    }
+
+   public YoInteger getYoCount()
+   {
+      return count;
+   }
+
+   public YoInteger getYoMaxCount()
+   {
+      return maxCount;
+   }
 }

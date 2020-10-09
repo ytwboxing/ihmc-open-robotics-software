@@ -349,11 +349,12 @@ public class SwingOverPlanarRegionsTest
       expander.setMinimumSwingFootClearance(getParameters().getMinimumSwingFootClearance());
 
       SimulationConstructionSet scs = null;
+      SwingOverPlanarRegionsVisualizer visualizer = null;
       if (VISUALIZE)
       {
          scs = new SimulationConstructionSet(new Robot("Dummy"));
 
-         SwingOverPlanarRegionsVisualizer visualizer = new SwingOverPlanarRegionsVisualizer(scs, registry, yoGraphicsListRegistry, foot, expander);
+         visualizer = new SwingOverPlanarRegionsVisualizer(scs, registry, yoGraphicsListRegistry, foot, expander);
          expander.attachVisualizer(visualizer::update);
 
          scs.setDT(1.0, 1);
@@ -361,7 +362,6 @@ public class SwingOverPlanarRegionsTest
          scs.addYoGraphicsListRegistry(yoGraphicsListRegistry);
          scs.setGroundVisible(false);
          scs.addStaticLinkGraphics(environment.getTerrainObject3D().getLinkGraphics());
-         scs.setupGraph("t");
       }
 
       planningModule.getPostProcessHandler().computeSwingWaypoints(request, footstepPlan);
@@ -392,6 +392,7 @@ public class SwingOverPlanarRegionsTest
       if (VISUALIZE)
       {
          scs.startOnAThread();
+         visualizer.setupSCSGraphs();
          scs.cropBuffer();
          ThreadTools.sleepForever();
       }
