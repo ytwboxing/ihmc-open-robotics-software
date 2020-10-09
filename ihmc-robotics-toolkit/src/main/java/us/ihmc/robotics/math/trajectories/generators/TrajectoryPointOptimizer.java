@@ -141,6 +141,8 @@ public class TrajectoryPointOptimizer
       }
 
       tempCoeffs.reshape(coefficients, 1);
+
+      NativeCommonOps.ensureNativeOpsIsLoaded();
    }
 
    /**
