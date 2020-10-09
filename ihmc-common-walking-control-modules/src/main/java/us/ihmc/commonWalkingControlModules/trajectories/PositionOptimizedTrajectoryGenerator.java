@@ -167,7 +167,8 @@ public class PositionOptimizedTrajectoryGenerator
 
       if (graphicsListRegistry != null)
       {
-         List<YoPolynomial3D> yoPolynomial3Ds = YoPolynomial3D.createYoPolynomial3DList(trajectories.get(Axis3D.X), trajectories.get(Axis3D.Y),
+         List<YoPolynomial3D> yoPolynomial3Ds = YoPolynomial3D.createYoPolynomial3DList(trajectories.get(Axis3D.X),
+                                                                                        trajectories.get(Axis3D.Y),
                                                                                         trajectories.get(Axis3D.Z));
          trajectoryViz = new YoGraphicPolynomial3D(namePrefix + "Trajectory", null, yoPolynomial3Ds, waypointTimes, 0.01, 25, 8, registry);
          graphicsListRegistry.registerYoGraphic(namePrefix + "Trajectory", trajectoryViz);
@@ -281,7 +282,7 @@ public class PositionOptimizedTrajectoryGenerator
    }
 
    /**
-    * This method initialized the trajectory and does the optimization. This has to be called after
+    * This method initializes the trajectory and does the optimization. This has to be called after
     * setting the end point conditions and waypoints. It has to be called regardless of whether is
     * class is used as an actual trajectory or just to compute optimal waypoint times and
     * velocities.
@@ -289,7 +290,7 @@ public class PositionOptimizedTrajectoryGenerator
    public void initialize()
    {
       if (initialPosition.containsNaN())
-         throw new RuntimeException("Does not have valid enpoint conditions. Did you call setEndpointConditions?");
+         throw new RuntimeException("Does not have valid endpoint conditions. Did you call setEndpointConditions?");
 
       if (optimizeInOneTick.getBooleanValue())
       {

@@ -18,7 +18,6 @@ import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.graphicsDescription.appearance.YoAppearance;
 import us.ihmc.graphicsDescription.yoGraphics.BagOfBalls;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.robotics.math.trajectories.PositionTrajectoryGenerator;
 import us.ihmc.robotics.math.trajectories.trajectorypoints.FrameEuclideanTrajectoryPoint;
 import us.ihmc.robotics.robotSide.RobotSide;
 import us.ihmc.robotics.trajectories.TrajectoryType;
@@ -28,7 +27,6 @@ import us.ihmc.yoVariables.variable.YoDouble;
 
 public class TwoWaypointSwingGenerator implements SwingGenerator
 {
-   private static final int maxTimeIterations = -1; // setting this negative activates continuous updating
    private static final int numberWaypoints = 2;
    private static final double[] defaultWaypointProportions = new double[] {0.15, 0.85};
 
@@ -71,7 +69,23 @@ public class TwoWaypointSwingGenerator implements SwingGenerator
    private final YoBoolean needToAdjustedSwingForSelfCollision;
    private final YoBoolean crossOverStep;
 
-   public TwoWaypointSwingGenerator(String namePrefix, double minSwingHeight, double maxSwingHeight, double defaultSwingHeight, YoRegistry parentRegistry,
+   public TwoWaypointSwingGenerator(String namePrefix,
+                                    double minSwingHeight,
+                                    double maxSwingHeight,
+                                    double defaultSwingHeight,
+                                    YoRegistry parentRegistry,
+                                    YoGraphicsListRegistry yoGraphicsListRegistry)
+   {
+      // setting maxTimeIterations negative activates continuous updating
+      this(namePrefix, minSwingHeight, maxSwingHeight, defaultSwingHeight, -1, parentRegistry, yoGraphicsListRegistry);
+   }
+
+   public TwoWaypointSwingGenerator(String namePrefix,
+                                    double minSwingHeight,
+                                    double maxSwingHeight,
+                                    double defaultSwingHeight,
+                                    int maxTimeIterations,
+                                    YoRegistry parentRegistry,
                                     YoGraphicsListRegistry yoGraphicsListRegistry)
    {
       registry = new YoRegistry(namePrefix + getClass().getSimpleName());
