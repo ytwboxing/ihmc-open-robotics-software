@@ -1,9 +1,8 @@
-package us.ihmc.humanoidBehaviors.tools;
+package us.ihmc.tools;
 
 import org.junit.jupiter.api.Test;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.commons.thread.TypedNotification;
-import us.ihmc.humanoidBehaviors.lookAndStep.SingleThreadSizeOneQueueExecutor;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,8 +30,8 @@ public class SingleThreadSizeOneQueueExecutorTest
          resultTwo.set(output.toString());
       };
 
-      executor.queueExecution(runnableOne);
-      executor.queueExecution(runnableTwo);
+      executor.submitTask(runnableOne);
+      executor.submitTask(runnableTwo);
 
       resultOne.blockingPoll();
       assertEquals("a", resultOne.read());
@@ -69,9 +68,9 @@ public class SingleThreadSizeOneQueueExecutorTest
          resultThree.set(output.toString());
       };
 
-      executor.queueExecution(runnableOne);
-      executor.queueExecution(runnableTwo); // this one should get skipped
-      executor.queueExecution(runnableThree);
+      executor.submitTask(runnableOne);
+      executor.submitTask(runnableTwo); // this one should get skipped
+      executor.submitTask(runnableThree);
 
       resultOne.blockingPoll();
       assertEquals("a", resultOne.read());

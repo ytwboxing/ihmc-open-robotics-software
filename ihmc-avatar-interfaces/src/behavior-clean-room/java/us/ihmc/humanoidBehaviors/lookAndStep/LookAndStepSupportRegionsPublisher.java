@@ -4,8 +4,9 @@ import controller_msgs.msg.dds.CapturabilityBasedStatus;
 import controller_msgs.msg.dds.PlanarRegionsListMessage;
 import us.ihmc.communication.ROS2Tools;
 import us.ihmc.communication.packets.PlanarRegionMessageConverter;
-import us.ihmc.communication.util.Timer;
-import us.ihmc.communication.util.TimerSnapshotWithExpiration;
+import us.ihmc.tools.SingleThreadSizeOneQueueExecutor;
+import us.ihmc.tools.Timer;
+import us.ihmc.tools.TimerSnapshotWithExpiration;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.geometry.Plane3D;
@@ -68,7 +69,7 @@ public class LookAndStepSupportRegionsPublisher
 
    public void queuePublish()
    {
-      executor.queueExecution(this::evaluateAndRun);
+      executor.submitTask(this::evaluateAndRun);
    }
 
    public void acceptCapturabilityBasedStatus(CapturabilityBasedStatus capturabilityBasedStatus)

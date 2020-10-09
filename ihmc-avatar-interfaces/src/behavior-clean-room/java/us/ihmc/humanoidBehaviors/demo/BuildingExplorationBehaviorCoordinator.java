@@ -9,7 +9,6 @@ import us.ihmc.communication.ROS2Tools;
 import us.ihmc.communication.packets.PlanarRegionMessageConverter;
 import us.ihmc.communication.util.NetworkPorts;
 import us.ihmc.euclid.geometry.Pose3D;
-import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
@@ -59,6 +58,7 @@ public class BuildingExplorationBehaviorCoordinator
    private final ROS2Node ros2Node;
    private final YoEnum<BuildingExplorationStateName> requestedState = new YoEnum<>("requestedState", "", registry, BuildingExplorationStateName.class, true);
    private final StateMachine<BuildingExplorationStateName, State> stateMachine;
+   private final KryoMessager kryoMessager;
 
    private final AtomicBoolean isRunning = new AtomicBoolean();
    private final AtomicBoolean stopRequested = new AtomicBoolean();
@@ -85,7 +85,7 @@ public class BuildingExplorationBehaviorCoordinator
       executorService = Executors.newSingleThreadScheduledExecutor();
 
       BehaviorRegistry behaviorRegistry = BehaviorRegistry.of(LookAndStepBehavior.DEFINITION, TraverseStairsBehavior.DEFINITION);
-      KryoMessager messager = KryoMessager.createClient(behaviorRegistry.getMessagerAPI(),
+      kryoMessager = KryoMessager.createClient(behaviorRegistry.getMessagerAPI(),
                                            "127.0.0.1",
                                            NetworkPorts.BEHAVIOUR_MODULE_PORT.getPort(),
                                            getClass().getSimpleName(),
@@ -93,7 +93,7 @@ public class BuildingExplorationBehaviorCoordinator
 
       try
       {
-         messager.startMessager();
+         kryoMessager.startMessager();
       }
       catch (Exception e)
       {
@@ -101,9 +101,9 @@ public class BuildingExplorationBehaviorCoordinator
       }
 
       teleopState = new TeleopState();
-      lookAndStepState = new LookAndStepState(robotName, ros2Node, messager, bombPosition);
+      lookAndStepState = new LookAndStepState(robotName, ros2Node, kryoMessager, bombPosition);
       walkThroughDoorState = new WalkThroughDoorState(robotName, ros2Node);
-      traverseStairsState = new TraverseStairsState(ros2Node, messager, bombPosition, robotConfigurationData::get);
+      traverseStairsState = new TraverseStairsState(ros2Node, kryoMessager, bombPosition, robotConfigurationData::get);
 
       ROS2Topic<?> objectDetectionTopic = ROS2Tools.OBJECT_DETECTOR_TOOLBOX.withRobot(robotName).withOutput();
       ROS2Tools.createCallbackSubscriptionTypeNamed(ros2Node, DoorLocationPacket.class, objectDetectionTopic, s -> doorLocationPacket.set(s.takeNextData()));
@@ -161,6 +161,11 @@ public class BuildingExplorationBehaviorCoordinator
    {
       lookAndStepState.ignoreDebris();
       requestState(BuildingExplorationStateName.LOOK_AND_STEP);
+   }
+
+   public void proceedWithDoorBehavior()
+   {
+      walkThroughDoorState.proceedWithDoorBehavior();
    }
 
    public void start()
@@ -485,16 +490,18 @@ public class BuildingExplorationBehaviorCoordinator
       final IHMCROS2Publisher<BehaviorControlModePacket> behaviorModePublisher;
       final IHMCROS2Publisher<HumanoidBehaviorTypePacket> behaviorTypePublisher;
       final AtomicBoolean isDone = new AtomicBoolean();
+      final AtomicBoolean receivedOperatorConfirmation = new AtomicBoolean();
+      final AtomicBoolean hasStartedBehavior = new AtomicBoolean();
 
       public WalkThroughDoorState(String robotName, ROS2Node ros2Node)
       {
          ROS2Topic<?> inputTopic = ROS2Tools.BEHAVIOR_MODULE.withRobot(robotName).withInput();
          ROS2Topic<?> outputTopic = ROS2Tools.BEHAVIOR_MODULE.withRobot(robotName).withOutput();
 
-         behaviorModePublisher = ROS2Tools.createPublisher(ros2Node, BehaviorControlModePacket.class, inputTopic);
-         behaviorTypePublisher = ROS2Tools.createPublisher(ros2Node, HumanoidBehaviorTypePacket.class, inputTopic);
+         behaviorModePublisher = ROS2Tools.createPublisherTypeNamed(ros2Node, BehaviorControlModePacket.class, inputTopic);
+         behaviorTypePublisher = ROS2Tools.createPublisherTypeNamed(ros2Node, HumanoidBehaviorTypePacket.class, inputTopic);
 
-         ROS2Tools.createCallbackSubscription(ros2Node, BehaviorStatusPacket.class, outputTopic, s ->
+         ROS2Tools.createCallbackSubscriptionTypeNamed(ros2Node, BehaviorStatusPacket.class, outputTopic, s ->
          {
             BehaviorStatusPacket behaviorStatusPacket = s.takeNextData();
             CurrentBehaviorStatus behaviorStatus = CurrentBehaviorStatus.fromByte(behaviorStatusPacket.getCurrentBehaviorStatus());
@@ -508,9 +515,8 @@ public class BuildingExplorationBehaviorCoordinator
       @Override
       public void onEntry()
       {
-         HumanoidBehaviorTypePacket humanoidBehaviorTypePacket = new HumanoidBehaviorTypePacket();
-         humanoidBehaviorTypePacket.setHumanoidBehaviorType(HumanoidBehaviorType.WALK_THROUGH_DOOR.toByte());
-         behaviorTypePublisher.publish(humanoidBehaviorTypePacket);
+         receivedOperatorConfirmation.set(false);
+         hasStartedBehavior.set(false);
          isDone.set(false);
 
          if (DEBUG)
@@ -519,9 +525,26 @@ public class BuildingExplorationBehaviorCoordinator
          }
       }
 
+      private void startBehavior()
+      {
+         HumanoidBehaviorTypePacket humanoidBehaviorTypePacket = new HumanoidBehaviorTypePacket();
+         humanoidBehaviorTypePacket.setHumanoidBehaviorType(HumanoidBehaviorType.WALK_THROUGH_DOOR.toByte());
+         behaviorTypePublisher.publish(humanoidBehaviorTypePacket);
+      }
+
       @Override
       public void doAction(double timeInState)
       {
+         if (receivedOperatorConfirmation.get() && !hasStartedBehavior.get())
+         {
+            startBehavior();
+            hasStartedBehavior.set(true);
+
+            if (DEBUG)
+            {
+               LogTools.info("Sent packet to start " + HumanoidBehaviorType.WALK_THROUGH_DOOR);
+            }
+         }
       }
 
       @Override
@@ -542,6 +565,11 @@ public class BuildingExplorationBehaviorCoordinator
       {
          return isDone.get();
       }
+
+      public void proceedWithDoorBehavior()
+      {
+         receivedOperatorConfirmation.set(true);
+      }
    }
 
    private static class TraverseStairsState implements State
@@ -560,7 +588,7 @@ public class BuildingExplorationBehaviorCoordinator
       {
          this.messager = messager;
 
-         this.goalPublisher = ROS2Tools.createPublisher(ros2Node, TraverseStairsBehaviorAPI.GOAL_INPUT);
+         this.goalPublisher = IHMCROS2Publisher.newPose3DPublisher(ros2Node, TraverseStairsBehaviorAPI.GOAL_INPUT);
          this.startPublisher = ROS2Tools.createPublisher(ros2Node, TraverseStairsBehaviorAPI.START);
          this.stopPublisher = ROS2Tools.createPublisher(ros2Node, TraverseStairsBehaviorAPI.STOP);
 
@@ -626,6 +654,11 @@ public class BuildingExplorationBehaviorCoordinator
       {
          return isDone.get();
       }
+   }
+
+   public KryoMessager getKryoMessager()
+   {
+      return kryoMessager;
    }
 
    public static void main(String[] args)

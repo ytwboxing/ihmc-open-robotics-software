@@ -6,8 +6,9 @@ import us.ihmc.commons.FormattingTools;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.commons.thread.TypedNotification;
 import us.ihmc.communication.packets.PlanarRegionMessageConverter;
-import us.ihmc.communication.util.Timer;
-import us.ihmc.communication.util.TimerSnapshotWithExpiration;
+import us.ihmc.tools.SingleThreadSizeOneQueueExecutor;
+import us.ihmc.tools.Timer;
+import us.ihmc.tools.TimerSnapshotWithExpiration;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
@@ -22,7 +23,7 @@ import us.ihmc.footstepPlanning.log.FootstepPlannerLogger;
 import us.ihmc.footstepPlanning.swing.SwingPlannerParametersReadOnly;
 import us.ihmc.footstepPlanning.swing.SwingPlannerType;
 import us.ihmc.footstepPlanning.tools.FootstepPlannerRejectionReasonReport;
-import us.ihmc.humanoidBehaviors.tools.RemoteSyncedRobotModel;
+import us.ihmc.avatar.drcRobot.RemoteSyncedRobotModel;
 import us.ihmc.humanoidBehaviors.tools.footstepPlanner.FootstepPlanEtcetera;
 import us.ihmc.humanoidBehaviors.tools.footstepPlanner.MinimalFootstep;
 import us.ihmc.humanoidBehaviors.tools.interfaces.StatusLogger;
@@ -109,9 +110,9 @@ public class LookAndStepFootstepPlanningTask
 
          executor = new SingleThreadSizeOneQueueExecutor(getClass().getSimpleName());
 
-         localizationResultInput.addCallback(data -> executor.queueExecution(this::evaluateAndRun));
-         planarRegionsInput.addCallback(data -> executor.queueExecution(this::evaluateAndRun));
-         footstepCompletedInput.addCallback(() -> executor.queueExecution(this::evaluateAndRun));
+         localizationResultInput.addCallback(data -> executor.submitTask(this::evaluateAndRun));
+         planarRegionsInput.addCallback(data -> executor.submitTask(this::evaluateAndRun));
+         footstepCompletedInput.addCallback(() -> executor.submitTask(this::evaluateAndRun));
 
          suppressor = new BehaviorTaskSuppressor(statusLogger, "Footstep planning");
          suppressor.addCondition("Not in footstep planning state", () -> !behaviorState.equals(LookAndStepBehavior.State.FOOTSTEP_PLANNING));

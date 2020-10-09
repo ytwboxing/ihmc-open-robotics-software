@@ -79,7 +79,7 @@ public class AStarFootstepPlanner
       this.snapper = new FootstepNodeSnapAndWiggler(footPolygons, footstepPlannerParameters);
 
       this.checker = new FootstepNodeChecker(footstepPlannerParameters, footPolygons, snapper, registry);
-      this.idealStepCalculator = new IdealStepCalculator(footstepPlannerParameters, checker::isNodeValid, bodyPathPlanHolder);
+      this.idealStepCalculator = new IdealStepCalculator(footstepPlannerParameters, checker::isNodeValid, bodyPathPlanHolder, registry);
       this.expansion = new ParameterBasedNodeExpansion(footstepPlannerParameters, idealStepCalculator::computeIdealStep, footPolygons);
 
       this.distanceAndYawHeuristics = new FootstepPlannerHeuristicCalculator(snapper, footstepPlannerParameters, bodyPathPlanHolder, registry);
@@ -104,7 +104,6 @@ public class AStarFootstepPlanner
 
                                                               edgeDataMap.put(edge, edgeData.getCopyAndClear());
                                                               stepCostCalculator.resetLoggedVariables();
-                                                              distanceAndYawHeuristics.resetLoggedVariables();
                                                            });
    }
 
@@ -200,10 +199,13 @@ public class AStarFootstepPlanner
          recordIterationData(iterationData);
          iterationCallback.accept(iterationData);
 
-         if (completionChecker.checkIfGoalIsReached(iterationData))
+         FootstepNode achievedGoalNode = completionChecker.checkIfGoalIsReached(iterationData);
+         if (achievedGoalNode != null)
          {
             // the final graph expansion is handled manually
-            AStarIterationData<FootstepNode> finalIterationData = footstepPlanner.getIterationData();
+            AStarIterationData<FootstepNode> finalIterationData = new AStarIterationData<>();
+            finalIterationData.setParentNode(achievedGoalNode);
+            finalIterationData.getValidChildNodes().add(completionChecker.getEndNode());
             recordIterationData(finalIterationData);
             iterationCallback.accept(finalIterationData);
 

@@ -1,6 +1,7 @@
 package us.ihmc.humanoidBehaviors.lookAndStep;
 
-import us.ihmc.communication.util.Timer;
+import us.ihmc.tools.SingleThreadSizeOneQueueExecutor;
+import us.ihmc.tools.Timer;
 import us.ihmc.humanoidBehaviors.tools.interfaces.StatusLogger;
 import us.ihmc.humanoidBehaviors.tools.walkingController.ControllerStatusTracker;
 
@@ -32,7 +33,7 @@ public class LookAndStepReset
    public void queueReset()
    {
       resetTimer.reset();
-      executor.queueExecution(this::performReset);
+      executor.submitTask(this::performReset);
    }
 
    private void performReset()

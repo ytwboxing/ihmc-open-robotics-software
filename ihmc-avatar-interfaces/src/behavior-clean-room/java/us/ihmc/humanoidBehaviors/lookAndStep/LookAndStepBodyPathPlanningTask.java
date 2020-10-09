@@ -15,15 +15,16 @@ import org.apache.commons.lang3.tuple.Pair;
 import us.ihmc.commons.thread.TypedNotification;
 import us.ihmc.commons.time.Stopwatch;
 import us.ihmc.communication.packets.PlanarRegionMessageConverter;
-import us.ihmc.communication.util.Timer;
-import us.ihmc.communication.util.TimerSnapshotWithExpiration;
+import us.ihmc.tools.SingleThreadSizeOneQueueExecutor;
+import us.ihmc.tools.Timer;
+import us.ihmc.tools.TimerSnapshotWithExpiration;
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.referenceFrame.FramePose3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.footstepPlanning.BodyPathPlanningResult;
 import us.ihmc.footstepPlanning.graphSearch.VisibilityGraphPathPlanner;
-import us.ihmc.humanoidBehaviors.tools.RemoteSyncedRobotModel;
+import us.ihmc.avatar.drcRobot.RemoteSyncedRobotModel;
 import us.ihmc.humanoidBehaviors.tools.interfaces.StatusLogger;
 import us.ihmc.humanoidBehaviors.tools.interfaces.UIPublisher;
 import us.ihmc.humanoidBehaviors.tools.walkingController.ControllerStatusTracker;
@@ -96,23 +97,21 @@ public class LookAndStepBodyPathPlanningTask
          // don't run two body path plans at the same time
          executor = new SingleThreadSizeOneQueueExecutor(getClass().getSimpleName());
 
-         mapRegionsInput.addCallback(data -> executor.queueExecution(this::evaluateAndRun));
-         goalInput.addCallback(data -> executor.queueExecution(this::evaluateAndRun));
+         mapRegionsInput.addCallback(data -> executor.submitTask(this::evaluateAndRun));
+         goalInput.addCallback(data -> executor.submitTask(this::evaluateAndRun));
 
          suppressor = new BehaviorTaskSuppressor(statusLogger, "Body path planning");
          suppressor.addCondition("Not in body path planning state", () -> !behaviorState.equals(BODY_PATH_PLANNING));
          suppressor.addCondition(() -> "Looking... Neck pitch: " + neckPitch,
                                  () -> neckTrajectoryTimerSnapshot.isRunning());
-         suppressor.addCondition(() -> "Neck at wrong angle: " + neckPitch
-                                       + " != " + lookAndStepBehaviorParameters.getNeckPitchForBodyPath()
-                                       + " +/- " + lookAndStepBehaviorParameters.getNeckPitchTolerance(),
-                                 () -> Math.abs(neckPitch - lookAndStepBehaviorParameters.getNeckPitchForBodyPath())
-                                       > lookAndStepBehaviorParameters.getNeckPitchTolerance(),
-                                 () ->
-                                 {
-                                    commandPitchHeadWithRespectToChest.accept(lookAndStepBehaviorParameters.getNeckPitchForBodyPath());
-                                    neckTrajectoryTimer.reset();
-                                 });
+         suppressor.addCondition(SuppressionConditions.neckPitchWithCorrection(() -> neckPitch,
+                                                                               lookAndStepBehaviorParameters::getNeckPitchForBodyPath,
+                                                                               lookAndStepBehaviorParameters::getNeckPitchTolerance,
+                                           () ->
+                                           {
+                                              commandPitchHeadWithRespectToChest.accept(lookAndStepBehaviorParameters.getNeckPitchForBodyPath());
+                                              neckTrajectoryTimer.reset();
+                                           }));
          suppressor.addCondition("No goal specified",
                                  () -> !(goal != null && !goal.containsNaN()),
                                  () -> uiPublisher.publishToUI(PlanarRegionsForUI, mapRegions));
