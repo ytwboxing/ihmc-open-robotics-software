@@ -114,6 +114,7 @@ public class CoMTrajectoryPlanner implements CoMTrajectoryProvider
    private final List<Trajectory3D> vrpTrajectories = new ArrayList<>();
 
    private int numberOfConstraints = 0;
+   private boolean maintainInitialCoMVelocityContinuity = false;
 
    private CornerPointViewer viewer = null;
 
@@ -139,6 +140,11 @@ public class CoMTrajectoryPlanner implements CoMTrajectoryProvider
       omega.notifyListeners();
 
       parentRegistry.addChild(registry);
+   }
+
+   public void setMaintainInitialCoMVelocityContinuity(boolean maintainInitialCoMVelocityContinuity)
+   {
+      this.maintainInitialCoMVelocityContinuity = maintainInitialCoMVelocityContinuity;
    }
 
    public void setCornerPointViewer(CornerPointViewer viewer)
@@ -169,8 +175,11 @@ public class CoMTrajectoryPlanner implements CoMTrajectoryProvider
       if (!ContactStateProviderTools.checkContactSequenceIsValid(contactSequence))
          throw new IllegalArgumentException("The contact sequence is not valid.");
 
-      insertKnotForContinuity(contactSequence);
-      contactSequence = contactSequenceInternal;
+      if (maintainInitialCoMVelocityContinuity)
+      {
+         insertKnotForContinuity(contactSequence);
+         contactSequence = contactSequenceInternal;
+      }
 
       indexHandler.update(contactSequence);
 
@@ -265,8 +274,6 @@ public class CoMTrajectoryPlanner implements CoMTrajectoryProvider
          contactSequenceInternal.add(contactSequence.get(i));
    }
 
-   private static final boolean constrainCoMInitialVelocity = true;
-
    private void solveForCoefficientConstraintMatrix(List<? extends ContactStateProvider> contactSequence)
    {
       int numberOfPhases = contactSequence.size();
@@ -280,7 +287,7 @@ public class CoMTrajectoryPlanner implements CoMTrajectoryProvider
 
       int transition = 0;
       // add a moveable waypoint for the center of mass velocity constraint
-      if (constrainCoMInitialVelocity && contactSequence.get(0).getContactState().isLoadBearing())
+      if (maintainInitialCoMVelocityContinuity && contactSequence.get(0).getContactState().isLoadBearing())
       {
          setCoMVelocityConstraint(currentCoMVelocity);
          setCoMPositionContinuity(contactSequence, 0, 1);
