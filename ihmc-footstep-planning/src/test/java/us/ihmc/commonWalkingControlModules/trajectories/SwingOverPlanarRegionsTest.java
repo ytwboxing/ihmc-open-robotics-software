@@ -361,6 +361,7 @@ public class SwingOverPlanarRegionsTest
          scs.addYoRegistry(registry);
          scs.addYoGraphicsListRegistry(yoGraphicsListRegistry);
          scs.setGroundVisible(false);
+         scs.skipLoadingDefaultConfiguration();
          scs.addStaticLinkGraphics(environment.getTerrainObject3D().getLinkGraphics());
       }
 
@@ -391,6 +392,7 @@ public class SwingOverPlanarRegionsTest
 
       if (VISUALIZE)
       {
+         scs.getGUI().getFrame().setSize(1600, 1100);
          scs.startOnAThread();
          visualizer.setupSCSGraphs();
          scs.cropBuffer();
