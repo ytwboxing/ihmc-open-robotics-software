@@ -23,27 +23,35 @@ public class HumanoidFloatingRootJointRobot extends FloatingRootJointRobot
       this(robotDescription, sdfJointNameMap, true, true);
    }
 
-   public HumanoidFloatingRootJointRobot(RobotDescription robotDescription, HumanoidJointNameMap sdfJointNameMap, boolean enableDamping, boolean enableJointTorqueAndVelocityLimits)
+   public HumanoidFloatingRootJointRobot(RobotDescription robotDescription, HumanoidJointNameMap sdfJointNameMap, boolean enableDamping,
+                                         boolean enableJointTorqueAndVelocityLimits)
    {
-      super(robotDescription, enableDamping, enableJointTorqueAndVelocityLimits && (sdfJointNameMap == null || sdfJointNameMap.isTorqueVelocityLimitsEnabled()));
+      this(robotDescription, sdfJointNameMap,
+           createDefaultJointBuilder(enableDamping,
+                                     enableJointTorqueAndVelocityLimits && (sdfJointNameMap == null || sdfJointNameMap.isTorqueVelocityLimitsEnabled())));
+   }
+
+   public HumanoidFloatingRootJointRobot(RobotDescription robotDescription, HumanoidJointNameMap sdfJointNameMap, JointBuilderFromDescription jointBuilder)
+   {
+      super(robotDescription, jointBuilder);
 
       for (RobotSide robotSide : RobotSide.values)
       {
          footGroundContactPoints.put(robotSide, new ArrayList<GroundContactPoint>());
          handGroundContactPoints.put(robotSide, new ArrayList<GroundContactPoint>());
-         if(sdfJointNameMap != null)
+         if (sdfJointNameMap != null)
          {
             jointsBeforeFeet.put(robotSide, sdfJointNameMap.getJointBeforeFootName(robotSide));
          }
       }
 
-      for(Joint joint : getOneDegreeOfFreedomJoints())
+      for (Joint joint : getOneDegreeOfFreedomJoints())
       {
-         for(RobotSide robotSide : RobotSide.values)
+         for (RobotSide robotSide : RobotSide.values)
          {
             ArrayList<GroundContactPoint> contactPointsForJoint = getGroundContactPointsOnJoint(joint);
 
-            if(contactPointsForJoint != null)
+            if (contactPointsForJoint != null)
             {
                String jointName = joint.getName();
                if (jointName.equals(sdfJointNameMap.getJointBeforeFootName(robotSide)))

@@ -101,13 +101,13 @@ public class FullRobotModelCorruptor
       {
          for (LegJointName legJointName : legJointNames)
          {
-            RevoluteJoint oneDoFJoint = (RevoluteJoint) fullRobotModel.getLegJoint(robotSide, legJointName);
+            OneDoFJointBasics oneDoFJoint = (RevoluteJoint) fullRobotModel.getLegJoint(robotSide, legJointName);
             createJointAngleCorruptor(namePrefix, oneDoFJoint.getName(), oneDoFJoint);
          }
 
          for (ArmJointName armJointName : armJointNames)
          {
-            RevoluteJoint oneDoFJoint = (RevoluteJoint) fullRobotModel.getArmJoint(robotSide, armJointName);
+            OneDoFJointBasics oneDoFJoint = (RevoluteJoint) fullRobotModel.getArmJoint(robotSide, armJointName);
             createJointAngleCorruptor(namePrefix, oneDoFJoint.getName(), oneDoFJoint);
          }
       }
@@ -121,7 +121,7 @@ public class FullRobotModelCorruptor
       parentRegistry.addChild(registry);
    }
 
-   private void createJointAngleCorruptor(String namePrefix, String name, RevoluteJoint oneDoFJoint)
+   private void createJointAngleCorruptor(String namePrefix, String name, OneDoFJointBasics oneDoFJoint)
    {
 //      name = FormattingTools.addPrefixAndKeepCamelCase(namePrefix, name);
 //      final ReferenceFrame frameBeforeJoint = oneDoFJoint.getFrameBeforeJoint();
