@@ -1,6 +1,6 @@
 plugins {
    id("us.ihmc.ihmc-build") version "0.22.0"
-   id("us.ihmc.ihmc-ci") version "5.3"
+   id("us.ihmc.ihmc-ci") version "6.8"
    id("us.ihmc.ihmc-cd") version "1.14"
    id("us.ihmc.scs") version "0.4"
    id("us.ihmc.log-tools-plugin") version "0.5.0"
@@ -30,7 +30,7 @@ mainDependencies {
    api("us.ihmc:euclid-frame-shape:0.15.1")
    api("us.ihmc:mecano:0.7.1")
    api("us.ihmc:mecano-yovariables:0.7.1")
-   api("us.ihmc:ihmc-yovariables:0.9.5")
+   api("us.ihmc:ihmc-yovariables:0.9.6")
    api("us.ihmc:ihmc-realtime:1.3.0")
    api("us.ihmc:IHMCRosControl:0.5.0") {
       setChanging(true)
