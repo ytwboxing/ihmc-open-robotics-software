@@ -27,14 +27,15 @@ import us.ihmc.commons.nio.PathTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.simulationConstructionSetTools.util.gui.GUIMessageFrame;
 import us.ihmc.simulationconstructionset.SimulationConstructionSet;
+import us.ihmc.tools.io.LogFolderTools;
 
 public class BambooTools
 {
-   private final static String[] possibleRootDirectoriesForBambooDataAndVideos = new String[] { "C:/videos/", "D:/BambooDataAndVideos/",
-         "../BambooDataAndVideos/", "~/bamboo-videos" };
+   private final static String[] possibleRootDirectoriesForBambooDataAndVideos
+         = new String[] {"C:/videos/", "D:/BambooDataAndVideos/", "../BambooDataAndVideos/", LogFolderTools.getLogFolder()};
 
-   private final static String eraseableBambooDataAndVideosDirectoryLinux = "~/bamboo-videos";
-   private final static String eraseableBambooDataAndVideosDirectoryWindows = "C:/videos/";
+   private final static String eraseableBambooDataAndVideosDirectoryLinux = LogFolderTools.getLogFolder();
+   private final static String eraseableBambooDataAndVideosDirectoryWindows = LogFolderTools.getLogFolder();
 
    private static final String UPLOADED_VIDEOS_LOG = "uploaded-videos.log";
 
