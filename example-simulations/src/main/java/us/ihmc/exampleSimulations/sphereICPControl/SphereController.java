@@ -3,7 +3,6 @@ package us.ihmc.exampleSimulations.sphereICPControl;
 import us.ihmc.exampleSimulations.sphereICPControl.controllers.BasicSphereController;
 import us.ihmc.exampleSimulations.sphereICPControl.controllers.GenericSphereController;
 import us.ihmc.exampleSimulations.sphereICPControl.controllers.SphereControlToolbox;
-import us.ihmc.exampleSimulations.sphereICPControl.controllers.SphereICPOptimizationController;
 import us.ihmc.exampleSimulations.sphereICPControl.controllers.SphereNewICPController;
 import us.ihmc.robotModels.FullRobotModel;
 import us.ihmc.simulationConstructionSetTools.tools.RobotTools;
@@ -13,9 +12,9 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SphereController implements RobotController
 {
-   private enum SphereControllerEnum {BASIC, NEW_ICP, ICP_OPTIMIZATION}
+   private enum SphereControllerEnum {BASIC, NEW_ICP}
 
-   private static final SphereControllerEnum controllerType = SphereControllerEnum.ICP_OPTIMIZATION;
+   private static final SphereControllerEnum controllerType = SphereControllerEnum.NEW_ICP;
 
    private final YoRegistry registry = new YoRegistry("SphereController");
 
@@ -40,9 +39,6 @@ public class SphereController implements RobotController
          break;
       case NEW_ICP:
          sphereController = new SphereNewICPController(controlToolbox, registry);
-         break;
-      case ICP_OPTIMIZATION:
-         sphereController = new SphereICPOptimizationController(controlToolbox, registry);
          break;
       default:
          sphereController = new BasicSphereController(controlToolbox, registry);
