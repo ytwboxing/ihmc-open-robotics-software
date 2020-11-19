@@ -8,7 +8,7 @@ public class QPInput
 {
    private static final int initialTaskSize = 6;
 
-   private final int numberOfVariables;
+   private int numberOfVariables;
 
    public final DMatrixRMaj taskJacobian = new DMatrixRMaj(0, 0);
    public final DMatrixRMaj taskObjective = new DMatrixRMaj(0, 0);
@@ -39,6 +39,11 @@ public class QPInput
    {
       this.numberOfVariables = numberOfVariables;
       reshape(initialTaskSize);
+   }
+
+   public void setNumberOfVariables(int numberOfVariables)
+   {
+      this.numberOfVariables = numberOfVariables;
    }
 
    public void reshape(int taskSize)
