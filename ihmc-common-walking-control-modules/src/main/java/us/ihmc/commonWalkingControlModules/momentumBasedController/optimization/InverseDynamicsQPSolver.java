@@ -239,7 +239,7 @@ public class InverseDynamicsQPSolver
       }
    }
 
-   public void addMotionInput(QPInput input)
+   public void addMotionInput(QPInputTypeA input)
    {
       switch (input.getConstraintType())
       {
@@ -263,7 +263,7 @@ public class InverseDynamicsQPSolver
       }
    }
 
-   public void addMotionInput(DirectQPInput input)
+   public void addMotionInput(QPInputTypeB input)
    {
       if (input.useWeightScalar())
          addMotionTask(input.taskJacobian, input.taskConvectiveTerm, input.getWeightScalar(), input.directCostHessian, input.directCostGradient);
@@ -271,7 +271,7 @@ public class InverseDynamicsQPSolver
          addMotionTask(input.taskJacobian, input.taskConvectiveTerm, input.taskWeightMatrix, input.directCostHessian, input.directCostGradient);
    }
 
-   public void addRhoInput(QPInput input)
+   public void addRhoInput(QPInputTypeA input)
    {
       switch (input.getConstraintType())
       {
